@@ -1,0 +1,44 @@
+{
+  "name": "centinela",
+  "version": "1.0.0",
+  "description": "Paraguay-first integrity intelligence system for public procurement and corruption-risk research.",
+  "type": "commonjs",
+  "main": "dist/cli.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc --noEmit",
+    "paraguay:first-slice": "tsx src/cli.ts paraguay first-slice",
+    "paraguay:bulk-year": "tsx src/cli.ts paraguay bulk-year",
+    "enrichment:opensanctions": "tsx src/cli.ts enrichment opensanctions",
+    "enrichment:opensanctions-hosted-match": "tsx src/cli.ts enrichment opensanctions-hosted-match",
+    "enrichment:dncp-supplier-anchor": "tsx src/cli.ts enrichment dncp-supplier-anchor",
+    "enrichment:dnit-ruc-equivalence": "tsx src/cli.ts enrichment dnit-ruc-equivalence",
+    "enrichment:idb-sanctions-candidate": "tsx src/cli.ts enrichment idb-sanctions-candidate",
+    "database:load-bundle": "tsx src/cli.ts database load-bundle",
+    "database:analyst-brief": "tsx src/cli.ts database analyst-brief",
+    "database:entity-brief": "tsx src/cli.ts database entity-brief",
+    "database:review-queue": "tsx src/cli.ts database review-queue",
+    "database:entity-intelligence-queue": "tsx src/cli.ts database entity-intelligence-queue",
+    "database:external-candidates": "tsx src/cli.ts database external-candidates",
+    "database:review-external-candidate": "tsx src/cli.ts database review-external-candidate",
+    "database:entity-anchor-gaps": "tsx src/cli.ts database entity-anchor-gaps",
+    "database:rulebook": "tsx src/cli.ts database rulebook"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "csv-parse": "^6.2.1",
+    "dotenv": "^17.4.2",
+    "pg": "^8.20.0",
+    "unzipper": "^0.12.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/pg": "^8.20.0",
+    "@types/unzipper": "^0.10.11",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  }
+}

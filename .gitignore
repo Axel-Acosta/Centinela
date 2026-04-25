@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+tmp_*.json
+tmp*.json
+tmp*.txt
+tmp*.log
+
+# Generated runtime artifacts live outside the repo by default.
+data/*
+!data/README.md
+
+# Local machine artifacts
+.centinela-local/
+.cache/

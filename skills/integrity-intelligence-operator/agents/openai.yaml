@@ -1,0 +1,4 @@
+interface:
+  display_name: "Integrity Intelligence Operator"
+  short_description: "Build and run public-integrity intelligence workflows"
+  default_prompt: "Use $integrity-intelligence-operator to collect sources, preserve project memory, and extend the Paraguay-first integrity intelligence system."

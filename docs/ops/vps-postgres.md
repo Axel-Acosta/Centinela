@@ -1,0 +1,55 @@
+# VPS and PostgreSQL direction
+
+## Current observed environment
+
+- Host OS: Ubuntu 24.04
+- Docker present
+- PostgreSQL 16 present in Docker
+- PostgreSQL container IP observed on 2026-04-17: `172.18.0.2`
+- `node` and `npm` are not currently installed on the VPS
+- Existing services already use the VPS, so Centinela should avoid reusing another project's database directly
+
+## Safe posture
+
+- Create a dedicated Centinela database before loading project tables
+- Keep secrets in `.env`, never in committed files
+- Prefer schema-managed SQL over ad hoc manual table creation
+
+## Recommended next infrastructure step
+
+1. Keep using the batched local loader over an SSH tunnel until there is a clear reason to add a remote runtime
+2. Keep extending the SQL query layer for process, entity, edge, and review-queue investigation
+3. Add formal rule-registry tables or metadata only when the rule model is ready, not as premature schema churn
+4. Keep database credentials in `.env` and never in repo files
+
+## Why this is the right next step
+
+It uses the infrastructure already available, avoids spending another run debating topology, and keeps the project ready for an eventual analyst API or internal UI without forcing early public exposure.
+
+## Current status
+
+- Dedicated database created: `centinela`
+- Initial schema applied from `sql/postgres/001_init.sql`
+- Contract transaction table applied from `sql/postgres/002_contract_transactions.sql`
+- Analyst indexes and views applied from `sql/postgres/003_analyst_views.sql`
+- Entity intelligence and review views applied from `sql/postgres/004_entity_intelligence.sql`
+- Entity enrichment tables and views applied from `sql/postgres/006_entity_enrichment.sql`
+- Local entity-anchor tables and views applied from `sql/postgres/007_local_entity_anchor.sql`
+- Entity-intelligence queue views applied from `sql/postgres/008_entity_intelligence_queue.sql`
+- Entity anchor-gap review view applied from `sql/postgres/009_entity_anchor_gap_review.sql`
+- DNCP supplier-code identifier repair applied from `sql/postgres/010_dncp_supplier_identifier_repair.sql`
+- DNIT-aware anchor-gap refinement applied from `sql/postgres/011_entity_anchor_gap_dnit_resolution.sql`
+- Entity enrichment candidate storage and candidate-aware queue views applied from `sql/postgres/012_entity_enrichment_candidates.sql`
+- Hosted comparison storage applied from `sql/postgres/013_hosted_match_comparisons.sql`
+- Manual external candidate review workflow applied from `sql/postgres/014_external_candidate_review_workflow.sql`
+- DNCP 2025 and 2026 bulk bundles loaded successfully into PostgreSQL
+- OpenSanctions bulk screening run persisted under `ext-opensanctions-default`
+- OpenSanctions hosted comparison persisted under `ext-opensanctions-hosted-match`
+- Official IDB Open Data source-check row persisted under `ext-idb-sanctions-open-data`
+- DNCP supplier-anchor run persisted under `py-dncp-supplier-anchor`
+- DNIT RUC equivalence run persisted under `py-dnit-ruc-equivalence`
+- Current Paraguay local identity state: 2,533 of 2,534 procurement-linked supplier companies have a local identity anchor; 2,521 have DNCP supplier profiles, 2,518 have DNIT RUC equivalence profiles, 446 companies have local administrative signals, and 3,642 representative links are stored
+- Remaining anchor gap: `MENDEZ GONZALEZ FLORIANA *`, because the procurement-side RUC lacks a check digit needed for DNIT bulk validation
+- Current access pattern: SSH tunnel from local machine to `172.18.0.2:5432`, then local Node/TypeScript commands
+- Current hosted-match reality: the first real hosted comparison result is already stored and exposed through analyst surfaces, but the trial API key hit a monthly `429` rate limit on a later rerun attempt
+- Current manual-review reality: `centinela.entity_enrichment_candidate_review_overview` exposes 58 OpenSanctions candidate/diagnostic rows with reviewer state, suggested review status, hosted-comparison support, source-check evidence history, and next-step guidance. The current live distribution is 1 `promotable`, 5 `monitor`, 4 `rejected`, and 48 `unreviewed`.
