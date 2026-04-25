@@ -61,6 +61,7 @@ npm run enrichment:opensanctions-hosted-match -- --dry-run true --limit 25
 npm run enrichment:dncp-supplier-anchor -- --limit 500 --only-unanchored true --offset 0 --concurrency 8
 npm run enrichment:dnit-ruc-equivalence -- --limit 10000 --only-anchor-gaps false
 npm run enrichment:idb-sanctions-candidate -- --candidate-id 59 --update-review true
+npm run database:apply-sql -- --file sql/postgres/015_external_candidate_second_review.sql
 npm run database:load-bundle -- --file data/normalized/paraguay/dncp-2026-bulk-processes.json
 npm run database:analyst-brief -- --source-key py-dncp-bulk-2026
 npm run database:review-queue -- --source-key py-dncp-bulk-2026
@@ -68,6 +69,7 @@ npm run database:entity-brief -- --name "Entity Name"
 npm run database:entity-intelligence-queue -- --limit 30
 npm run database:external-candidates -- --limit 80
 npm run database:review-external-candidate -- --candidate-id 59 --status needs_evidence --reviewer "Analyst Name" --notes "Review note"
+npm run database:second-review-external-candidate -- --candidate-id 59 --decision accepted_match --reviewer "Second Reviewer" --rationale "Source-backed identity review" --limitations "Record what this match does not prove"
 npm run database:entity-anchor-gaps -- --limit 50
 npm run database:rulebook -- --source-key py-dncp-bulk-2026
 ```

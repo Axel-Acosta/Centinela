@@ -244,10 +244,13 @@ For each major precedent, it states:
   - `docs/methodology/opensanctions-screening.md`
   - `docs/methodology/opensanctions-hosted-api.md`
   - `docs/methodology/idb-sanctions-open-data.md`
+  - `docs/methodology/external-candidate-second-review-workflow.md`
   - `docs/methodology/dncp-supplier-anchor.md`
   - `docs/methodology/dnit-ruc-equivalence.md`
   - `sql/postgres/013_hosted_match_comparisons.sql`
+  - `sql/postgres/015_external_candidate_second_review.sql`
   - `src/enrichment/idbSanctions.ts`
+  - `src/storage/secondReview.ts`
   - `entity_hosted_match_comparison_overview`
   - `data/reports/paraguay/opensanctions-default-entity-screening.md`
   - `data/reports/paraguay/opensanctions-hosted-match-comparison.md`
@@ -277,6 +280,7 @@ For each major precedent, it states:
   - representative/person external screening kept as review-only so name-only person links do not become external risk signals
   - provenance-backed external entity storage and external-risk signals
   - row-level official IDB source checks for IADB/OpenSanctions candidates, stored as source records and review evidence rather than accepted matches
+  - second-review governance for source-backed candidate promotion, with rationale, limitations, and accepted-match insertion separated from external risk-signal creation
   - durable source plan for company, sanctions, ownership, and offshore expansion
 - Later stage
   - enrichment pipelines, ownership graph expansion, sanctions hit surfaces
@@ -440,8 +444,8 @@ For each major precedent, it states:
   - added cross-year buyer-supplier aggregation and entity activity views
 - Open Contracting/Cardinal/OCDS
   - remains the procurement backbone that external screening now enriches instead of replacing
-  - OpenSanctions
-  - implemented the first live external-risk connector through public bulk screening, expanded it from company-only matching into a conservative representative/person lane, added a separate candidate-review layer for near matches and rejected diagnostics, tightened weak overlap logic so only one strong company candidate currently escalates, completed the first hosted API comparison pass after OpenSanctions confirmed Centinela eligibility, persisted hosted comparison evidence into PostgreSQL-backed queue/dossier workflows, added manual review statuses plus reviewer-note history for external candidates, and added an official IDB Open Data row-level source check for the first IADB-derived candidate
+- OpenSanctions
+  - implemented the first live external-risk connector through public bulk screening, expanded it from company-only matching into a conservative representative/person lane, added a separate candidate-review layer for near matches and rejected diagnostics, tightened weak overlap logic so only one strong company candidate currently escalates, completed the first hosted API comparison pass after OpenSanctions confirmed Centinela eligibility, persisted hosted comparison evidence into PostgreSQL-backed queue/dossier workflows, added manual review statuses plus reviewer-note history for external candidates, added an official IDB Open Data row-level source check for the first IADB-derived candidate, and added a repo-side second-review workflow for accepted-match governance
 - OpenOwnership
   - made the model more ownership-ready through representative links, company-level relationship review, and documented source blockers
 - OpenCorporates
@@ -473,7 +477,7 @@ For each major precedent, it states:
 ## Still pending deeper extraction
 
 - Integrity Watch: needs a real public-safe flag metadata model and later explorer/filter contract once the rule registry exists.
-- OpenSanctions / Open Ownership / OpenCorporates / ICIJ: the first live external connector, the first hosted API comparison run, the PostgreSQL-backed hosted comparison overview, the wide official Paraguay supplier anchor, the DNIT identity-validation layer, the representative/person screening lane, the candidate-review table, the manual review-state workflow, the official IDB row-level source check, the candidate review report, the anchor-gap review backlog, and the first company-level match-review queue now exist, but they still need second-review accepted-match handling, better candidate scoring, ownership data, offshore traversal, and either renewed hosted API quota or a longer-term Yente/paid-access decision.
+- OpenSanctions / Open Ownership / OpenCorporates / ICIJ: the first live external connector, the first hosted API comparison run, the PostgreSQL-backed hosted comparison overview, the wide official Paraguay supplier anchor, the DNIT identity-validation layer, the representative/person screening lane, the candidate-review table, the manual review-state workflow, the official IDB row-level source check, the repo-side second-review governance workflow, the candidate review report, the anchor-gap review backlog, and the first company-level match-review queue now exist, but they still need migration 015 applied live, candidate `59` decided through second review, better candidate scoring, ownership data, offshore traversal, and either renewed hosted API quota or a longer-term Yente/paid-access decision.
 - FUNES: needs relationship-aware rules that use political, financial, or oversight context beyond procurement alone.
 - Paraguay DNCP red flags work: needs a formal rule crosswalk instead of only language and framing influence.
 - RUBLI: needs the exact intended source confirmed, then direct methodology and limitations structure can be borrowed more concretely.

@@ -42,6 +42,7 @@ It uses the infrastructure already available, avoids spending another run debati
 - Entity enrichment candidate storage and candidate-aware queue views applied from `sql/postgres/012_entity_enrichment_candidates.sql`
 - Hosted comparison storage applied from `sql/postgres/013_hosted_match_comparisons.sql`
 - Manual external candidate review workflow applied from `sql/postgres/014_external_candidate_review_workflow.sql`
+- External candidate second-review workflow prepared in `sql/postgres/015_external_candidate_second_review.sql`; live application is pending until the SSH tunnel is reopened
 - DNCP 2025 and 2026 bulk bundles loaded successfully into PostgreSQL
 - OpenSanctions bulk screening run persisted under `ext-opensanctions-default`
 - OpenSanctions hosted comparison persisted under `ext-opensanctions-hosted-match`
@@ -53,3 +54,4 @@ It uses the infrastructure already available, avoids spending another run debati
 - Current access pattern: SSH tunnel from local machine to `172.18.0.2:5432`, then local Node/TypeScript commands
 - Current hosted-match reality: the first real hosted comparison result is already stored and exposed through analyst surfaces, but the trial API key hit a monthly `429` rate limit on a later rerun attempt
 - Current manual-review reality: `centinela.entity_enrichment_candidate_review_overview` exposes 58 OpenSanctions candidate/diagnostic rows with reviewer state, suggested review status, hosted-comparison support, source-check evidence history, and next-step guidance. The current live distribution is 1 `promotable`, 5 `monitor`, 4 `rejected`, and 48 `unreviewed`.
+- Current second-review reality: repo-side schema and CLI exist, but the live VPS database has not yet received migration 015 because the local SSH tunnel was closed during the implementation run.

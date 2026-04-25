@@ -161,3 +161,9 @@
 - Decision: Treat GitHub as the durable public source home for Centinela, but keep operational data in the VPS/PostgreSQL layer and local non-sync runtime storage.
 - Why: This reduces OneDrive pressure, gives Centinela a clean collaboration/release surface, and avoids mixing heavy generated data or private credentials into repository history.
 - Consequence: `scripts/publish-github.ps1` creates or connects public `Centinela`, pushes the clean local `main`, and records civic-tech/procurement metadata after the user completes GitHub CLI authentication.
+
+## 2026-04-25 - Second review before accepted external matches
+
+- Decision: Add a separate second-review governance layer for `promotable` external candidates instead of letting first-review status insert accepted matches directly.
+- Why: Centinela needs a defensible boundary between source-backed candidates and accepted enrichment identity matches, especially when external records lack comparable Paraguay identifiers such as RUC.
+- Consequence: `entity_enrichment_second_reviews` records reviewer, decision, rationale, limitations, evidence, and accepted-match ID. `accepted_match` creates an enrichment identity match only; it does not create an external risk signal or proof-of-wrongdoing conclusion.

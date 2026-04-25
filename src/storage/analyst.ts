@@ -213,6 +213,14 @@ interface EntityExternalCandidateRow {
   reviewed_by: string | null;
   review_notes: string | null;
   review_evidence: unknown;
+  second_review_id: string | null;
+  second_review_decision: string | null;
+  second_reviewed_at: string | null;
+  second_reviewed_by: string | null;
+  second_review_rationale: string | null;
+  second_review_limitations: string | null;
+  second_review_evidence: unknown;
+  accepted_match_id: string | null;
   rejection_reason: string | null;
   rationale: string;
   external_datasets: unknown;
@@ -409,6 +417,14 @@ interface ExternalCandidateItemRow {
   reviewed_by: string | null;
   review_notes: string | null;
   review_evidence: unknown;
+  second_review_id: string | null;
+  second_review_decision: string | null;
+  second_reviewed_at: string | null;
+  second_reviewed_by: string | null;
+  second_review_rationale: string | null;
+  second_review_limitations: string | null;
+  second_review_evidence: unknown;
+  accepted_match_id: string | null;
   rejection_reason: string | null;
   rationale: string;
   external_datasets: unknown;
@@ -988,6 +1004,12 @@ function renderEntityBrief(
       lines.push(`- Reviewed by / at: ${candidate.reviewed_by ?? "n/a"} / ${candidate.reviewed_at ?? "n/a"}`);
       lines.push(`- Review notes: ${candidate.review_notes ?? "n/a"}`);
       lines.push(`- Review evidence history: ${formatReviewEvidenceHistory(candidate.review_evidence)}`);
+      lines.push(`- Second-review decision: ${candidate.second_review_decision ?? "n/a"}`);
+      lines.push(`- Second-reviewed by / at: ${candidate.second_reviewed_by ?? "n/a"} / ${candidate.second_reviewed_at ?? "n/a"}`);
+      lines.push(`- Second-review rationale: ${candidate.second_review_rationale ?? "n/a"}`);
+      lines.push(`- Second-review limitations: ${candidate.second_review_limitations ?? "n/a"}`);
+      lines.push(`- Second-review evidence: ${formatReviewEvidenceHistory(candidate.second_review_evidence)}`);
+      lines.push(`- Accepted match ID: ${candidate.accepted_match_id ?? "n/a"}`);
       lines.push(`- Local identifiers: ${formatList(candidate.local_identifiers, 12)}`);
       lines.push(`- Local RUC identifiers: ${formatList(candidate.local_ruc_identifiers, 8)}`);
       lines.push(`- Local profile sources: ${formatList(candidate.local_profile_sources, 8)}`);
@@ -1116,6 +1138,12 @@ function renderEntityBrief(
       lines.push(`- Reviewed by / at: ${candidate.reviewed_by ?? "n/a"} / ${candidate.reviewed_at ?? "n/a"}`);
       lines.push(`- Review notes: ${candidate.review_notes ?? "n/a"}`);
       lines.push(`- Review evidence history: ${formatReviewEvidenceHistory(candidate.review_evidence)}`);
+      lines.push(`- Second-review decision: ${candidate.second_review_decision ?? "n/a"}`);
+      lines.push(`- Second-reviewed by / at: ${candidate.second_reviewed_by ?? "n/a"} / ${candidate.second_reviewed_at ?? "n/a"}`);
+      lines.push(`- Second-review rationale: ${candidate.second_review_rationale ?? "n/a"}`);
+      lines.push(`- Second-review limitations: ${candidate.second_review_limitations ?? "n/a"}`);
+      lines.push(`- Second-review evidence: ${formatReviewEvidenceHistory(candidate.second_review_evidence)}`);
+      lines.push(`- Accepted match ID: ${candidate.accepted_match_id ?? "n/a"}`);
       lines.push(`- Local identifiers: ${formatList(candidate.local_identifiers, 12)}`);
       lines.push(`- Local RUC identifiers: ${formatList(candidate.local_ruc_identifiers, 8)}`);
       lines.push(`- Local profile sources: ${formatList(candidate.local_profile_sources, 8)}`);
@@ -1471,6 +1499,12 @@ function renderExternalCandidateReviewReport(
       lines.push(`- Reviewed by / at: ${item.reviewed_by ?? "n/a"} / ${item.reviewed_at ?? "n/a"}`);
       lines.push(`- Review notes: ${item.review_notes ?? "n/a"}`);
       lines.push(`- Review evidence history: ${formatReviewEvidenceHistory(item.review_evidence)}`);
+      lines.push(`- Second-review decision: ${item.second_review_decision ?? "n/a"}`);
+      lines.push(`- Second-reviewed by / at: ${item.second_reviewed_by ?? "n/a"} / ${item.second_reviewed_at ?? "n/a"}`);
+      lines.push(`- Second-review rationale: ${item.second_review_rationale ?? "n/a"}`);
+      lines.push(`- Second-review limitations: ${item.second_review_limitations ?? "n/a"}`);
+      lines.push(`- Second-review evidence: ${formatReviewEvidenceHistory(item.second_review_evidence)}`);
+      lines.push(`- Accepted match ID: ${item.accepted_match_id ?? "n/a"}`);
       lines.push(`- Local identifiers: ${formatList(item.local_identifiers, 12)}`);
       lines.push(`- Local RUC identifiers: ${formatList(item.local_ruc_identifiers, 8)}`);
       lines.push(`- Local profile sources: ${formatList(item.local_profile_sources, 8)}`);
@@ -1495,6 +1529,11 @@ function renderExternalCandidateReviewReport(
       lines.push(
         `- Review command: npm run database:review-external-candidate -- --candidate-id ${item.id} --status ${commandStatus} --reviewer "<name>" --notes "<short rationale>"`,
       );
+      if (item.review_status === "promotable" && item.second_review_decision !== "accepted_match") {
+        lines.push(
+          `- Second-review command: npm run database:second-review-external-candidate -- --candidate-id ${item.id} --decision accepted_match --reviewer "<second reviewer>" --rationale "<why the identity match is acceptable>" --limitations "<what this match does not prove>"`,
+        );
+      }
       lines.push("");
     }
   }
@@ -1507,6 +1546,7 @@ function renderExternalCandidateReviewReport(
   lines.push("- Company candidates should be reviewed with local RUC, DNCP/DNIT profile names, source documents, and procurement context before any promotion.");
   lines.push("- Hosted support is comparison evidence: `same_local_candidate` is stronger than `different_hosted_result`, and both are stronger than name-only bulk overlap alone.");
   lines.push("- Manual review statuses are operational workflow labels. `promotable` means ready for a stronger second review, not an accepted match.");
+  lines.push("- Second-review `accepted_match` creates an enrichment identity match only. It does not create an external risk signal or prove misconduct.");
   lines.push("");
 
   return `${lines.join("\n")}\n`;
@@ -1881,6 +1921,14 @@ export async function buildEntityBrief(
          reviewed_by,
          review_notes,
          review_evidence,
+         second_review_id::text,
+         second_review_decision,
+         second_reviewed_at::text,
+         second_reviewed_by,
+         second_review_rationale,
+         second_review_limitations,
+         second_review_evidence,
+         accepted_match_id::text,
          rejection_reason,
          rationale,
          external_datasets,
@@ -2044,6 +2092,14 @@ export async function buildEntityBrief(
          candidates.reviewed_by,
          candidates.review_notes,
          candidates.review_evidence,
+         candidates.second_review_id::text,
+         candidates.second_review_decision,
+         candidates.second_reviewed_at::text,
+         candidates.second_reviewed_by,
+         candidates.second_review_rationale,
+         candidates.second_review_limitations,
+         candidates.second_review_evidence,
+         candidates.accepted_match_id::text,
          candidates.rejection_reason,
          candidates.rationale,
          candidates.external_datasets,
@@ -2541,6 +2597,14 @@ export async function buildExternalCandidateReviewReport(
          candidates.reviewed_by,
          candidates.review_notes,
          candidates.review_evidence,
+         candidates.second_review_id::text,
+         candidates.second_review_decision,
+         candidates.second_reviewed_at::text,
+         candidates.second_reviewed_by,
+         candidates.second_review_rationale,
+         candidates.second_review_limitations,
+         candidates.second_review_evidence,
+         candidates.accepted_match_id::text,
          candidates.rejection_reason,
          candidates.rationale,
          candidates.external_datasets,

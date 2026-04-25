@@ -43,6 +43,10 @@ This is intentionally modest, but it is already an operational investigation sur
   - current supplier-anchor coverage summary for Paraguay company intelligence
 - `centinela.entity_anchor_gap_review`
   - dedicated backlog for unresolved Paraguay supplier identities, with RUC-like identifiers, observed names, gap reasons, and next resolution steps
+- `centinela.entity_enrichment_second_reviews`
+  - second-review governance table for `promotable` external candidates before accepted-match insertion
+- `centinela.entity_enrichment_second_review_overview`
+  - analyst-readable view of second-review decisions, rationale, limitations, and accepted-match IDs
 - `npm run database:analyst-brief -- --source-key ...`
   - generates an internal markdown brief from the database
 - `npm run database:review-queue -- --limit ...`
@@ -59,6 +63,8 @@ This is intentionally modest, but it is already an operational investigation sur
   - validates procurement-linked supplier RUCs against official DNIT RUC equivalence bulk files and persists bounded local identity profiles
 - `npm run enrichment:idb-sanctions-candidate -- --candidate-id 59 --update-review true`
   - captures official IDB Open Data row-level evidence for an OpenSanctions/IADB candidate and appends that source check to the candidate review trail
+- `npm run database:second-review-external-candidate -- --candidate-id 59 --decision accepted_match --reviewer "Second Reviewer" --rationale "..." --limitations "..."`
+  - records a second-review decision for a promotable candidate and can create an accepted enrichment identity match without creating an external risk signal
 - `npm run database:entity-intelligence-queue -- --limit 30`
   - generates the company-level follow-up queue for local anchors, local administrative signals, representatives, and external-risk state
 - `npm run database:entity-anchor-gaps -- --limit 50`
@@ -100,8 +106,8 @@ This is intentionally modest, but it is already an operational investigation sur
 - There is no interactive UI or API layer yet
 - Payment analysis is only as complete as the currently loaded DNCP transaction data
 - Entity-linked monetary context is still process-linked context, not clean attributed supplier value in all multi-supplier procedures
-- Candidate `59` is now `promotable` after official IDB source-row confirmation, but still lacks a comparable external RUC or a second-review accepted-match workflow
+- Candidate `59` is now `promotable` after official IDB source-row confirmation, but still lacks a comparable external RUC; second review must preserve that limitation if it accepts the match
 
 ## Next step
 
-The next investigation-layer milestone should add the second-review accepted-match workflow for `promotable` candidates, then resolve the final missing-check-digit anchor gap and begin an internal API/console contract around candidate review, source evidence, and entity dossiers.
+The next investigation-layer milestone should apply the second-review migration to the live VPS database, exercise it first in dry-run mode against candidate `59`, then decide whether to record an accepted enrichment match or keep the candidate in `needs_more_evidence`.

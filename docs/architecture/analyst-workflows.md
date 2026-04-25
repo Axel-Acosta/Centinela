@@ -132,6 +132,24 @@
   - Sayari
   - RUBLI
 
+### 8b. External candidate second review
+
+- Command
+  - `npm run database:second-review-external-candidate -- --candidate-id 59 --decision accepted_match --reviewer "Second Reviewer" --rationale "Source-backed identity review" --limitations "Record what the match does not prove"`
+- Purpose
+  - decide whether a `promotable` external candidate should become an accepted enrichment identity match
+  - preserve reviewer, rationale, limitations, evidence, accepted-match ID, and non-accusatory boundaries
+  - avoid creating external risk signals automatically
+- Methodology note
+  - `docs/methodology/external-candidate-second-review-workflow.md`
+- Main reference pressure
+  - OpenSanctions
+  - Aleph
+  - Sayari
+  - br/acc
+  - RUBLI
+  - Dozorro/ProZorro
+
 ### 9. Paraguay supplier anchor pass
 
 - Command
@@ -204,11 +222,10 @@
 - OpenSanctions candidate review is active. The current queue has one company-level external candidate lead and keeps weak representative/person overlaps visible as rejected diagnostics rather than treating them as accepted matches.
 - Hosted OpenSanctions API comparison is live, persisted into PostgreSQL, and now visible inside the company queue, external-candidate review report, and selected entity dossiers.
 - Manual external-candidate review is now operational through `sql/postgres/014_external_candidate_review_workflow.sql`, `centinela.entity_enrichment_candidate_review_overview`, and `npm run database:review-external-candidate`. The current live state is 58 candidate/diagnostic records: 1 `promotable`, 5 `monitor`, 4 `rejected`, and 48 `unreviewed`.
-- Candidate `59`, `CONSULTORA GUARANI SA INGENIEROS CIVILES` -> `Consultora Guaraní S.A. Ingenieros Civiles`, is the only active company-level external candidate lead. It now has row-level official IDB Open Data evidence and is marked `promotable`, but it still has no comparable external RUC identifier, so it remains blocked from accepted-match insertion until a second-review workflow exists.
+- Candidate `59`, `CONSULTORA GUARANI SA INGENIEROS CIVILES` -> `Consultora Guaraní S.A. Ingenieros Civiles`, is the only active company-level external candidate lead. It now has row-level official IDB Open Data evidence and is marked `promotable`, but it still has no comparable external RUC identifier, so any accepted-match decision must record that limitation through the second-review workflow.
 - The current hosted API trial key has already hit a monthly `429` rate limit after the first live comparison pass, so the strongest immediate work is review workflow and local evidence quality, not brute-force rerunning.
 - Large multi-supplier processes can overstate entity-linked monetary context if read without the built-in caveats
 
 ## Next workflow milestone
 
-- Build the second-review workflow that can decide whether a `promotable` external candidate should become an accepted match, while keeping accepted-match insertion separate from source-document collection.
-- Then expose these workflows through an internal API or console instead of markdown reports only.
+- Apply and exercise the second-review workflow against candidate `59`, then expose these workflows through an internal API or console instead of markdown reports only.

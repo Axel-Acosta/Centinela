@@ -20,6 +20,8 @@ import {
 import { fetchDncpBulkYear } from "./sources/paraguay/dncpBulk";
 import { writeOutputJson, writeOutputText } from "./storage/files";
 import { candidateReviewStatuses, updateExternalCandidateReview } from "./storage/candidateReview";
+import { secondReviewDecisions, secondReviewExternalCandidate } from "./storage/secondReview";
+import { applySqlFile } from "./storage/sqlFile";
 import {
   buildAnalystBrief,
   buildEntityAnchorGapReport,
@@ -354,6 +356,17 @@ async function runDatabaseLoadBundle(args: string[]): Promise<void> {
   console.log(`Loaded bundle into PostgreSQL: ${bundlePath}`);
 }
 
+async function runDatabaseApplySql(args: string[]): Promise<void> {
+  const fileArg = readArg(args, "--file");
+  if (!fileArg) {
+    throw new Error("Missing required --file argument for database SQL application.");
+  }
+
+  const sqlPath = resolveInputPath(fileArg);
+  await applySqlFile(sqlPath);
+  console.log(`Applied SQL file to PostgreSQL: ${sqlPath}`);
+}
+
 async function runDatabaseAnalystBrief(args: string[]): Promise<void> {
   const sourceKey = readArg(args, "--source-key");
   if (!sourceKey) {
@@ -533,6 +546,52 @@ async function runDatabaseReviewExternalCandidate(args: string[]): Promise<void>
   console.log(`Next step: ${result.candidate.review_next_step ?? "n/a"}`);
 }
 
+async function runDatabaseSecondReviewExternalCandidate(args: string[]): Promise<void> {
+  const candidateId = readNumberArg(args, "--candidate-id", 0);
+  const decision = readArg(args, "--decision");
+  const reviewer = readArg(args, "--reviewer") ?? process.env.USERNAME ?? process.env.USER ?? "centinela-second-reviewer";
+  const rationale = readArg(args, "--rationale");
+  const limitations = readArg(args, "--limitations");
+  const evidenceUrl = readArg(args, "--evidence-url");
+  const evidenceNote = readArg(args, "--evidence-note");
+  const dryRun = readBooleanArg(args, "--dry-run", false);
+
+  if (!candidateId) {
+    throw new Error("Missing required --candidate-id argument for external candidate second review.");
+  }
+
+  if (!decision) {
+    throw new Error(
+      `Missing required --decision argument for external candidate second review. Use one of: ${secondReviewDecisions.join(", ")}`,
+    );
+  }
+
+  if (!rationale) {
+    throw new Error("Missing required --rationale argument for external candidate second review.");
+  }
+
+  const result = await secondReviewExternalCandidate({
+    candidateId,
+    decision,
+    reviewer,
+    rationale,
+    dryRun,
+    ...(limitations ? { limitations } : {}),
+    ...(evidenceUrl ? { evidenceUrl } : {}),
+    ...(evidenceNote ? { evidenceNote } : {}),
+  });
+
+  const prefix = result.dryRun ? "Dry-run external candidate second review" : "Recorded external candidate second review";
+  console.log(`${prefix}: ${result.candidate.entity_name} -> ${result.candidate.external_name}`);
+  console.log(`Candidate ID: ${result.candidate.id}`);
+  console.log(`Decision: ${result.decision}`);
+  console.log(`Second review ID: ${result.secondReviewId ?? "n/a"}`);
+  console.log(`Candidate review status after: ${result.candidateReviewStatusAfter}`);
+  console.log(`Accepted match ID: ${result.acceptedMatchId ?? "n/a"}`);
+  console.log(`External entity ID: ${result.externalEntityId ?? "n/a"}`);
+  console.log("Reminder: accepted matches are enrichment context and do not create proof of wrongdoing.");
+}
+
 async function runDatabaseEntityAnchorGapReport(args: string[]): Promise<void> {
   const limit = readNumberArg(args, "--limit", 50);
   const { reportPath } = await buildEntityAnchorGapReport(limit);
@@ -554,6 +613,11 @@ async function main(): Promise<void> {
 
   if (domain === "database" && command === "load-bundle") {
     await runDatabaseLoadBundle(args);
+    return;
+  }
+
+  if (domain === "database" && command === "apply-sql") {
+    await runDatabaseApplySql(args);
     return;
   }
 
@@ -584,6 +648,11 @@ async function main(): Promise<void> {
 
   if (domain === "database" && command === "review-external-candidate") {
     await runDatabaseReviewExternalCandidate(args);
+    return;
+  }
+
+  if (domain === "database" && command === "second-review-external-candidate") {
+    await runDatabaseSecondReviewExternalCandidate(args);
     return;
   }
 
@@ -631,6 +700,7 @@ async function main(): Promise<void> {
 - tsx src/cli.ts enrichment dncp-supplier-anchor --limit 200 --only-unanchored true --offset 0 --concurrency 4
 - tsx src/cli.ts enrichment dnit-ruc-equivalence --limit 10000 --only-anchor-gaps false
 - tsx src/cli.ts enrichment idb-sanctions-candidate --candidate-id 59 --update-review true
+- tsx src/cli.ts database apply-sql --file sql/postgres/015_external_candidate_second_review.sql
 - tsx src/cli.ts database load-bundle --file data/normalized/paraguay/dncp-2026-bulk-processes.json
 - tsx src/cli.ts database analyst-brief --source-key py-dncp-bulk-2026
 - tsx src/cli.ts database entity-brief --name "Entity Name"
@@ -638,6 +708,7 @@ async function main(): Promise<void> {
 - tsx src/cli.ts database entity-intelligence-queue --limit 25
 - tsx src/cli.ts database external-candidates --limit 50
 - tsx src/cli.ts database review-external-candidate --candidate-id 1 --status needs_evidence --reviewer "Analyst Name" --notes "Review note"
+- tsx src/cli.ts database second-review-external-candidate --candidate-id 1 --decision accepted_match --reviewer "Second Reviewer" --rationale "Source-backed identity review" --limitations "State known limits"
 - tsx src/cli.ts database entity-anchor-gaps --limit 50
 - tsx src/cli.ts database rulebook --source-key py-dncp-bulk-2026`,
   );

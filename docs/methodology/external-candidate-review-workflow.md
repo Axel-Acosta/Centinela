@@ -13,6 +13,7 @@ This workflow adds a human-review layer on top of `entity_enrichment_candidates`
   - now includes `reviewed_at`, `reviewed_by`, `review_notes`, and append-only `review_evidence`
 - `centinela.entity_enrichment_candidate_review_overview`
   - joins candidate rows to hosted OpenSanctions comparison evidence
+  - now exposes latest second-review state when a `promotable` candidate is escalated
   - adds `suggested_review_status`, `review_priority_hint`, and `review_next_step`
 - `centinela.entity_intelligence_review_queue`
   - now counts active review candidates separately from manually rejected diagnostics
@@ -73,7 +74,8 @@ npm run database:review-external-candidate -- --candidate-id 59 --status needs_e
 - Review status never creates an accepted match automatically.
 - Hosted OpenSanctions `same_local_candidate` support strengthens a review lead, but does not prove identity or wrongdoing.
 - Representative/person diagnostics require extra caution because DNCP legal-representative text alone does not prove the external person identity.
-- Accepted-match insertion should be a later, separate workflow with second-review checks, source references, and methodology notes.
+- Accepted-match insertion is handled only through the separate second-review workflow documented in `docs/methodology/external-candidate-second-review-workflow.md`.
+- A second-review accepted match is identity-resolution enrichment context. It does not create an external risk signal or proof of wrongdoing.
 
 ## Next evidence task
 
@@ -90,4 +92,4 @@ For candidate `59`, the local DNCP/DNIT identity package has now been compared a
 - investigation note: `docs/investigations/candidate-59-iadb-source-check.md`
 - source-check methodology: `docs/methodology/idb-sanctions-open-data.md`
 
-Do not create an accepted match or external risk signal until a separate second-review workflow verifies the source evidence, local identity package, limitations, and accepted-match methodology.
+Do not create an accepted match until the second-review workflow verifies the source evidence, local identity package, limitations, and accepted-match methodology. Do not create an external risk signal automatically from second review.

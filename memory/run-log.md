@@ -144,3 +144,15 @@
 - Added `docs/ops/workspace-storage.md`, expanded `.gitignore`, and kept only a lightweight `data/README.md` pointer in the workspace.
 - Initialized the local Git history on `main` with source-only commits and verified that generated `dist/` and `node_modules/` remain ignored.
 - Installed GitHub CLI locally, confirmed GitHub authentication is still required, and added `scripts/publish-github.ps1` plus `docs/ops/github-publication.md` to publish public `Centinela` once the authenticated GitHub session exists.
+- Published the public GitHub repository at `https://github.com/Axel-Acosta/Centinela`, set `origin`, pushed `main`, and hardened the publication helper.
+
+## 2026-04-25
+
+- Added `sql/postgres/015_external_candidate_second_review.sql`, introducing `entity_enrichment_second_reviews`, `entity_enrichment_second_review_overview`, and second-review fields in the candidate-review overview.
+- Implemented `src/storage/secondReview.ts` and `npm run database:second-review-external-candidate`, allowing `promotable` candidates to be second-reviewed as `accepted_match`, `needs_more_evidence`, or `rejected_match`.
+- Designed `accepted_match` to create an accepted enrichment identity match without creating an external risk signal or proof-of-wrongdoing language.
+- Added `database:apply-sql`, a Node-based SQL application helper so migrations can be applied over the existing tunnel without requiring local `psql`.
+- Updated entity dossiers and external-candidate review reports to show second-review decision, reviewer, rationale, limitations, evidence, and accepted-match ID.
+- Added `docs/methodology/external-candidate-second-review-workflow.md` and refreshed analyst/investigation docs around the new governance boundary.
+- Validation passed locally with `npm run check`, `npm run build`, and `git diff --check`.
+- Live VPS application is still pending because the local SSH tunnel to PostgreSQL was closed and no non-interactive SSH session was available without exposing credentials.

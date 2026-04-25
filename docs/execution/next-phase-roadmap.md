@@ -57,8 +57,9 @@
   - hosted comparison evidence is now persisted into PostgreSQL and reused by the queue, candidate-review report, and entity dossiers
   - manual external-candidate review workflow achieved through `sql/postgres/014_external_candidate_review_workflow.sql`, `centinela.entity_enrichment_candidate_review_overview`, `src/storage/candidateReview.ts`, and `npm run database:review-external-candidate`
   - official IDB Open Data row-level source checking achieved for IADB/OpenSanctions candidates through `src/enrichment/idbSanctions.ts` and `npm run enrichment:idb-sanctions-candidate`
+  - repo-side second-review accepted-match workflow achieved through `sql/postgres/015_external_candidate_second_review.sql`, `src/storage/secondReview.ts`, `npm run database:second-review-external-candidate`, and the second-review methodology note
   - current blocker: the trial key hit a monthly `429` rate limit after the first live comparison pass
-  - still needs a second-review accepted-match workflow for `promotable` candidates, recovery of the final missing RUC check digit, and the next ownership-ready/company-accountability source
+  - still needs migration 015 applied to the live VPS database, candidate `59` dry-run/decision, recovery of the final missing RUC check digit, and the next ownership-ready/company-accountability source
 - Core outputs
   - first live external-risk connector through OpenSanctions bulk screening
   - first Paraguay company or registry connector
@@ -113,7 +114,7 @@
 
 ## Immediate next best step
 
-- Build the second-review workflow for `promotable` external candidates, while keeping accepted-match insertion separate from review-only source-document evidence.
+- Apply and exercise the second-review workflow for `promotable` external candidates, while keeping accepted-match insertion separate from review-only source-document evidence and external risk-signal creation.
 - Reason
   - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, and one official IDB row-level source check. The next leverage is defining how a `promotable` row can move into accepted-match storage without collapsing into automatic accusation or automatic risk-signal creation.
 - Expected carry-over

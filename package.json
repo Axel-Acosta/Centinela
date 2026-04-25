@@ -14,6 +14,7 @@
     "enrichment:dncp-supplier-anchor": "tsx src/cli.ts enrichment dncp-supplier-anchor",
     "enrichment:dnit-ruc-equivalence": "tsx src/cli.ts enrichment dnit-ruc-equivalence",
     "enrichment:idb-sanctions-candidate": "tsx src/cli.ts enrichment idb-sanctions-candidate",
+    "database:apply-sql": "tsx src/cli.ts database apply-sql",
     "database:load-bundle": "tsx src/cli.ts database load-bundle",
     "database:analyst-brief": "tsx src/cli.ts database analyst-brief",
     "database:entity-brief": "tsx src/cli.ts database entity-brief",
@@ -21,6 +22,7 @@
     "database:entity-intelligence-queue": "tsx src/cli.ts database entity-intelligence-queue",
     "database:external-candidates": "tsx src/cli.ts database external-candidates",
     "database:review-external-candidate": "tsx src/cli.ts database review-external-candidate",
+    "database:second-review-external-candidate": "tsx src/cli.ts database second-review-external-candidate",
     "database:entity-anchor-gaps": "tsx src/cli.ts database entity-anchor-gaps",
     "database:rulebook": "tsx src/cli.ts database rulebook"
   },
