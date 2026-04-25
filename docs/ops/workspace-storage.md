@@ -39,6 +39,7 @@ GitHub should track:
 - `docs/`
 - `memory/`
 - `research/`
+- `scripts/`
 - `skills/`
 - `package.json`
 - `package-lock.json`
@@ -80,3 +81,7 @@ If the file is no longer in the workspace `data/` folder, Centinela also looks u
 Set `CENTINELA_OUTPUT_DIR` only when you intentionally want a different artifact location, for example an external drive or a dedicated non-sync research folder.
 
 Do not point it at OneDrive unless the run is small and you intentionally want sync.
+
+## Publication helper
+
+Use `scripts/publish-github.ps1` to create or connect the public GitHub repository and push the clean source workspace. See `docs/ops/github-publication.md`.

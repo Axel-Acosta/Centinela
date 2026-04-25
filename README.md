@@ -19,11 +19,14 @@ This first foundation run prioritizes:
 - `research/` comparative system analysis and Paraguay source mapping
 - `docs/` architecture, red-flag, and VPS/storage notes
 - `docs/methodology/external-candidate-review-workflow.md` manual external-candidate review status workflow
+- `scripts/` local operational helpers, including GitHub publication
 - `sql/postgres/` canonical PostgreSQL schema
 - `src/` TypeScript ingestion, normalization, and risk-signal pipeline
 - `data/README.md` pointer to local runtime artifact storage
 
 Generated raw, normalized, and report outputs are intentionally not stored in the repo by default. See `docs/ops/workspace-storage.md`.
+
+To publish or reconnect the source workspace to the public GitHub repository, see `docs/ops/github-publication.md`.
 
 ## Current architecture choice
 

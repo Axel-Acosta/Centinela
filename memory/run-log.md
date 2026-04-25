@@ -142,3 +142,5 @@
 - Regenerated `external-enrichment-candidate-review.md`, `all-entities-intelligence-queue.md`, and the `CONSULTORA GUARANI SA INGENIEROS CIVILES` entity brief after the IDB source check.
 - Reworked local storage so generated artifacts default to `C:\Users\Axeld\AppData\Local\Centinela\data` instead of the repo `data/` folder.
 - Added `docs/ops/workspace-storage.md`, expanded `.gitignore`, and kept only a lightweight `data/README.md` pointer in the workspace.
+- Initialized the local Git history on `main` with source-only commits and verified that generated `dist/` and `node_modules/` remain ignored.
+- Installed GitHub CLI locally, confirmed GitHub authentication is still required, and added `scripts/publish-github.ps1` plus `docs/ops/github-publication.md` to publish public `Centinela` once the authenticated GitHub session exists.

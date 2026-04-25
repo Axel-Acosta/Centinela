@@ -155,3 +155,9 @@
 - Decision: Move generated raw/normalized/report artifacts to a local non-sync runtime folder by default, while keeping the workspace source-focused and GitHub-ready.
 - Why: DNCP raw ZIPs and normalized JSON bundles are large and churn during runs, which creates unnecessary OneDrive/sync pressure and makes the repo feel messy.
 - Consequence: `CENTINELA_OUTPUT_DIR` now defaults to the local runtime data directory, `data/` is ignored except for a README pointer, and `docs/ops/workspace-storage.md` defines what belongs in Git versus local runtime storage.
+
+## 2026-04-24 - Publish source through a public GitHub repo
+
+- Decision: Treat GitHub as the durable public source home for Centinela, but keep operational data in the VPS/PostgreSQL layer and local non-sync runtime storage.
+- Why: This reduces OneDrive pressure, gives Centinela a clean collaboration/release surface, and avoids mixing heavy generated data or private credentials into repository history.
+- Consequence: `scripts/publish-github.ps1` creates or connects public `Centinela`, pushes the clean local `main`, and records civic-tech/procurement metadata after the user completes GitHub CLI authentication.
