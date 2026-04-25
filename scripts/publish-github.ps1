@@ -18,6 +18,9 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+if (Get-Variable -Name PSNativeCommandUseErrorActionPreference -Scope Global -ErrorAction SilentlyContinue) {
+    $Global:PSNativeCommandUseErrorActionPreference = $false
+}
 
 function Invoke-External {
     param(
