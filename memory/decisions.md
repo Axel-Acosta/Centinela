@@ -203,3 +203,9 @@
 - Decision: Add `analyst_evidence_links` and `POST /api/analyst-cases/:id/evidence-links` before attempting public explanations or a document index.
 - Why: Source records need to be carried through casework with field paths, evidence roles, interpretations, and limitations. This gives analysts provenance-backed explanation bundles without turning notes or source records into accusations.
 - Consequence: Case timelines now include `evidence_link` events, notes can show linked source-record counts, and future public/product layers can draw from explicit evidence roles and limitations instead of free-text notes alone.
+
+## 2026-04-26 - Field helpers before a document index
+
+- Decision: Add bounded source-record field suggestions and in-case source-record search before building a full document index or document UI.
+- Why: Centinela already has useful `source_records.payload` data, but analysts need a faster way to cite exact fields when building evidence links. A small helper over existing JSON payloads gives immediate value without adding search infrastructure too early.
+- Consequence: `GET /api/source-records/:id` now returns `fieldSuggestions`, and the console can search source records inside a case, open a record, and click suggested fields into the evidence-link form.

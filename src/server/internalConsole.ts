@@ -685,6 +685,8 @@ function consoleHtml(): string {
               </select>
               <button id="create-case" type="button">Create case</button>
               <button id="link-entity-case" type="button" class="secondary">Link current entity to case</button>
+              <input id="case-source-query" placeholder="Search source records for this case" aria-label="Case source record search" />
+              <button id="search-case-source-records" type="button" class="secondary">Search source records</button>
               <select id="evidence-role" aria-label="Evidence role">
                 <option value="context">Context</option>
                 <option value="supports_identity_context">Supports identity context</option>
@@ -700,6 +702,8 @@ function consoleHtml(): string {
               <button id="link-source-evidence" type="button" class="secondary">Link current source record as evidence</button>
             </div>
             <div id="cases" class="list"></div>
+            <div id="case-source-record-results" class="list"></div>
+            <div id="field-suggestions" class="list"></div>
           </div>
           <div class="span-7">
             <pre id="case-detail">Create or open a case to see the timeline.</pre>
@@ -764,8 +768,19 @@ function consoleHtml(): string {
     function renderItem(container, title, lines, button) {
       const item = document.createElement('div');
       item.className = 'item';
-      item.innerHTML = '<div class="kicker">' + text(lines.shift()) + '</div><strong>' + text(title) + '</strong>' +
-        lines.map((line) => '<p>' + text(line) + '</p>').join('');
+      const [kickerLine, ...bodyLines] = lines;
+      const kicker = document.createElement('div');
+      kicker.className = 'kicker';
+      kicker.textContent = text(kickerLine);
+      const titleNode = document.createElement('strong');
+      titleNode.textContent = text(title);
+      item.appendChild(kicker);
+      item.appendChild(titleNode);
+      bodyLines.forEach((line) => {
+        const paragraph = document.createElement('p');
+        paragraph.textContent = text(line);
+        item.appendChild(paragraph);
+      });
       if (button) {
         item.appendChild(button);
       }
@@ -829,6 +844,42 @@ function consoleHtml(): string {
       document.getElementById('graph-export').textContent = 'Ready to export entity #' + entityId + '.';
     }
 
+    async function openSourceRecord(recordId) {
+      currentSourceRecordId = Number(recordId);
+      const payload = await getJson('/api/source-records/' + recordId);
+      document.getElementById('detail').textContent = JSON.stringify(payload.data, null, 2);
+      renderFieldSuggestions(payload.data.fieldSuggestions || []);
+    }
+
+    function renderFieldSuggestions(suggestions) {
+      const container = document.getElementById('field-suggestions');
+      container.innerHTML = '';
+      if (!suggestions.length) {
+        renderItem(container, 'No field suggestions found', [
+          'field helper',
+          'Use the source record JSON manually if needed.'
+        ]);
+        return;
+      }
+
+      suggestions.slice(0, 8).forEach((suggestion) => {
+        const button = document.createElement('button');
+        button.className = 'secondary';
+        button.textContent = 'Use field';
+        button.onclick = () => {
+          document.getElementById('evidence-field-path').value = suggestion.path;
+          document.getElementById('evidence-field-value').value = suggestion.valuePreview;
+          document.getElementById('evidence-role').value = suggestion.evidenceRoleHint || 'context';
+          document.getElementById('evidence-summary').value = suggestion.reason + ' Field: ' + suggestion.path + '.';
+        };
+        renderItem(container, suggestion.path, [
+          suggestion.evidenceRoleHint,
+          suggestion.valuePreview,
+          suggestion.reason
+        ], button);
+      });
+    }
+
     function renderSourceRecords(records) {
       const container = document.getElementById('source-records');
       container.innerHTML = '';
@@ -843,11 +894,7 @@ function consoleHtml(): string {
         const button = document.createElement('button');
         button.className = 'secondary';
         button.textContent = 'Open source record';
-        button.onclick = async () => {
-          const payload = await getJson('/api/source-records/' + record.id);
-          currentSourceRecordId = Number(record.id);
-          document.getElementById('detail').textContent = JSON.stringify(payload.data, null, 2);
-        };
+        button.onclick = () => openSourceRecord(record.id);
         renderItem(container, record.source_key + ' #' + record.external_id, [
           record.record_kind,
           'record ID: ' + record.id
@@ -1003,6 +1050,33 @@ function consoleHtml(): string {
       document.getElementById('detail').textContent = JSON.stringify(payload.data, null, 2);
     }
 
+    async function searchCaseSourceRecords() {
+      const q = document.getElementById('case-source-query').value;
+      const path = q
+        ? '/api/source-records?q=' + encodeURIComponent(q) + '&limit=8'
+        : '/api/source-records?limit=8';
+      const payload = await getJson(path);
+      const container = document.getElementById('case-source-record-results');
+      container.innerHTML = '';
+      if (!payload.data.length) {
+        renderItem(container, 'No source records found', [
+          'case evidence search',
+          'Try a company name, external ID, RUC, or source-specific term.'
+        ]);
+        return;
+      }
+      payload.data.forEach((record) => {
+        const button = document.createElement('button');
+        button.className = 'secondary';
+        button.textContent = 'Open and suggest fields';
+        button.onclick = () => openSourceRecord(record.id);
+        renderItem(container, record.source_key + ' #' + record.external_id, [
+          record.record_kind,
+          'record ID: ' + record.id
+        ], button);
+      });
+    }
+
     async function linkCurrentSourceRecordEvidence() {
       if (!currentCaseId || !currentSourceRecordId) {
         document.getElementById('case-detail').textContent = 'Open both a case and a source record before linking evidence.';
@@ -1076,6 +1150,11 @@ function consoleHtml(): string {
     });
     document.getElementById('link-entity-case').addEventListener('click', () => {
       linkCurrentEntityToCase().catch((error) => {
+        document.getElementById('case-detail').textContent = error.message;
+      });
+    });
+    document.getElementById('search-case-source-records').addEventListener('click', () => {
+      searchCaseSourceRecords().catch((error) => {
         document.getElementById('case-detail').textContent = error.message;
       });
     });

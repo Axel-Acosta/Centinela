@@ -20,6 +20,7 @@ The surface is designed to expose:
 - internal analyst notes and cases
 - internal case timeline workbench
 - source-record evidence bundles with field-level explanation and limitation context
+- in-case source-record search and field-path helpers for evidence links
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -68,7 +69,7 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
 - `GET /api/source-records?source_key=<key>&external_id=<id>&q=<text>&limit=25`
   - source-record search and drilldown index
 - `GET /api/source-records/:id`
-  - full source-record payload and source-run context
+  - full source-record payload, source-run context, and bounded field suggestions for evidence-link creation
 - `GET /api/analyst-cases?status=open&limit=25`
   - saved internal cases
 - `GET /api/analyst-cases/:id?limit=20`
@@ -136,10 +137,19 @@ On the evidence-link smoke test, the API also confirmed:
 - the case detail returned `1` evidence link and `4` timeline events: `evidence_link`, `note`, `case_link`, and `case_created`
 - cleanup returned analyst case, note, and evidence-link counts to `0`
 
+On the field-helper smoke test, the API/console path also confirmed:
+
+- source-record search for `Consultora Guarani` returned `4` records
+- `GET /api/source-records/10117` returned `18` field suggestions
+- the top suggestion was `payload.centinelaExternalCandidateName`, with role hint `supports_identity_context`
+- a temporary evidence link used that suggested field successfully, then cleanup returned case, note, and evidence-link counts to `0`
+
 ## Limits
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
 - Saved cases, analyst notes, evidence links, and case timelines exist, but the console casework UI is still an internal workbench rather than a full case-management product.
+- Field suggestions are heuristic helpers, not automatic evidence judgments.
+- The console renders source-derived item text as text content rather than HTML, because source records can contain public-source strings.
 - No full-text document index yet.
 - Network output is graph-ready JSON, not a graph database.
 - Public-facing use requires a separate safety, privacy, methodology, and UX layer.

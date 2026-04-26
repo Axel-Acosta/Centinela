@@ -2,6 +2,7 @@ import { connectToPostgres } from "./postgres";
 
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 100;
+const MAX_FIELD_SUGGESTIONS = 80;
 
 export const analystTargetTypes = [
   "entity",
@@ -117,6 +118,15 @@ export interface SourceRecordOptions {
   limit?: number | undefined;
 }
 
+export interface SourceRecordFieldSuggestion {
+  path: string;
+  valuePreview: string;
+  valueType: string;
+  evidenceRoleHint: AnalystEvidenceRole;
+  reason: string;
+  priority: number;
+}
+
 type DbClient = Awaited<ReturnType<typeof connectToPostgres>>["client"];
 
 function clampLimit(value: number | undefined): number {
@@ -175,6 +185,140 @@ function defaultCaseKey(title: string): string {
 
 function jsonb(value: unknown): string {
   return JSON.stringify(value ?? {});
+}
+
+function valueType(value: unknown): string {
+  if (Array.isArray(value)) {
+    return "array";
+  }
+
+  if (value === null) {
+    return "null";
+  }
+
+  return typeof value;
+}
+
+function previewValue(value: unknown): string {
+  if (typeof value === "string") {
+    return value.length > 220 ? `${value.slice(0, 217)}...` : value;
+  }
+
+  const raw = JSON.stringify(value) ?? String(value);
+  return raw.length > 220 ? `${raw.slice(0, 217)}...` : raw;
+}
+
+function appendPath(parent: string, key: string): string {
+  if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
+    return `${parent}.${key}`;
+  }
+
+  return `${parent}[${JSON.stringify(key)}]`;
+}
+
+function classifyField(path: string, value: unknown): Pick<SourceRecordFieldSuggestion, "evidenceRoleHint" | "priority" | "reason"> {
+  const lower = path
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  const stringValue = typeof value === "string" ? value.trim() : "";
+
+  if (/(ruc|tax|identifier|identificador|document|documento|external_id|registration|registry)/.test(lower)) {
+    return {
+      evidenceRoleHint: "supports_identity_context",
+      priority: 95,
+      reason: "Identifier-like field useful for identity-context review.",
+    };
+  }
+
+  if (/(name|nombre|razon|denominacion|firm|company|supplier|proveedor|contratista)/.test(lower)) {
+    return {
+      evidenceRoleHint: "supports_identity_context",
+      priority: 90,
+      reason: "Name-like field useful for entity matching or source-backed identity context.",
+    };
+  }
+
+  if (/(status|estado|sanction|sancion|debar|inhabil|eligible|eligibility|reason|causal|motivo)/.test(lower)) {
+    return {
+      evidenceRoleHint: "supports_review_lead",
+      priority: 82,
+      reason: "Status or sanction-like field useful for review-lead explanation.",
+    };
+  }
+
+  if (/(from|to|date|fecha|period|vigencia|start|end|inicio|fin)/.test(lower)) {
+    return {
+      evidenceRoleHint: "supports_review_lead",
+      priority: 76,
+      reason: "Date or period field useful for timeline and limitation context.",
+    };
+  }
+
+  if (/(country|pais|jurisdiction|jurisdiccion|nationality)/.test(lower)) {
+    return {
+      evidenceRoleHint: "context",
+      priority: 66,
+      reason: "Jurisdiction-like field useful as contextual source evidence.",
+    };
+  }
+
+  if (stringValue.length >= 3 && stringValue.length <= 180) {
+    return {
+      evidenceRoleHint: "context",
+      priority: 45,
+      reason: "Short scalar field that may be useful for source-record citation.",
+    };
+  }
+
+  return {
+    evidenceRoleHint: "context",
+    priority: 20,
+    reason: "Scalar source-record field available for analyst review.",
+  };
+}
+
+function buildFieldSuggestions(payload: unknown, limit = MAX_FIELD_SUGGESTIONS): SourceRecordFieldSuggestion[] {
+  const suggestions: SourceRecordFieldSuggestion[] = [];
+  const seen = new Set<string>();
+
+  function visit(value: unknown, path: string, depth: number): void {
+    if (suggestions.length >= limit * 3 || depth > 6 || value === null || value === undefined) {
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.slice(0, 8).forEach((item, index) => visit(item, `${path}[${index}]`, depth + 1));
+      return;
+    }
+
+    if (typeof value === "object") {
+      for (const [key, child] of Object.entries(value as Record<string, unknown>).slice(0, 80)) {
+        visit(child, appendPath(path, key), depth + 1);
+      }
+      return;
+    }
+
+    const preview = previewValue(value);
+    if (!preview || seen.has(path)) {
+      return;
+    }
+
+    seen.add(path);
+    const classification = classifyField(path, value);
+    suggestions.push({
+      path,
+      valuePreview: preview,
+      valueType: valueType(value),
+      ...classification,
+    });
+  }
+
+  visit(payload, "payload", 0);
+
+  return suggestions
+    .sort((left, right) => right.priority - left.priority || left.path.localeCompare(right.path))
+    .slice(0, limit);
 }
 
 async function withDatabase<T>(work: (client: DbClient, schema: string) => Promise<T>): Promise<T> {
@@ -844,7 +988,11 @@ export async function getSourceRecord(recordId: number): Promise<Record<string, 
       throw new Error(`Source record ${recordId} was not found.`);
     }
 
-    return normalizeRows([row])[0] ?? {};
+    const normalized = normalizeRows([row])[0] ?? {};
+    return {
+      ...normalized,
+      fieldSuggestions: buildFieldSuggestions(row.payload),
+    };
   });
 }
 

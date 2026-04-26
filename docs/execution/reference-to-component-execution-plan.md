@@ -600,10 +600,31 @@ Concrete proof artifacts:
 - `analyst_case_evidence_overview`
 - evidence-link panel controls in `src/server/internalConsole.ts`
 
+## 2026-04-26 source-record field-helper advancement
+
+- br/acc
+  - advanced by making source-record payload fields easier to cite without detaching them from source registry provenance.
+- Aleph
+  - advanced through investigator ergonomics: source-record search now works inside the case workbench and source fields can flow into case evidence.
+- Sayari
+  - advanced because analyst-grade dossiers can now preserve exact source field paths, values, and evidence-role hints.
+- Integrity Watch / RUBLI
+  - advanced because future public explanations can be built from explicit field paths and limitations instead of opaque summaries.
+- OpenSanctions / ICIJ / OpenOwnership / OpenCorporates
+  - advanced because external/enrichment source records can later be cited at field level while remaining review-first.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because company accountability cases can connect contracts, companies, and cited source fields in one workbench.
+
+Concrete proof artifacts:
+
+- `fieldSuggestions` in `GET /api/source-records/:id`
+- in-case source-record search controls in `src/server/internalConsole.ts`
+- field suggestion click-to-fill evidence form behavior in `src/server/internalConsole.ts`
+
 ## Next extraction priority
 
 - highest priority
-  - make evidence bundles easier to create and review with source-record search inside cases, common field-path helpers, and case evidence exports
+  - add case evidence exports and public-safety review states for outward-facing explanation readiness
 - next after that
   - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
 - then

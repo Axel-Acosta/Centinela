@@ -237,6 +237,7 @@
   - preserve internal notes and cases without treating notes as accusations
   - open a saved case as a timeline of case creation, linked targets, and case-scoped notes
   - link source records to notes and targets with field-level explanation, interpretation, limitations, and evidence-role metadata
+  - search source records from inside the case panel and use field-path suggestions to speed up evidence-link creation
   - drill into source records from the console/API
   - export entity networks for graph-oriented review
   - require a local write token before saved notes or cases can be written through the API
@@ -271,4 +272,4 @@
 
 ## Next workflow milestone
 
-- Harden the internal API/console with source-record search inside cases, common field-path helpers, case evidence bundles, and eventually production-grade authentication if remote access becomes necessary.
+- Harden the internal API/console with case evidence exports, public-safety review states, and eventually production-grade authentication if remote access becomes necessary.

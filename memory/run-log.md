@@ -187,3 +187,6 @@
 - Added `POST /api/analyst-cases/:id/evidence-links`, evidence-link counts in overview, evidence links in `GET /api/analyst-cases/:id`, and evidence-link controls in the local console.
 - Applied migration 018 to the live VPS-backed database over the SSH tunnel.
 - Smoke-tested the evidence-link slice: one temporary case, one entity link to entity `3940`, one note, and one source-record evidence link to source record `10117` returned `1` evidence link, `1` linked source record on the note, and `4` timeline events (`evidence_link`, `note`, `case_link`, `case_created`); cleanup returned analyst cases, notes, and evidence links to `0`.
+- Added bounded source-record field suggestions to `GET /api/source-records/:id`, plus in-case source-record search and click-to-fill field helpers in the local console.
+- Smoke-tested the field-helper slice: source-record search for `Consultora Guarani` returned `4` records; source record `10117` returned `18` field suggestions; the top suggestion was `payload.centinelaExternalCandidateName` with role hint `supports_identity_context`; a temporary evidence link used that suggested field and cleanup returned cases, notes, and evidence links to `0`.
+- Hardened the console item renderer so public-source text is inserted as text content instead of HTML while displaying source-record and field-suggestion values.

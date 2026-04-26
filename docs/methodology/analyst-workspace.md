@@ -33,6 +33,7 @@ Read endpoints:
 
 - `GET /api/source-records`
 - `GET /api/source-records/:id`
+  - includes bounded `fieldSuggestions` that point to useful scalar JSON fields, likely evidence role, and why the field may matter
 - `GET /api/analyst-cases`
 - `GET /api/analyst-cases/:id`
 - `GET /api/analyst-notes`
@@ -59,6 +60,7 @@ If `CENTINELA_WRITE_TOKEN` is not set, write endpoints are disabled.
 - Graph exports are relationship leads for review, not proof of ownership, control, misconduct, or liability.
 - Source-record drilldowns show raw/source-backed evidence, but interpretation still belongs in review notes or methodology.
 - Evidence links are explanation bundles for review. They can support identity context, review leads, limitations, contradictions, or follow-up, but they are not legal findings.
+- Field suggestions are convenience helpers. Analysts still decide whether a field is relevant and must preserve limitations when using it in evidence.
 - Write-token authentication is a local hardening step, not a full production auth system.
 
 ## Current smoke-test result
@@ -76,7 +78,8 @@ On 2026-04-26, the first live analyst-workspace smoke test confirmed:
 - no smoke notes or cases were persisted
 - a later case-timeline smoke created one temporary case, linked entity `3940`, saved one temporary note, returned `3` timeline events (`note`, `case_link`, `case_created`), then deleted the smoke case and returned analyst cases/notes to `0`
 - the evidence-link smoke created one temporary case, one entity link, one note, and one source-record evidence link to source record `10117`; case detail returned `1` evidence link, the note reported `1` linked source record, the timeline returned `4` events (`evidence_link`, `note`, `case_link`, `case_created`), then cleanup returned analyst cases, notes, and evidence links to `0`
+- the field-helper smoke searched source records for `Consultora Guarani`, found `4` records, returned `18` field suggestions for source record `10117`, ranked `payload.centinelaExternalCandidateName` first, created one temporary evidence link from that suggested field, then cleanup returned analyst cases, notes, and evidence links to `0`
 
 ## Next hardening step
 
-Add richer evidence-bundle ergonomics: source-record search inside the case panel, field-path helpers for common source types, and public-safety review states for any later outward-facing explanation.
+Add case evidence exports and public-safety review states for any later outward-facing explanation.

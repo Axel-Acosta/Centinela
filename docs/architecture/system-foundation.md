@@ -45,8 +45,8 @@ Each major precedent in Centinela's comparative universe must apply concrete imp
 
 ### Search and investigation
 
-- Current phase: file outputs plus SQL analyst views, database-backed markdown briefs, entity activity views, buyer-supplier edge views, review queues, enrichment connectors, and a first local-only internal API/console with token-protected analyst notes/cases, evidence links, case timelines, source-record drilldowns, and graph export
-- Next phase: source-record search inside cases, field-path helpers, case evidence exports, additional ownership/offshore joins, richer entity search, and later document/evidence index inspired by Aleph, Sayari, br/acc, QQW, Dozorro, and Integrity Watch
+- Current phase: file outputs plus SQL analyst views, database-backed markdown briefs, entity activity views, buyer-supplier edge views, review queues, enrichment connectors, and a first local-only internal API/console with token-protected analyst notes/cases, evidence links, case timelines, source-record drilldowns, field suggestions, and graph export
+- Next phase: case evidence exports, public-safety review states, additional ownership/offshore joins, richer entity search, and later document/evidence index inspired by Aleph, Sayari, br/acc, QQW, Dozorro, and Integrity Watch
 
 ## Why not a graph-first lock-in today
 

@@ -8,7 +8,7 @@ Centinela now has a first internal investigation layer built on top of PostgreSQ
 - SQL views summarize process-level risk, entity activity, buyer-supplier pairings, and review lanes
 - CLI commands generate markdown analyst briefs, entity briefs, review queues, external screening reports, official DNCP supplier-anchor reports, and DNIT RUC equivalence identity-validation reports from those views and enrichment tables
 - a local-only internal API and console now expose the live investigation layer through entity search, JSON dossiers, graph-ready neighborhoods, review queues, external candidates, and accepted matches
-- the first analyst-workspace hardening slice adds token-protected saved cases/notes, source-record drilldowns, source-record evidence bundles, graph exports, and a case timeline workbench
+- the first analyst-workspace hardening slice adds token-protected saved cases/notes, source-record drilldowns, source-record field suggestions, source-record evidence bundles, graph exports, and a case timeline workbench
 
 This is still internal, but it is now an operational investigation surface rather than a static export dump.
 
@@ -113,11 +113,11 @@ This is still internal, but it is now an operational investigation surface rathe
 
 - The formal registry exists, but the DNCP public red-flag crosswalk is still incomplete
 - The local identity layer now covers 2,533 of 2,534 procurement-linked supplier companies; the remaining gap is a missing-check-digit RUC data-quality issue, not a generic no-source condition
-- The first interactive API/console slice is local-only. It now supports token-protected notes/cases, evidence links, case timelines, source-record drilldowns, and graph export, but not production authentication, role-based permissions, or public deployment posture yet.
+- The first interactive API/console slice is local-only. It now supports token-protected notes/cases, evidence links, case timelines, source-record drilldowns, field suggestions, and graph export, but not production authentication, role-based permissions, or public deployment posture yet.
 - Payment analysis is only as complete as the currently loaded DNCP transaction data
 - Entity-linked monetary context is still process-linked context, not clean attributed supplier value in all multi-supplier procedures
 - Candidate `59` is now accepted through second review as enrichment identity context only. It still lacks a comparable external RUC, and that limitation is preserved in the accepted-match workflow.
 
 ## Next step
 
-The next investigation-layer milestone should make source-record evidence bundles easier to create and review inside cases, then add case evidence exports and eventually production-grade authentication before any public deployment.
+The next investigation-layer milestone should add case evidence exports and public-safety review states, then eventually production-grade authentication before any public deployment.
