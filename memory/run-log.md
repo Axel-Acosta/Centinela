@@ -167,3 +167,9 @@
 - Dry-ran and then recorded candidate `59`, `CONSULTORA GUARANI SA INGENIEROS CIVILES` -> `Consultora Guaraní S.A. Ingenieros Civiles`, as `accepted_match` through second review.
 - Live result: second review ID `2`, accepted enrichment match ID `11`, accepted external entity ID `12431`, and zero `entity_external_risk_signals` created by the second-review workflow.
 - Regenerated `external-enrichment-candidate-review.md`, `all-entities-intelligence-queue.md`, and the `CONSULTORA GUARANI SA INGENIEROS CIVILES` entity brief under the local runtime data folder.
+- Reassessed the next phase after the live second-review milestone and chose a local-only internal API/console as the highest-leverage synthesis step before a public UI or separate graph database.
+- Added `src/storage/internalApi.ts`, exposing reusable query functions for overview counts, entity search, entity profiles, graph-ready entity neighborhoods, entity/process review queues, external candidates, and accepted external matches.
+- Added `src/server/internalConsole.ts` and `npm run serve:internal-console`, a native Node local HTTP server with JSON endpoints and a first analyst console at `http://127.0.0.1:8787/`.
+- Kept the console local-only by default; non-local binding requires `CENTINELA_ALLOW_REMOTE_CONSOLE=true` and should not be used publicly until authentication and public-safety controls exist.
+- Smoke-tested the console against the VPS-backed live database: `8,716` entities, `13,529` processes, `1` accepted second review, top search hit for `CONSULTORA GUARANI`, `1` accepted match in the entity profile, and an `11` node / `10` edge graph-ready neighborhood sample.
+- Added `docs/architecture/internal-api-console.md` and updated the roadmap, investigation layer, analyst workflow docs, system foundation, data model, README, and reference execution plan so the API/console becomes the next operational surface rather than a detached experiment.

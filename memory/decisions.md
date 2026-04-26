@@ -179,3 +179,9 @@
 - Decision: Record candidate `59` as an accepted enrichment identity match through second review, while preserving the limitation that the external source has no comparable RUC and creating no external risk signal.
 - Why: The local DNCP/DNIT identity package, hosted matcher support, and official IDB row-level source evidence are strong enough for source-backed identity context, but they are not a misconduct finding and do not erase the identifier limitation.
 - Consequence: Centinela now has its first live accepted external enrichment match, but public and analyst outputs must continue to show provenance, limitations, and non-accusatory language.
+
+## 2026-04-26 - Local internal API and console before public UI or graph database
+
+- Decision: Build the first local-only internal API/console on top of the live PostgreSQL views before adding a public dashboard, saved-case product layer, or separate graph database.
+- Why: The live foundation already has procurement rules, local identity anchors, external candidates, hosted comparison evidence, source-record checks, and second-review state. The highest leverage now is to make those layers explorable together through entity search, dossiers, queues, and graph-ready relationship neighborhoods.
+- Consequence: Centinela now has a reusable local analyst surface that advances Aleph/Sayari-style investigation, br/acc-style graph-ready provenance, Dozorro-style review queues, QQW-style company-contract accountability, and RUBLI/Integrity-Watch-style cautious explanation without prematurely exposing anything publicly.

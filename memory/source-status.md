@@ -10,7 +10,7 @@
 - Current implementation: live API sampling, annual bulk ZIP ingestion, normalization of processes/contracts/transactions, PostgreSQL loading, entity-source provenance, formal rule registry sync, review-queue generation, entity-level analyst briefs, and rulebook methodology outputs
 - Current loaded state: `py-dncp-bulk-2025` and `py-dncp-bulk-2026` are loaded in PostgreSQL
 - Current observed scale after the rule-registry reload: 13,529 processes total, 41,009 contracts in 2025 alone, 9,964 matched signals across all active rules, and 7,351 flagged processes in the review queue
-- Next expansion: supplier histories enriched with non-DNCP sources, formal DNCP crosswalk refinement, and API/console exposure of multi-year entity intelligence
+- Next expansion: supplier histories enriched with non-DNCP sources, formal DNCP crosswalk refinement, and hardening the first local API/console into an analyst workspace for multi-year entity intelligence
 
 ### DNCP red flags
 
@@ -66,4 +66,4 @@
 - Second-review implementation status: migration `sql/postgres/015_external_candidate_second_review.sql` is applied in the live VPS database and command `npm run database:second-review-external-candidate` is operational.
 - Second-review live result: second review ID `2`, accepted enrichment match ID `11`, accepted external entity ID `12431`, and zero `entity_external_risk_signals` created by the second-review workflow.
 - Interpretation: the local identity bottleneck is much weaker now, exact matching is no longer the only output path, review state is operational, source-document evidence has been captured, and accepted-match governance is now live in code, schema, database, queue, and dossier outputs.
-- Next expansion: improve the local candidate scoring/evidence model, expose accepted matches and second-review evidence through an internal API/console, then add ownership/foreign-company/offshore edges on top of the DNCP plus DNIT company master.
+- Next expansion: improve the local candidate scoring/evidence model, harden the first internal API/console with source-record and second-review drilldowns, then add ownership/foreign-company/offshore edges on top of the DNCP plus DNIT company master.

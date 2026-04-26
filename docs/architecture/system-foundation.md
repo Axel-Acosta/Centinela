@@ -45,8 +45,8 @@ Each major precedent in Centinela's comparative universe must apply concrete imp
 
 ### Search and investigation
 
-- Current phase: file outputs plus SQL analyst views, database-backed markdown briefs, entity activity views, buyer-supplier edge views, a review queue, and the first OpenSanctions enrichment connector
-- Next phase: stronger Paraguay company identity, supplier histories, relationship explorer, additional enrichment joins, entity search API, and later document/evidence index inspired by Aleph, Sayari, br/acc, QQW, Dozorro, and Integrity Watch
+- Current phase: file outputs plus SQL analyst views, database-backed markdown briefs, entity activity views, buyer-supplier edge views, review queues, enrichment connectors, and a first local-only internal API/console
+- Next phase: saved casework, source-record drilldowns, graph export, additional ownership/offshore joins, richer entity search, and later document/evidence index inspired by Aleph, Sayari, br/acc, QQW, Dozorro, and Integrity Watch
 
 ## Why not a graph-first lock-in today
 

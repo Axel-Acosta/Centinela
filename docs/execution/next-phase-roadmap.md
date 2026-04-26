@@ -58,8 +58,9 @@
   - manual external-candidate review workflow achieved through `sql/postgres/014_external_candidate_review_workflow.sql`, `centinela.entity_enrichment_candidate_review_overview`, `src/storage/candidateReview.ts`, and `npm run database:review-external-candidate`
   - official IDB Open Data row-level source checking achieved for IADB/OpenSanctions candidates through `src/enrichment/idbSanctions.ts` and `npm run enrichment:idb-sanctions-candidate`
   - repo-side second-review accepted-match workflow achieved through `sql/postgres/015_external_candidate_second_review.sql`, `src/storage/secondReview.ts`, `npm run database:second-review-external-candidate`, and the second-review methodology note
+  - live second-review accepted-match case achieved for candidate `59`, with accepted enrichment match ID `11` and zero external risk signals created by the second-review workflow
   - current blocker: the trial key hit a monthly `429` rate limit after the first live comparison pass
-  - still needs migration 015 applied to the live VPS database, candidate `59` dry-run/decision, recovery of the final missing RUC check digit, and the next ownership-ready/company-accountability source
+  - still needs recovery of the final missing RUC check digit and the next ownership-ready/company-accountability source
 - Core outputs
   - first live external-risk connector through OpenSanctions bulk screening
   - first Paraguay company or registry connector
@@ -82,10 +83,12 @@
 ## Stage 4 - Internal API and analyst console
 
 - Status
-  - staged after rules and first enrichment connector
+  - first local-only slice operational
 - Core outputs
   - API for process, entity, edge, flag, and review-queue queries
   - console views for process leads, entity dossiers, and follow-up lanes
+  - accepted external match and second-review evidence endpoints
+  - graph-ready one-hop entity network endpoint
   - saved investigation paths later
 - Main references
   - Aleph
@@ -114,15 +117,15 @@
 
 ## Immediate next best step
 
-- Apply and exercise the second-review workflow for `promotable` external candidates, while keeping accepted-match insertion separate from review-only source-document evidence and external risk-signal creation.
+- Harden the local-only internal API/console into the first analyst workspace, while keeping accepted matches, review-only candidates, external risk signals, and public-facing language separate.
 - Reason
-  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, and one official IDB row-level source check. The next leverage is defining how a `promotable` row can move into accepted-match storage without collapsing into automatic accusation or automatic risk-signal creation.
+  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, and one accepted second-review match. The next leverage is making those layers explorable together instead of leaving them mostly in markdown reports.
 - Expected carry-over
-  - candidate records with durable human-review status, notes, source-backed promotion/rejection history, and second-review state
+  - local API endpoints and console views that expose candidate records with durable human-review status, notes, source-backed promotion/rejection history, and second-review state
   - tighter use of hosted same-candidate confirmation versus different-result ambiguity inside analyst workflows
   - one fully explained or resolved remaining local identity gap
   - stronger OpenSanctions candidate evidence display grounded in official Paraguay names, RUCs, representative links, rejection reasons, and review state
   - first ownership, sanctions, or company-accountability pivot from the company-level queue with a better local anchor
   - stronger Sayari, OpenSanctions, Open Ownership, OpenCorporates, ICIJ, QQW, and DNCP supplier-registry protagonism
-  - clearer API and console requirements around match review and entity expansion
+  - clearer API and console requirements around match review, source-record drilldown, graph export, and entity expansion
   - better grounding for later public accountability and methodology pages

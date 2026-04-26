@@ -7,8 +7,9 @@ Centinela now has a first internal investigation layer built on top of PostgreSQ
 - normalized bundles can be loaded into the VPS database
 - SQL views summarize process-level risk, entity activity, buyer-supplier pairings, and review lanes
 - CLI commands generate markdown analyst briefs, entity briefs, review queues, external screening reports, official DNCP supplier-anchor reports, and DNIT RUC equivalence identity-validation reports from those views and enrichment tables
+- a local-only internal API and console now expose the live investigation layer through entity search, JSON dossiers, graph-ready neighborhoods, review queues, external candidates, and accepted matches
 
-This is intentionally modest, but it is already an operational investigation surface rather than a static export dump.
+This is still internal, but it is now an operational investigation surface rather than a static export dump.
 
 ## Current artifacts
 
@@ -47,6 +48,8 @@ This is intentionally modest, but it is already an operational investigation sur
   - second-review governance table for `promotable` external candidates before accepted-match insertion
 - `centinela.entity_enrichment_second_review_overview`
   - analyst-readable view of second-review decisions, rationale, limitations, and accepted-match IDs
+- `npm run serve:internal-console -- --host 127.0.0.1 --port 8787`
+  - serves a local analyst console and JSON API for entity search, dossiers, graph-ready networks, queues, candidates, and accepted matches
 - `npm run database:analyst-brief -- --source-key ...`
   - generates an internal markdown brief from the database
 - `npm run database:review-queue -- --limit ...`
@@ -103,11 +106,11 @@ This is intentionally modest, but it is already an operational investigation sur
 
 - The formal registry exists, but the DNCP public red-flag crosswalk is still incomplete
 - The local identity layer now covers 2,533 of 2,534 procurement-linked supplier companies; the remaining gap is a missing-check-digit RUC data-quality issue, not a generic no-source condition
-- There is no interactive UI or API layer yet
+- The first interactive API/console slice is local-only and has no authentication, saved cases, or public deployment posture yet
 - Payment analysis is only as complete as the currently loaded DNCP transaction data
 - Entity-linked monetary context is still process-linked context, not clean attributed supplier value in all multi-supplier procedures
-- Candidate `59` is now `promotable` after official IDB source-row confirmation, but still lacks a comparable external RUC; second review must preserve that limitation if it accepts the match
+- Candidate `59` is now accepted through second review as enrichment identity context only. It still lacks a comparable external RUC, and that limitation is preserved in the accepted-match workflow.
 
 ## Next step
 
-The next investigation-layer milestone should apply the second-review migration to the live VPS database, exercise it first in dry-run mode against candidate `59`, then decide whether to record an accepted enrichment match or keep the candidate in `needs_more_evidence`.
+The next investigation-layer milestone should harden the internal API/console into an analyst workspace: add saved review notes/cases, document/source-record drilldowns, graph export, and public-safe field-level explanations before any public deployment.

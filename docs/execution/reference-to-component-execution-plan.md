@@ -465,14 +465,50 @@ For each major precedent, it states:
 - DNCP
   - remains the grounding procurement backbone while the entity layer widens outward
 
+## 2026-04-26 internal API and console advancement
+
+- br/acc
+  - advanced through `src/storage/internalApi.ts`, which exposes source-linked entity records and graph-ready one-hop neighborhoods without forcing an immediate graph database.
+- Aleph
+  - advanced through entity search, JSON dossier endpoints, and the first local investigation console at `src/server/internalConsole.ts`.
+- Sayari
+  - advanced through entity-centric answer surfaces that combine local profiles, representatives, accepted matches, candidates, second reviews, counterparty edges, and procurement processes.
+- Dozorro/ProZorro
+  - advanced through API access to entity and process review queues, preserving review lanes and recommended actions as operational workflow objects.
+- Integrity Watch
+  - advanced through a first internal console that keeps non-accusatory guardrail language visible before any public UI exists.
+- OpenTender/GTI
+  - advanced through API exposure of process queues, entity activity, buyer-supplier edges, contract values, and review-priority sorting.
+- Open Contracting/Cardinal/OCDS
+  - advanced because process endpoints continue to expose procurement records and signals from the DNCP/OCDS-backed rule foundation instead of bypassing it.
+- OpenSanctions / OpenOwnership / OpenCorporates / ICIJ
+  - advanced through endpoints for accepted external matches, review-only candidates, candidate diagnostics, identifiers, and graph-ready external-match edges that can later support ownership/offshore expansion.
+- FUNES
+  - advanced by making relationship-aware review lanes queryable rather than leaving regional risk logic only in reports.
+- QuiénEsQuién/TodosLosContratos
+  - advanced through company-search and company-profile API surfaces that connect suppliers, contracts, buyers, representatives, and accepted external context.
+- Rosie / Serenata
+  - advanced through a console posture that keeps suspicious leads tied to human review rather than automated conclusions.
+- Paraguay DNCP red flags work
+  - advanced because the API/console exposes local DNCP process and entity review surfaces without detaching them from Paraguay's institutional procurement context.
+- RUBLI
+  - advanced through endpoint and console disclaimers, explicit limitations in accepted-match outputs, and no opaque aggregate guilt score.
+
+Concrete proof artifacts:
+
+- `src/storage/internalApi.ts`
+- `src/server/internalConsole.ts`
+- `npm run serve:internal-console`
+- `docs/architecture/internal-api-console.md`
+
 ## Next extraction priority
 
 - highest priority
-  - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
+  - harden the internal API/console into an analyst workspace with saved review notes, source-record drilldowns, graph export, and field-level explanation surfaces
 - next after that
-  - add manual candidate review states and promotion/rejection workflow, improve the local external-candidate scoring model, then stage ownership and offshore expansion influenced by OpenOwnership, ICIJ, OpenCorporates, and Sayari
+  - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
 - then
-  - internal API/console shaped by Aleph, Sayari, Dozorro, Integrity Watch, and QQW
+  - improve the local external-candidate scoring model and stage ownership/offshore expansion influenced by OpenOwnership, ICIJ, OpenCorporates, and Sayari
 
 ## Still pending deeper extraction
 

@@ -24,7 +24,8 @@
     "database:review-external-candidate": "tsx src/cli.ts database review-external-candidate",
     "database:second-review-external-candidate": "tsx src/cli.ts database second-review-external-candidate",
     "database:entity-anchor-gaps": "tsx src/cli.ts database entity-anchor-gaps",
-    "database:rulebook": "tsx src/cli.ts database rulebook"
+    "database:rulebook": "tsx src/cli.ts database rulebook",
+    "serve:internal-console": "tsx src/cli.ts serve internal-console"
   },
   "keywords": [],
   "author": "",

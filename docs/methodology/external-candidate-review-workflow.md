@@ -56,15 +56,19 @@ npm run database:review-external-candidate -- --candidate-id 59 --status needs_e
 - High-priority company review candidates: `1`
 - Rejected diagnostics: `57`
 - Current reviewer state:
-  - `promotable`: `1`
+  - `accepted_match` second-review case: `1`
   - `monitor`: `5`
   - `rejected`: `4`
   - `unreviewed`: `48`
 - First live classification:
   - candidate `59`, `CONSULTORA GUARANI SA INGENIEROS CIVILES` -> `Consultora Guaraní S.A. Ingenieros Civiles`, initially marked `needs_evidence`
   - local DNCP/DNIT identifiers exist for this company, including RUC `80016063-0`
-  - the official IDB Open Data row-level source record was extracted on 2026-04-24 and candidate `59` is now marked `promotable`
-  - the IDB row still has no comparable external RUC identifier, so `promotable` means ready for second review, not accepted
+  - the official IDB Open Data row-level source record was extracted on 2026-04-24 and candidate `59` was marked `promotable`
+  - the candidate was accepted through second review on 2026-04-26 as enrichment identity context only, with the limitation that the IDB/OpenSanctions row still has no comparable external RUC identifier
+  - second review ID: `2`
+  - accepted enrichment match ID: `11`
+  - accepted external entity ID: `12431`
+  - second-review-created external risk signals: `0`
 - Strongest representative diagnostics:
   - exact representative-name diagnostics with hosted same-candidate evidence but no Paraguay support were marked `monitor`
   - partial representative-name overlaps were marked `rejected`
@@ -77,7 +81,7 @@ npm run database:review-external-candidate -- --candidate-id 59 --status needs_e
 - Accepted-match insertion is handled only through the separate second-review workflow documented in `docs/methodology/external-candidate-second-review-workflow.md`.
 - A second-review accepted match is identity-resolution enrichment context. It does not create an external risk signal or proof of wrongdoing.
 
-## Next evidence task
+## Accepted-match governance state
 
 For candidate `59`, the local DNCP/DNIT identity package has now been compared against the underlying IADB sanctions/debarment source record:
 
@@ -92,4 +96,6 @@ For candidate `59`, the local DNCP/DNIT identity package has now been compared a
 - investigation note: `docs/investigations/candidate-59-iadb-source-check.md`
 - source-check methodology: `docs/methodology/idb-sanctions-open-data.md`
 
-Do not create an accepted match until the second-review workflow verifies the source evidence, local identity package, limitations, and accepted-match methodology. Do not create an external risk signal automatically from second review.
+The second-review workflow accepted candidate `59` as source-backed identity context, not as a misconduct finding. The accepted match is now visible through the external-candidate review report, entity dossier outputs, and the local internal API/console.
+
+Do not create future accepted matches unless the second-review workflow verifies the source evidence, local identity package, limitations, and accepted-match methodology. Do not create an external risk signal automatically from second review.

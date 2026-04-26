@@ -21,6 +21,7 @@ import { fetchDncpBulkYear } from "./sources/paraguay/dncpBulk";
 import { writeOutputJson, writeOutputText } from "./storage/files";
 import { candidateReviewStatuses, updateExternalCandidateReview } from "./storage/candidateReview";
 import { secondReviewDecisions, secondReviewExternalCandidate } from "./storage/secondReview";
+import { serveInternalConsole } from "./server/internalConsole";
 import { applySqlFile } from "./storage/sqlFile";
 import {
   buildAnalystBrief,
@@ -598,6 +599,12 @@ async function runDatabaseEntityAnchorGapReport(args: string[]): Promise<void> {
   console.log(`Generated entity anchor gap report: ${reportPath}`);
 }
 
+async function runServeInternalConsole(args: string[]): Promise<void> {
+  const host = readArg(args, "--host") ?? "127.0.0.1";
+  const port = readNumberArg(args, "--port", 8787);
+  await serveInternalConsole({ host, port });
+}
+
 async function main(): Promise<void> {
   const [, , domain, command, ...args] = process.argv;
 
@@ -691,6 +698,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (domain === "serve" && command === "internal-console") {
+    await runServeInternalConsole(args);
+    return;
+  }
+
   throw new Error(
     `Unsupported command. Use one of:
 - tsx src/cli.ts paraguay first-slice
@@ -710,7 +722,8 @@ async function main(): Promise<void> {
 - tsx src/cli.ts database review-external-candidate --candidate-id 1 --status needs_evidence --reviewer "Analyst Name" --notes "Review note"
 - tsx src/cli.ts database second-review-external-candidate --candidate-id 1 --decision accepted_match --reviewer "Second Reviewer" --rationale "Source-backed identity review" --limitations "State known limits"
 - tsx src/cli.ts database entity-anchor-gaps --limit 50
-- tsx src/cli.ts database rulebook --source-key py-dncp-bulk-2026`,
+- tsx src/cli.ts database rulebook --source-key py-dncp-bulk-2026
+- tsx src/cli.ts serve internal-console --host 127.0.0.1 --port 8787`,
   );
 }
 

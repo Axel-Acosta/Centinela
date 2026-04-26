@@ -27,11 +27,13 @@ It is intentionally conservative.
   - `entity_enrichment_candidate_review_overview` for manual review state, reviewer notes, suggested next steps, and hosted-comparison support
   - `entity_external_risk_signals` for sanctions, debarment, watchlist, offshore, or PEP-linked signals where applicable
 
-## Why bulk instead of the hosted API
+## Why bulk remains the reproducible baseline
 
 - As observed on 2026-04-18, the hosted OpenSanctions matching API requires authentication.
 - The public bulk dataset index and exports remain reachable.
-- Centinela therefore uses the public bulk path first, which preserves reproducibility and does not require new secrets.
+- Centinela therefore used the public bulk path first, which preserves reproducibility and does not require new secrets.
+- OpenSanctions later confirmed Centinela is eligible for hosted API access and recommended starting with the hosted API before deciding on self-hosted Yente.
+- Hosted comparison evidence is now stored in PostgreSQL, but the bulk connector remains useful as the reproducible baseline and local candidate-generation spine.
 
 ## Current matching rules
 
@@ -114,7 +116,9 @@ It is intentionally conservative.
 - Supplier companies with review-only external candidates: 1
 - Stored external risk signals: 0
 
-This means the local identity layer is no longer the main blocker for this connector, and the external layer now has a safer middle state between "accepted match" and "invisible no-match." The current candidate layer is intentionally conservative and review-only. After the tighter candidate-quality pass, it surfaces one company-level review lead and keeps weak person/company overlaps as diagnostics. It still produced zero accepted matches and zero external risk signals.
+This means the local identity layer is no longer the main blocker for this connector, and the external layer now has a safer middle state between "accepted match" and "invisible no-match." The current candidate layer is intentionally conservative and review-only. After the tighter candidate-quality pass, it surfaced one company-level review lead and kept weak person/company overlaps as diagnostics. The bulk rerun itself produced zero accepted matches and zero external risk signals.
+
+After later hosted comparison, IDB row-level source checking, and second review, candidate `59` was accepted as enrichment identity context only. That later accepted match does not change the conservative bulk-screening result and did not create an external risk signal.
 
 ## Current analyst surfaces
 
@@ -128,7 +132,8 @@ This means the local identity layer is no longer the main blocker for this conne
 ## Immediate next methodology step
 
 - Keep this conservative baseline.
-- Use the hosted OpenSanctions API trial as the first authenticated comparison path, via `POST /match/default?algorithm=logic-v2`; keep self-hosted Yente as a later architecture option if volume, sovereignty, or cost makes it worthwhile.
-- Use the manual review-status workflow and row-level source-document checks for `entity_enrichment_candidates`, then improve local candidate scoring with stronger name-order, identifier, document, and representative evidence before accepting any candidate.
+- Use the stored hosted OpenSanctions comparison evidence while the trial key is rate-limited; use fresh hosted calls sparingly for new high-value candidates.
+- Use the manual review-status workflow, row-level source-document checks, and second-review workflow for `entity_enrichment_candidates`, then improve local candidate scoring with stronger name-order, identifier, document, and representative evidence before accepting any new candidate.
+- Expose bulk, hosted, source-check, review-state, and second-review evidence together through the local internal API/console.
 - Add separate ownership/person screening only when lawful owner or representative evidence supports the person link.
 - Then revisit ownership edges and offshore traversal on top of the stronger local company layer.

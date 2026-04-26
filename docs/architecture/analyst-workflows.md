@@ -207,6 +207,25 @@
   - QQW/TodosLosContratos
   - OpenSanctions
 
+### 13. Internal API and console
+
+- Command
+  - `npm run serve:internal-console -- --host 127.0.0.1 --port 8787`
+- Purpose
+  - expose current investigation surfaces through a local analyst console and JSON API instead of markdown reports only
+  - support entity search, dossier drilldown, graph-ready one-hop networks, entity queues, process queues, external-candidate review, and accepted-match review
+  - keep the first interactive surface local-only and non-public until authentication, saved casework, and public-safety review exist
+- Methodology note
+  - `docs/architecture/internal-api-console.md`
+- Main reference pressure
+  - Aleph
+  - Sayari
+  - br/acc
+  - Dozorro/ProZorro
+  - Integrity Watch
+  - QQW/TodosLosContratos
+  - RUBLI
+
 ## Current workflow design principles
 
 - Start from explainable leads, not accusations
@@ -216,16 +235,16 @@
 
 ## Current limits
 
-- There is no API or interactive console yet
+- The first API and interactive console slice is local-only and operational, but it has no authentication, saved cases, or public deployment posture yet
 - The rule registry exists, but the DNCP crosswalk and public methodology layer are still incomplete
 - Entity briefs now include external enrichment, DNIT identity validation, and official DNCP supplier-anchor sections, and the company-level queue plus anchor-gap report now make local identity gaps and local administrative history visible; 1 procurement-linked supplier company still remains without a local identity anchor because the procurement-side RUC is missing a check digit
 - OpenSanctions candidate review is active. The current queue has one company-level external candidate lead and keeps weak representative/person overlaps visible as rejected diagnostics rather than treating them as accepted matches.
 - Hosted OpenSanctions API comparison is live, persisted into PostgreSQL, and now visible inside the company queue, external-candidate review report, and selected entity dossiers.
-- Manual external-candidate review is now operational through `sql/postgres/014_external_candidate_review_workflow.sql`, `centinela.entity_enrichment_candidate_review_overview`, and `npm run database:review-external-candidate`. The current live state is 58 candidate/diagnostic records: 1 `promotable`, 5 `monitor`, 4 `rejected`, and 48 `unreviewed`.
-- Candidate `59`, `CONSULTORA GUARANI SA INGENIEROS CIVILES` -> `Consultora Guaraní S.A. Ingenieros Civiles`, is the only active company-level external candidate lead. It now has row-level official IDB Open Data evidence and is marked `promotable`, but it still has no comparable external RUC identifier, so any accepted-match decision must record that limitation through the second-review workflow.
+- Manual external-candidate review is now operational through `sql/postgres/014_external_candidate_review_workflow.sql`, `centinela.entity_enrichment_candidate_review_overview`, and `npm run database:review-external-candidate`. Candidate `59` has moved through second review into accepted identity context; 5 rows are `monitor`, 4 are `rejected`, and 48 remain `unreviewed` diagnostics.
+- Candidate `59`, `CONSULTORA GUARANI SA INGENIEROS CIVILES` -> `Consultora Guaraní S.A. Ingenieros Civiles`, is the first accepted external enrichment match. It has row-level official IDB Open Data evidence and hosted same-candidate support, but no comparable external RUC identifier, so the accepted-match limitation remains visible.
 - The current hosted API trial key has already hit a monthly `429` rate limit after the first live comparison pass, so the strongest immediate work is review workflow and local evidence quality, not brute-force rerunning.
 - Large multi-supplier processes can overstate entity-linked monetary context if read without the built-in caveats
 
 ## Next workflow milestone
 
-- Apply and exercise the second-review workflow against candidate `59`, then expose these workflows through an internal API or console instead of markdown reports only.
+- Harden the internal API/console into an analyst workspace with saved review notes, source-record drilldowns, graph export, and field-level explanation surfaces.

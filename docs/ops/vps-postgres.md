@@ -19,13 +19,16 @@
 ## Recommended next infrastructure step
 
 1. Keep using the batched local loader over an SSH tunnel until there is a clear reason to add a remote runtime
-2. Keep extending the SQL query layer for process, entity, edge, and review-queue investigation
-3. Add formal rule-registry tables or metadata only when the rule model is ready, not as premature schema churn
-4. Keep database credentials in `.env` and never in repo files
+2. Keep the first internal API/console local-only while it has no authentication or role-based permissions
+3. Keep extending the SQL query layer for process, entity, edge, candidate-review, and second-review investigation
+4. Add a remote runtime only after the analyst workspace needs remote access, saved cases, authentication, or scheduled jobs
+5. Keep database credentials in `.env` and never in repo files
 
 ## Why this is the right next step
 
 It uses the infrastructure already available, avoids spending another run debating topology, and keeps the project ready for an eventual analyst API or internal UI without forcing early public exposure.
+
+The first analyst API/console now runs locally against the same tunneled PostgreSQL path, which gives Centinela an explorable workspace without exposing the VPS database or a public web surface.
 
 ## Current status
 
