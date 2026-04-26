@@ -6,6 +6,7 @@
 - Docker present
 - PostgreSQL 16 present in Docker
 - PostgreSQL container IP observed on 2026-04-17: `172.18.0.2`
+- PostgreSQL container IP re-confirmed on 2026-04-26: `172.18.0.2`
 - `node` and `npm` are not currently installed on the VPS
 - Existing services already use the VPS, so Centinela should avoid reusing another project's database directly
 
@@ -42,7 +43,7 @@ It uses the infrastructure already available, avoids spending another run debati
 - Entity enrichment candidate storage and candidate-aware queue views applied from `sql/postgres/012_entity_enrichment_candidates.sql`
 - Hosted comparison storage applied from `sql/postgres/013_hosted_match_comparisons.sql`
 - Manual external candidate review workflow applied from `sql/postgres/014_external_candidate_review_workflow.sql`
-- External candidate second-review workflow prepared in `sql/postgres/015_external_candidate_second_review.sql`; live application is pending until the SSH tunnel is reopened
+- External candidate second-review workflow applied from `sql/postgres/015_external_candidate_second_review.sql`
 - DNCP 2025 and 2026 bulk bundles loaded successfully into PostgreSQL
 - OpenSanctions bulk screening run persisted under `ext-opensanctions-default`
 - OpenSanctions hosted comparison persisted under `ext-opensanctions-hosted-match`
@@ -51,7 +52,7 @@ It uses the infrastructure already available, avoids spending another run debati
 - DNIT RUC equivalence run persisted under `py-dnit-ruc-equivalence`
 - Current Paraguay local identity state: 2,533 of 2,534 procurement-linked supplier companies have a local identity anchor; 2,521 have DNCP supplier profiles, 2,518 have DNIT RUC equivalence profiles, 446 companies have local administrative signals, and 3,642 representative links are stored
 - Remaining anchor gap: `MENDEZ GONZALEZ FLORIANA *`, because the procurement-side RUC lacks a check digit needed for DNIT bulk validation
-- Current access pattern: SSH tunnel from local machine to `172.18.0.2:5432`, then local Node/TypeScript commands
+- Current access pattern: dedicated local SSH key plus SSH tunnel from local machine to `172.18.0.2:5432`, then local Node/TypeScript commands. A local ignored `.env` can hold DB connection settings; never commit it.
 - Current hosted-match reality: the first real hosted comparison result is already stored and exposed through analyst surfaces, but the trial API key hit a monthly `429` rate limit on a later rerun attempt
-- Current manual-review reality: `centinela.entity_enrichment_candidate_review_overview` exposes 58 OpenSanctions candidate/diagnostic rows with reviewer state, suggested review status, hosted-comparison support, source-check evidence history, and next-step guidance. The current live distribution is 1 `promotable`, 5 `monitor`, 4 `rejected`, and 48 `unreviewed`.
-- Current second-review reality: repo-side schema and CLI exist, but the live VPS database has not yet received migration 015 because the local SSH tunnel was closed during the implementation run.
+- Current manual-review reality: `centinela.entity_enrichment_candidate_review_overview` exposes 58 OpenSanctions candidate/diagnostic rows with reviewer state, suggested review status, hosted-comparison support, source-check evidence history, and next-step guidance. The current live distribution is 1 `accepted_match` second-review case, 5 `monitor`, 4 `rejected`, and 48 `unreviewed` diagnostics.
+- Current second-review reality: schema, CLI, live DB, reports, and dossiers are operational. Candidate `59` has second-review decision `accepted_match`, accepted enrichment match ID `11`, accepted external entity ID `12431`, and the workflow created zero external risk signals.

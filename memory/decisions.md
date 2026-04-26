@@ -167,3 +167,15 @@
 - Decision: Add a separate second-review governance layer for `promotable` external candidates instead of letting first-review status insert accepted matches directly.
 - Why: Centinela needs a defensible boundary between source-backed candidates and accepted enrichment identity matches, especially when external records lack comparable Paraguay identifiers such as RUC.
 - Consequence: `entity_enrichment_second_reviews` records reviewer, decision, rationale, limitations, evidence, and accepted-match ID. `accepted_match` creates an enrichment identity match only; it does not create an external risk signal or proof-of-wrongdoing conclusion.
+
+## 2026-04-26 - Use SSH keys and local ignored env for live DB operations
+
+- Decision: Use a dedicated local SSH key for VPS access and a local ignored `.env` for tunneled PostgreSQL commands instead of putting passwords into commands, docs, or committed files.
+- Why: Centinela needs repeatable live database operations, but secrets should not be exposed through command history, process lists, Git history, or durable project memory.
+- Consequence: Future live DB work can reopen the tunnel non-interactively and run local Node/TypeScript commands against the VPS-backed `centinela` database while keeping credentials out of the repo.
+
+## 2026-04-26 - Accepted external matches remain identity context only
+
+- Decision: Record candidate `59` as an accepted enrichment identity match through second review, while preserving the limitation that the external source has no comparable RUC and creating no external risk signal.
+- Why: The local DNCP/DNIT identity package, hosted matcher support, and official IDB row-level source evidence are strong enough for source-backed identity context, but they are not a misconduct finding and do not erase the identifier limitation.
+- Consequence: Centinela now has its first live accepted external enrichment match, but public and analyst outputs must continue to show provenance, limitations, and non-accusatory language.

@@ -137,6 +137,10 @@ function buildSecondReviewEvidence(options: SecondReviewExternalCandidateOptions
   ];
 }
 
+function toJsonb(value: unknown): string {
+  return JSON.stringify(value);
+}
+
 async function createSecondReviewSourceRun(
   client: Awaited<ReturnType<typeof connectToPostgres>>["client"],
   schema: string,
@@ -301,7 +305,7 @@ async function upsertAcceptedMatch(
       "accepted_source_backed",
       "accepted_second_review",
       `Accepted as a source-backed identity match after second review. This is an enrichment match, not a legal conclusion or proof of wrongdoing. ${options.rationale}`,
-      [
+      toJsonb([
         { type: "candidate_id", value: candidate.id },
         { type: "candidate_source_key", value: candidate.source_key },
         { type: "candidate_external_id", value: candidate.external_id },
@@ -321,7 +325,7 @@ async function upsertAcceptedMatch(
         { type: "second_review_limitations", value: options.limitations ?? null },
         { type: "evidence_url", value: options.evidenceUrl ?? null },
         { type: "evidence_note", value: options.evidenceNote ?? null },
-      ],
+      ]),
     ],
   );
 
@@ -482,7 +486,7 @@ export async function secondReviewExternalCandidate(
       const reviewResult = await client.query<{ id: string }>(
         `insert into ${schema}.entity_enrichment_second_reviews
            (candidate_id, reviewed_by, decision, rationale, limitations, evidence, accepted_match_id)
-         values ($1, $2, $3, $4, nullif($5, ''), $6, $7)
+         values ($1::bigint, $2::text, $3::text, $4::text, nullif($5::text, ''), $6::jsonb, $7::bigint)
          returning id::text`,
         [
           options.candidateId,
@@ -490,7 +494,7 @@ export async function secondReviewExternalCandidate(
           options.decision,
           options.rationale,
           options.limitations ?? "",
-          buildSecondReviewEvidence(options),
+          toJsonb(buildSecondReviewEvidence(options)),
           acceptedMatchId,
         ],
       );
@@ -503,24 +507,24 @@ export async function secondReviewExternalCandidate(
       await client.query(
         `update ${schema}.entity_enrichment_candidates
          set
-           review_status = $2,
+           review_status = $2::text,
            reviewed_at = now(),
-           reviewed_by = $3,
-           review_notes = $4,
+           reviewed_by = $3::text,
+           review_notes = $4::text,
            review_evidence = coalesce(review_evidence, '[]'::jsonb)
              || jsonb_build_array(jsonb_build_object(
-               'status', $2,
-               'secondReviewDecision', $5,
-               'reviewer', $3,
-               'notes', $4,
-               'limitations', nullif($6, ''),
-               'evidenceUrl', nullif($7, ''),
-               'evidenceNote', nullif($8, ''),
-               'acceptedMatchId', $9,
+               'status', $2::text,
+               'secondReviewDecision', $5::text,
+               'reviewer', $3::text,
+               'notes', $4::text,
+               'limitations', nullif($6::text, ''),
+               'evidenceUrl', nullif($7::text, ''),
+               'evidenceNote', nullif($8::text, ''),
+               'acceptedMatchId', $9::bigint,
                'source', 'external_candidate_second_review_cli',
                'recordedAt', now()
              ))
-         where id = $1`,
+         where id = $1::bigint`,
         [
           options.candidateId,
           nextCandidateReviewStatus,

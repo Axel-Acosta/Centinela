@@ -156,3 +156,14 @@
 - Added `docs/methodology/external-candidate-second-review-workflow.md` and refreshed analyst/investigation docs around the new governance boundary.
 - Validation passed locally with `npm run check`, `npm run build`, and `git diff --check`.
 - Live VPS application is still pending because the local SSH tunnel to PostgreSQL was closed and no non-interactive SSH session was available without exposing credentials.
+
+## 2026-04-26
+
+- Installed and verified a dedicated local SSH key for `axel@89.167.97.56`, allowing future VPS tunnel work without exposing the VPS password in commands or files.
+- Opened the local SSH tunnel to the VPS PostgreSQL container at `172.18.0.2:5432` and confirmed `127.0.0.1:5432` connectivity.
+- Applied `sql/postgres/015_external_candidate_second_review.sql` to the live `centinela` database through VPS-side `psql`.
+- Created a local ignored `.env` from the VPS Postgres container environment so local Node/TypeScript commands can use the live DB over the SSH tunnel without committing credentials.
+- Fixed the second-review writer so JSONB evidence arrays are serialized as JSON instead of PostgreSQL arrays, and added explicit casts for the candidate review update parameters.
+- Dry-ran and then recorded candidate `59`, `CONSULTORA GUARANI SA INGENIEROS CIVILES` -> `Consultora Guaraní S.A. Ingenieros Civiles`, as `accepted_match` through second review.
+- Live result: second review ID `2`, accepted enrichment match ID `11`, accepted external entity ID `12431`, and zero `entity_external_risk_signals` created by the second-review workflow.
+- Regenerated `external-enrichment-candidate-review.md`, `all-entities-intelligence-queue.md`, and the `CONSULTORA GUARANI SA INGENIEROS CIVILES` entity brief under the local runtime data folder.

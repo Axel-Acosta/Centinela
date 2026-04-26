@@ -60,13 +60,20 @@ npm run database:second-review-external-candidate -- --candidate-id 59 --decisio
 - Limitations must remain visible, especially when external records lack local RUC or another comparable identifier.
 - Rejected and deferred second reviews remain part of the audit trail.
 
-## Current strongest candidate
+## First live accepted second-review case
 
-Candidate `59`, `CONSULTORA GUARANI SA INGENIEROS CIVILES` -> `Consultora Guaraní S.A. Ingenieros Civiles`, is the first appropriate candidate for this workflow because it has:
+Candidate `59`, `CONSULTORA GUARANI SA INGENIEROS CIVILES` -> `Consultora Guaraní S.A. Ingenieros Civiles`, became the first accepted second-review case on 2026-04-26 because it had:
 
 - local DNCP/DNIT identity support, including RUC `80016063-0`
 - hosted OpenSanctions same-candidate support from the stored comparison run
 - official IDB Open Data row-level evidence, row `76193`
 - a material limitation: no comparable external RUC in the stored OpenSanctions payload or IDB row
 
-That limitation does not necessarily block identity acceptance, but it must be recorded if accepted.
+Live result:
+
+- second review ID `2`
+- accepted enrichment match ID `11`
+- accepted external entity ID `12431`
+- zero `entity_external_risk_signals` created by this workflow
+
+That limitation was recorded in the second-review decision. The accepted match is enrichment identity context only, not a corruption finding, legal conclusion, or proof of wrongdoing.
