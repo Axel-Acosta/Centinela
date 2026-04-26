@@ -20,6 +20,8 @@ Everything remains internal, reviewable, and non-accusatory.
   - summarizes cases with linked-target and note counts
 - `centinela.analyst_note_overview`
   - exposes notes with optional case context
+- `centinela.analyst_case_timeline`
+  - unifies case creation, case links, and case-scoped notes into one internal chronological review surface
 
 ## API behavior
 
@@ -28,6 +30,7 @@ Read endpoints:
 - `GET /api/source-records`
 - `GET /api/source-records/:id`
 - `GET /api/analyst-cases`
+- `GET /api/analyst-cases/:id`
 - `GET /api/analyst-notes`
 - `GET /api/entities/:id/network/export?format=cytoscape`
 
@@ -57,13 +60,15 @@ If `CENTINELA_WRITE_TOKEN` is not set, write endpoints are disabled.
 On 2026-04-26, the first live analyst-workspace smoke test confirmed:
 
 - migration `sql/postgres/016_analyst_workspace.sql` applied to the VPS-backed database
+- migration `sql/postgres/017_analyst_case_timeline.sql` applied to the VPS-backed database
 - overview endpoint returned `8,376` source records, `0` analyst cases, and `0` analyst notes
 - Cytoscape graph export returned `19` elements for entity `3940`
 - source-record search found the IDB row-level source record for candidate `59` as source record `10117`, external ID `idb-sanctions-row-76193`
 - dry-run note and case writes worked with a temporary local write token
 - wrong write tokens were rejected with `401`
 - no smoke notes or cases were persisted
+- a later case-timeline smoke created one temporary case, linked entity `3940`, saved one temporary note, returned `3` timeline events (`note`, `case_link`, `case_created`), then deleted the smoke case and returned analyst cases/notes to `0`
 
 ## Next hardening step
 
-Add a richer case panel that can link entities, source records, external candidates, accepted matches, and processes into a saved case timeline.
+Add source-record-to-note and field-level explanation workflows so source evidence, review notes, candidate evidence, and accepted-match limitations can be carried through a case timeline without becoming public accusations.

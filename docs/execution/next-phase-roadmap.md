@@ -85,6 +85,7 @@
 - Status
   - first local-only slice operational
   - first analyst-workspace hardening slice operational
+  - first case timeline/workbench slice operational
 - Core outputs
   - API for process, entity, edge, flag, and review-queue queries
   - console views for process leads, entity dossiers, and follow-up lanes
@@ -93,6 +94,7 @@
   - source-record drilldowns
   - graph exports
   - token-protected saved notes, cases, and case links
+  - saved case timelines that unify case creation, linked targets, and case-scoped notes
   - richer saved investigation paths later
 - Main references
   - Aleph
@@ -121,11 +123,11 @@
 
 ## Immediate next best step
 
-- Deepen the local-only analyst workspace into case timelines and source-record-to-note workflows, while keeping accepted matches, review-only candidates, external risk signals, analyst notes, and public-facing language separate.
+- Deepen the local-only analyst workspace from case timelines into source-record-to-note workflows and field-level explanation bundles, while keeping accepted matches, review-only candidates, external risk signals, analyst notes, and public-facing language separate.
 - Reason
-  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, and token-protected notes/cases. The next leverage is turning those saved objects into real case timelines and explanation workflows.
+  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, and a live case timeline view. The next leverage is making source evidence and field-level explanation travel cleanly through that timeline.
 - Expected carry-over
-  - local API endpoints and console views that expose candidate records with durable human-review status, notes, source-backed promotion/rejection history, and second-review state
+  - local API endpoints and console views that expose candidate records with durable human-review status, notes, source-backed promotion/rejection history, second-review state, source-record links, and explanation bundles
   - tighter use of hosted same-candidate confirmation versus different-result ambiguity inside analyst workflows
   - one fully explained or resolved remaining local identity gap
   - stronger OpenSanctions candidate evidence display grounded in official Paraguay names, RUCs, representative links, rejection reasons, and review state

@@ -13,6 +13,8 @@ export const analystTargetTypes = [
   "other",
 ] as const;
 
+export const analystCaseLinkTargetTypes = [...analystTargetTypes, "note"] as const;
+
 export const analystNoteTypes = [
   "analyst_note",
   "evidence_note",
@@ -26,6 +28,7 @@ export const analystCaseStatuses = ["open", "monitoring", "paused", "closed"] as
 export const analystCasePriorities = ["low", "normal", "high", "urgent"] as const;
 
 export type AnalystTargetType = (typeof analystTargetTypes)[number];
+export type AnalystCaseLinkTargetType = (typeof analystCaseLinkTargetTypes)[number];
 export type AnalystNoteType = (typeof analystNoteTypes)[number];
 export type AnalystCaseStatus = (typeof analystCaseStatuses)[number];
 export type AnalystCasePriority = (typeof analystCasePriorities)[number];
@@ -51,6 +54,10 @@ export interface CreateAnalystNoteOptions {
 
 export interface ListAnalystCasesOptions {
   status?: string | undefined;
+  limit?: number | undefined;
+}
+
+export interface GetAnalystCaseOptions {
   limit?: number | undefined;
 }
 
@@ -198,6 +205,109 @@ export async function listAnalystCases(
   });
 }
 
+export async function getAnalystCase(
+  caseId: number,
+  options: GetAnalystCaseOptions = {},
+): Promise<Record<string, unknown>> {
+  assertPositiveInteger(caseId, "caseId");
+  const limit = clampLimit(options.limit);
+
+  return withDatabase(async (client, schema) => {
+    const caseResult = await client.query<Record<string, unknown>>(
+      `select
+         id::text,
+         case_key,
+         title,
+         status,
+         priority,
+         summary,
+         created_by,
+         created_at::text,
+         updated_at::text,
+         metadata,
+         linked_target_count,
+         note_count,
+         latest_note_at::text
+       from ${schema}.analyst_case_overview
+       where id = $1`,
+      [caseId],
+    );
+
+    const caseRow = caseResult.rows[0];
+    if (!caseRow) {
+      throw new Error(`Analyst case ${caseId} was not found.`);
+    }
+
+    const links = await client.query<Record<string, unknown>>(
+      `select
+         id::text,
+         case_id::text,
+         target_type,
+         target_id,
+         label,
+         rationale,
+         created_by,
+         created_at::text,
+         metadata
+       from ${schema}.analyst_case_links
+       where case_id = $1
+       order by created_at desc, id desc
+       limit $2`,
+      [caseId, limit],
+    );
+
+    const notes = await client.query<Record<string, unknown>>(
+      `select
+         id::text,
+         case_id::text,
+         case_key,
+         case_title,
+         target_type,
+         target_id,
+         note_type,
+         note_text,
+         analyst,
+         visibility,
+         provenance,
+         created_at::text,
+         updated_at::text
+       from ${schema}.analyst_note_overview
+       where case_id = $1
+       order by created_at desc, id desc
+       limit $2`,
+      [caseId, limit],
+    );
+
+    const timeline = await client.query<Record<string, unknown>>(
+      `select
+         case_id::text,
+         case_key,
+         event_type,
+         target_type,
+         target_id,
+         event_at::text,
+         actor,
+         title,
+         body,
+         metadata
+       from ${schema}.analyst_case_timeline
+       where case_id = $1
+       order by event_at desc, event_type desc, target_type, target_id
+       limit $2`,
+      [caseId, limit],
+    );
+
+    return {
+      disclaimer:
+        "Case timelines are internal review context. They are not proof of wrongdoing or a public finding.",
+      case: normalizeRows([caseRow])[0],
+      links: normalizeRows(links.rows),
+      notes: normalizeRows(notes.rows),
+      timeline: normalizeRows(timeline.rows),
+    };
+  });
+}
+
 export async function createAnalystCase(options: CreateAnalystCaseOptions): Promise<Record<string, unknown>> {
   const title = optionalText(options.title);
   if (!title) {
@@ -264,7 +374,7 @@ export async function linkAnalystCaseTarget(
     throw new Error("targetType and targetId are required.");
   }
 
-  assertChoice(targetType, analystTargetTypes, "target type");
+  assertChoice(targetType, analystCaseLinkTargetTypes, "target type");
 
   const preview = {
     id: "(dry-run)",
@@ -311,6 +421,13 @@ export async function linkAnalystCaseTarget(
         options.createdBy ?? "centinela-operator",
         jsonb(options.metadata ?? {}),
       ],
+    );
+
+    await client.query(
+      `update ${schema}.analyst_cases
+       set updated_at = now()
+       where id = $1`,
+      [options.caseId],
     );
 
     return normalizeRows(result.rows)[0] ?? preview;
@@ -424,6 +541,15 @@ export async function createAnalystNote(options: CreateAnalystNoteOptions): Prom
         jsonb(options.provenance ?? {}),
       ],
     );
+
+    if (options.caseId !== undefined) {
+      await client.query(
+        `update ${schema}.analyst_cases
+         set updated_at = now()
+         where id = $1`,
+        [options.caseId],
+      );
+    }
 
     return normalizeRows(result.rows)[0] ?? preview;
   });

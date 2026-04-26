@@ -191,3 +191,9 @@
 - Decision: Add saved analyst cases, case links, analyst notes, source-record drilldowns, and graph export to the local API/console before building a full UI, public case pages, or a graph database.
 - Why: Centinela needs durable human-review context, but analyst notes must stay separate from automated risk signals and public-facing conclusions. A small local write-token boundary is enough for the current local-only workspace without pretending to be production authentication.
 - Consequence: `sql/postgres/016_analyst_workspace.sql`, `src/storage/analystWorkspace.ts`, source-record endpoints, graph export, and token-protected note/case endpoints are now the first casework layer. Analyst notes are internal context, not accusations.
+
+## 2026-04-26 - Case timeline view before full case-management product
+
+- Decision: Add a database-backed `analyst_case_timeline` view and `GET /api/analyst-cases/:id` workbench endpoint before building a richer public UI, graph database, or production case-management system.
+- Why: Centinela needs case history to be queryable, source-linked, and reusable across SQL, API, console, and future UI layers. A database view keeps the case timeline close to provenance and avoids hiding important review history inside client-side UI state.
+- Consequence: `sql/postgres/017_analyst_case_timeline.sql`, `getAnalystCase`, and the console case panel now expose case creation, linked targets, and case-scoped notes as one internal timeline. The next layer should attach source-record-to-note links and field-level explanations into that timeline.

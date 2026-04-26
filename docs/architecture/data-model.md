@@ -56,5 +56,7 @@
   - company-level triage surface combining local anchors, local administrative history, representative density, external screening state, and recommended next action
 - `entity_anchor_coverage_overview`
   - summary surface for anchored vs. unanchored supplier companies and current local/external intelligence coverage
+- `analyst_case_timeline`
+  - chronological internal casework surface combining case creation, linked targets, and case-scoped notes
 - internal API/console endpoints
-  - expose these views as JSON for entity search, entity dossiers, graph-ready one-hop networks, graph export, source-record drilldowns, review queues, external candidates, accepted matches, saved notes, and cases without introducing a separate public database or graph store yet
+  - expose these views as JSON for entity search, entity dossiers, graph-ready one-hop networks, graph export, source-record drilldowns, review queues, external candidates, accepted matches, saved notes, cases, and case timelines without introducing a separate public database or graph store yet

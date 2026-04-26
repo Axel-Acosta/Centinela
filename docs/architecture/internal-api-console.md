@@ -18,6 +18,7 @@ The surface is designed to expose:
 - source-record drilldowns
 - graph exports
 - internal analyst notes and cases
+- internal case timeline workbench
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -69,6 +70,8 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
   - full source-record payload and source-run context
 - `GET /api/analyst-cases?status=open&limit=25`
   - saved internal cases
+- `GET /api/analyst-cases/:id?limit=20`
+  - saved case detail with linked targets, notes, and chronological timeline events
 - `POST /api/analyst-cases`
   - create a case; requires local write token
 - `POST /api/analyst-cases/:id/links`
@@ -117,10 +120,16 @@ On the later analyst-workspace hardening smoke test, the API also returned:
 - dry-run note/case writes with a temporary local token
 - wrong-token rejection with `401`
 
+On the case-timeline smoke test, the API also confirmed:
+
+- `sql/postgres/017_analyst_case_timeline.sql` applied to the live VPS-backed database
+- one temporary case plus one entity link and one note returned `3` timeline events: `note`, `case_link`, and `case_created`
+- the temporary case was deleted after the smoke test and live analyst case/note counts returned to `0`
+
 ## Limits
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
-- Saved cases and analyst notes exist, but the console casework UI is still minimal.
+- Saved cases, analyst notes, and case timelines exist, but the console casework UI is still an internal workbench rather than a full case-management product.
 - No full-text document index yet.
 - Network output is graph-ready JSON, not a graph database.
 - Public-facing use requires a separate safety, privacy, methodology, and UX layer.

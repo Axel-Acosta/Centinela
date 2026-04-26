@@ -17,6 +17,7 @@ import {
 import {
   createAnalystCase,
   createAnalystNote,
+  getAnalystCase,
   linkAnalystCaseTarget,
   listAnalystCases,
   listAnalystNotes,
@@ -104,6 +105,16 @@ function parseSourceRecordRoute(pathname: string): number | undefined {
 
 function parseCaseLinkRoute(pathname: string): number | undefined {
   const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/links$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const caseId = Number(match[1]);
+  return Number.isInteger(caseId) && caseId > 0 ? caseId : undefined;
+}
+
+function parseAnalystCaseRoute(pathname: string): number | undefined {
+  const match = pathname.match(/^\/api\/analyst-cases\/(\d+)$/);
   if (!match) {
     return undefined;
   }
@@ -649,6 +660,29 @@ function consoleHtml(): string {
         <pre id="graph-export">Open an entity first.</pre>
       </article>
 
+      <article class="panel span-12">
+        <h2>Case Timeline Workbench</h2>
+        <div class="grid">
+          <div class="span-4">
+            <div class="mini-form">
+              <input id="case-title" placeholder="New case title" aria-label="New case title" />
+              <select id="case-priority" aria-label="Case priority">
+                <option value="normal">Normal</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+                <option value="low">Low</option>
+              </select>
+              <button id="create-case" type="button">Create case</button>
+              <button id="link-entity-case" type="button" class="secondary">Link current entity to case</button>
+            </div>
+            <div id="cases" class="list"></div>
+          </div>
+          <div class="span-7">
+            <pre id="case-detail">Create or open a case to see the timeline.</pre>
+          </div>
+        </div>
+      </article>
+
       <article class="panel span-4">
         <h2>Accepted Matches</h2>
         <div id="accepted" class="list"></div>
@@ -668,6 +702,7 @@ function consoleHtml(): string {
 
   <script>
     let currentEntityId = null;
+    let currentCaseId = null;
 
     async function getJson(path) {
       const response = await fetch(path);
@@ -823,6 +858,7 @@ function consoleHtml(): string {
         noteText,
         analyst,
         noteType,
+        caseId: currentCaseId ? Number(currentCaseId) : undefined,
         provenance: {
           source: 'internal_console',
           nonAccusatoryUse: true
@@ -832,6 +868,9 @@ function consoleHtml(): string {
       const notes = await getJson('/api/analyst-notes?target_type=entity&target_id=' + encodeURIComponent(String(currentEntityId)) + '&limit=20');
       renderNotes(notes.data);
       document.getElementById('detail').textContent = JSON.stringify(payload.data, null, 2);
+      if (currentCaseId) {
+        await openCase(currentCaseId);
+      }
     }
 
     async function exportCurrentGraph() {
@@ -852,6 +891,77 @@ function consoleHtml(): string {
         'accepted match ID: ' + text(match.accepted_match_id),
         'limit: ' + text(match.limitations)
       ]));
+    }
+
+    async function loadCases() {
+      const payload = await getJson('/api/analyst-cases?limit=8');
+      const container = document.getElementById('cases');
+      container.innerHTML = '';
+      if (!payload.data.length) {
+        renderItem(container, 'No saved cases yet', [
+          'casework',
+          'Create one to link entities, notes, records, and review leads.'
+        ]);
+        return;
+      }
+      payload.data.forEach((item) => {
+        const button = document.createElement('button');
+        button.className = 'secondary';
+        button.textContent = 'Open case timeline';
+        button.onclick = () => openCase(item.id);
+        renderItem(container, item.title, [
+          item.priority + ' / ' + item.status,
+          'links: ' + text(item.linked_target_count) + ', notes: ' + text(item.note_count)
+        ], button);
+      });
+    }
+
+    async function openCase(caseId) {
+      currentCaseId = caseId;
+      const payload = await getJson('/api/analyst-cases/' + caseId + '?limit=50');
+      document.getElementById('case-detail').textContent = JSON.stringify(payload.data, null, 2);
+    }
+
+    async function createCase() {
+      const token = document.getElementById('write-token').value;
+      const title = document.getElementById('case-title').value;
+      const priority = document.getElementById('case-priority').value;
+      const analyst = document.getElementById('analyst-name').value || 'centinela-operator';
+      const payload = await postJson('/api/analyst-cases', {
+        title,
+        priority,
+        createdBy: analyst,
+        metadata: {
+          source: 'internal_console',
+          nonAccusatoryUse: true
+        }
+      }, token);
+      document.getElementById('case-title').value = '';
+      await loadCases();
+      await openCase(payload.data.id);
+    }
+
+    async function linkCurrentEntityToCase() {
+      if (!currentEntityId || !currentCaseId) {
+        document.getElementById('case-detail').textContent = 'Open both an entity and a case before linking.';
+        return;
+      }
+      const token = document.getElementById('write-token').value;
+      const analyst = document.getElementById('analyst-name').value || 'centinela-operator';
+      const payload = await postJson('/api/analyst-cases/' + currentCaseId + '/links', {
+        targetType: 'entity',
+        targetId: String(currentEntityId),
+        label: 'Entity #' + currentEntityId,
+        rationale: 'Linked from internal console for analyst review. This is a lead, not a conclusion.',
+        createdBy: analyst,
+        metadata: {
+          source: 'internal_console',
+          nonAccusatoryUse: true
+        }
+      }, token);
+      await loadCases();
+      await openCase(currentCaseId);
+      document.getElementById('detail').textContent = JSON.stringify(payload.data, null, 2);
     }
 
     async function loadQueues() {
@@ -885,7 +995,17 @@ function consoleHtml(): string {
         document.getElementById('graph-export').textContent = error.message;
       });
     });
-    loadOverview().then(loadAccepted).then(loadQueues).then(() => searchEntities()).catch((error) => {
+    document.getElementById('create-case').addEventListener('click', () => {
+      createCase().catch((error) => {
+        document.getElementById('case-detail').textContent = error.message;
+      });
+    });
+    document.getElementById('link-entity-case').addEventListener('click', () => {
+      linkCurrentEntityToCase().catch((error) => {
+        document.getElementById('case-detail').textContent = error.message;
+      });
+    });
+    loadOverview().then(loadAccepted).then(loadQueues).then(loadCases).then(() => searchEntities()).catch((error) => {
       document.getElementById('detail').textContent = error.message;
     });
   </script>
@@ -997,6 +1117,11 @@ async function handleApiRequest(url: URL, request: http.IncomingMessage): Promis
 
   if (url.pathname === "/api/analyst-notes") {
     return listAnalystNotes(analystNoteOptions(url));
+  }
+
+  const analystCaseId = parseAnalystCaseRoute(url.pathname);
+  if (analystCaseId !== undefined) {
+    return getAnalystCase(analystCaseId, listOptions(url));
   }
 
   if (url.pathname === "/api/analyst-cases") {

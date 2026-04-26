@@ -178,3 +178,8 @@
 - Expanded the local console with source-record, analyst-note, and graph-export panels.
 - Applied migration 016 to the live VPS-backed database.
 - Smoke-tested the analyst-workspace slice: overview returned `8,376` source records, `0` analyst cases, and `0` analyst notes; Cytoscape graph export returned `19` elements for entity `3940`; source-record drilldown found IDB source record `10117`; dry-run note/case writes worked with a temporary token; wrong tokens returned `401`; no smoke notes or cases were persisted.
+- Added `sql/postgres/017_analyst_case_timeline.sql`, creating `centinela.analyst_case_timeline` as a chronological internal casework view for case creation, linked targets, and case-scoped notes.
+- Added `GET /api/analyst-cases/:id` through `getAnalystCase`, returning a case, links, notes, timeline events, and the non-accusatory internal-use disclaimer.
+- Expanded the local console with a case timeline workbench that can create cases, open timelines, and link the current entity into a case.
+- Applied migration 017 to the live VPS-backed database over the SSH tunnel.
+- Smoke-tested the case timeline slice: one temporary case, one entity link to entity `3940`, and one temporary note returned `3` timeline events (`note`, `case_link`, `case_created`); cleanup deleted the smoke case/note and returned analyst cases and notes to `0`.

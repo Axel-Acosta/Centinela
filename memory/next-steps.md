@@ -6,10 +6,10 @@
    `npm run serve:internal-console -- --host 127.0.0.1 --port 8787` exposes overview, entity search, entity dossiers, graph-ready neighborhoods, graph export, source-record drilldowns, entity/process queues, external candidates, accepted matches, and token-protected analyst notes/cases from the live database.
 3. Keep accepted matches, external risk signals, review-only candidates, and public-facing language separate:
    `promotable` means ready for stronger second review, not accepted identity resolution or proof of wrongdoing.
-4. Deepen the analyst workspace:
-   turn saved cases, case links, source records, notes, external candidates, accepted matches, and processes into a case timeline/workbench; keep notes internal until a public-safety workflow exists.
+4. Build on the live case timeline/workbench:
+   link source records, field-level explanations, external candidates, accepted matches, and processes into case evidence bundles; keep notes internal until a public-safety workflow exists.
 5. Extend analyst outputs/API requirements around candidate review:
-   expose source-record evidence, review evidence history, local DNCP/DNIT identifiers, hosted comparison support, second-review status, rationale, limitations, accepted-match IDs, and relationship pivots together.
+   expose source-record evidence, review evidence history, local DNCP/DNIT identifiers, hosted comparison support, second-review status, rationale, limitations, accepted-match IDs, relationship pivots, and case timeline context together.
 6. Improve OpenSanctions candidate scoring before any broader matching:
    add stronger name-order scoring, source-document evidence scoring, local identifier comparison where external identifiers exist, and explicit handling for generic business terms.
 7. Resolve the last remaining local identity anchor gap:

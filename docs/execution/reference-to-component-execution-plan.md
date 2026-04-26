@@ -536,10 +536,42 @@ Concrete proof artifacts:
 - `/api/analyst-notes`
 - `docs/methodology/analyst-workspace.md`
 
+## 2026-04-26 analyst case timeline/workbench advancement
+
+- br/acc
+  - advanced through `centinela.analyst_case_timeline`, which makes case history a source-linked database surface instead of a UI-only artifact.
+- Aleph
+  - advanced through `GET /api/analyst-cases/:id`, where an analyst can open a case and see linked targets, notes, and timeline events together.
+- Sayari
+  - advanced by making entity, source, candidate, accepted-match, and second-review links usable inside one case workbench.
+- Dozorro/ProZorro
+  - advanced because review follow-up can now become a durable case timeline rather than a one-time queue row.
+- Integrity Watch
+  - advanced by preserving non-accusatory context in the case timeline before any public-facing display is considered.
+- OpenSanctions / OpenOwnership / OpenCorporates / ICIJ
+  - advanced because external candidates, accepted matches, source records, and future ownership/offshore records can be linked into case history without becoming automatic risk findings.
+- FUNES
+  - advanced by giving future relationship-aware regional risk leads a case-history container where human interpretation and limits can be preserved.
+- QuiénEsQuién/TodosLosContratos
+  - advanced through a stronger company-accountability workbench: a company, its procurement context, source records, and review notes can now be assembled into one case path.
+- Rosie / Serenata
+  - advanced through citizen-readable anomaly posture kept behind internal analyst notes and timelines until public-safety review exists.
+- Paraguay DNCP red flags work
+  - advanced because DNCP process/entity review can now carry human follow-up in a timeline without detaching from Paraguay source records.
+- RUBLI
+  - advanced because the timeline stores rationale, provenance, note visibility, and limitations as review context rather than opaque scoring.
+
+Concrete proof artifacts:
+
+- `sql/postgres/017_analyst_case_timeline.sql`
+- `GET /api/analyst-cases/:id`
+- case timeline panel in `src/server/internalConsole.ts`
+- `getAnalystCase` in `src/storage/analystWorkspace.ts`
+
 ## Next extraction priority
 
 - highest priority
-  - turn saved notes/cases into a richer case timeline with target linking, source-record-to-note workflows, and field-level explanation surfaces
+  - build source-record-to-note workflows and field-level explanation surfaces on top of the live case timeline/workbench
 - next after that
   - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
 - then
