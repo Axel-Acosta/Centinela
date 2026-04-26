@@ -23,6 +23,10 @@ export interface ExternalCandidateOptions extends ListOptions {
   secondReviewDecision?: string;
 }
 
+export interface NetworkExportOptions extends ListOptions {
+  format?: string;
+}
+
 export interface ApiNode {
   id: string;
   label: string;
@@ -112,7 +116,10 @@ export async function getInternalOverview(): Promise<Record<string, unknown>> {
          (select count(*) from ${schema}.entity_enrichment_second_reviews where decision = 'accepted_match')::int as accepted_second_reviews,
          (select count(*) from ${schema}.entity_external_risk_signals)::int as external_risk_signals,
          (select count(*) from ${schema}.entity_enrichment_candidate_review_overview)::int as external_candidate_records,
-         (select count(*) from ${schema}.entity_relationships)::int as relationship_edges`,
+         (select count(*) from ${schema}.entity_relationships)::int as relationship_edges,
+         (select count(*) from ${schema}.source_records)::int as source_records,
+         (select count(*) from ${schema}.analyst_case_overview)::int as analyst_cases,
+         (select count(*) from ${schema}.analyst_note_overview)::int as analyst_notes`,
     );
 
     const coverage = await client.query<Record<string, unknown>>(
@@ -410,6 +417,71 @@ export async function getEntityProfile(entityId: number): Promise<Record<string,
       [entityId],
     );
 
+    const sourceRecords = await client.query<Record<string, unknown>>(
+      `with refs as (
+         select source_key, source_external_id as external_id
+         from ${schema}.entities
+         where id = $1
+           and source_key is not null
+           and source_external_id is not null
+
+         union
+
+         select source_key, source_external_id as external_id
+         from ${schema}.entity_source_mentions
+         where entity_id = $1
+           and source_key is not null
+           and source_external_id is not null
+
+         union
+
+         select source_key, external_id
+         from ${schema}.entity_enrichment_candidate_review_overview
+         where entity_id = $1
+           and source_key is not null
+           and external_id is not null
+       )
+       select distinct
+         records.id::text,
+         records.source_run_id::text,
+         records.source_key,
+         records.external_id,
+         records.record_kind,
+         records.source_url,
+         records.retrieved_at::text,
+         left(records.payload::text, 800) as payload_preview
+       from refs
+       join ${schema}.source_records as records
+         on records.source_key = refs.source_key
+        and records.external_id = refs.external_id
+       order by records.retrieved_at desc, records.id desc
+       limit 20`,
+      [entityId],
+    );
+
+    const analystNotes = await client.query<Record<string, unknown>>(
+      `select
+         id::text,
+         case_id::text,
+         case_key,
+         case_title,
+         target_type,
+         target_id,
+         note_type,
+         note_text,
+         analyst,
+         visibility,
+         provenance,
+         created_at::text,
+         updated_at::text
+       from ${schema}.analyst_note_overview
+       where target_type = 'entity'
+         and target_id = $1::text
+       order by created_at desc, id desc
+       limit 20`,
+      [entityId],
+    );
+
     return {
       disclaimer:
         "This entity profile contains identity context, risk signals, and investigation leads for review. It is not proof of wrongdoing.",
@@ -424,6 +496,8 @@ export async function getEntityProfile(entityId: number): Promise<Record<string,
       representatives: normalizeRows(representatives.rows),
       counterpartyEdges: normalizeRows(counterpartyEdges.rows),
       processes: normalizeRows(processes.rows),
+      sourceRecords: normalizeRows(sourceRecords.rows),
+      analystNotes: normalizeRows(analystNotes.rows),
     };
   });
 }
@@ -710,6 +784,67 @@ export async function getEntityNetwork(entityId: number, options: ListOptions = 
       edges,
     };
   });
+}
+
+export async function getEntityNetworkExport(
+  entityId: number,
+  options: NetworkExportOptions = {},
+): Promise<Record<string, unknown>> {
+  const network = await getEntityNetwork(entityId, options);
+  const format = options.format?.trim().toLowerCase() || "node-link";
+
+  if (format === "cytoscape") {
+    return {
+      format,
+      disclaimer:
+        "Graph exports are relationship leads for review. They are not proof of wrongdoing or ownership control.",
+      elements: [
+        ...network.nodes.map((node) => ({
+          group: "nodes",
+          data: {
+            id: node.id,
+            label: node.label,
+            kind: node.kind,
+            ...node.metadata,
+          },
+        })),
+        ...network.edges.map((edge) => ({
+          group: "edges",
+          data: {
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            relation: edge.relation,
+            confidence: edge.confidence ?? null,
+            ...edge.metadata,
+          },
+        })),
+      ],
+    };
+  }
+
+  if (format === "jsonl") {
+    return {
+      format,
+      disclaimer:
+        "Graph exports are relationship leads for review. They are not proof of wrongdoing or ownership control.",
+      lines: [
+        ...network.nodes.map((node) => JSON.stringify({ type: "node", ...node })),
+        ...network.edges.map((edge) => JSON.stringify({ type: "edge", ...edge })),
+      ],
+    };
+  }
+
+  if (format !== "node-link" && format !== "json") {
+    throw new Error('Unsupported graph export format. Use "node-link", "cytoscape", or "jsonl".');
+  }
+
+  return {
+    format: "node-link",
+    disclaimer:
+      "Graph exports are relationship leads for review. They are not proof of wrongdoing or ownership control.",
+    ...network,
+  };
 }
 
 export async function getEntityReviewQueue(options: QueueOptions = {}): Promise<Array<Record<string, unknown>>> {

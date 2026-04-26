@@ -13,6 +13,9 @@
 - `entity_enrichment_matches`: provenance-backed external-match rows with method, confidence, and review status
 - `entity_intelligence_signals`: entity-level local or cross-entity intelligence signals outside pure process scoring
 - `entity_external_risk_signals`: sanctions, debarment, offshore, PEP, or watchlist-style external signals tied to a local entity
+- `analyst_cases`: internal casework containers for analyst follow-up
+- `analyst_case_links`: links between cases and entities, processes, candidates, source records, accepted matches, or second reviews
+- `analyst_notes`: internal notes with target, note type, visibility, analyst, and provenance
 - `procurement_processes`: tender and process-level normalized records
 - `process_parties`: party roles within a process
 - `awards`: award-level normalized records
@@ -54,4 +57,4 @@
 - `entity_anchor_coverage_overview`
   - summary surface for anchored vs. unanchored supplier companies and current local/external intelligence coverage
 - internal API/console endpoints
-  - expose these views as JSON for entity search, entity dossiers, graph-ready one-hop networks, review queues, external candidates, and accepted matches without introducing a separate public database or graph store yet
+  - expose these views as JSON for entity search, entity dossiers, graph-ready one-hop networks, graph export, source-record drilldowns, review queues, external candidates, accepted matches, saved notes, and cases without introducing a separate public database or graph store yet

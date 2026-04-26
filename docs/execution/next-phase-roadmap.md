@@ -84,12 +84,16 @@
 
 - Status
   - first local-only slice operational
+  - first analyst-workspace hardening slice operational
 - Core outputs
   - API for process, entity, edge, flag, and review-queue queries
   - console views for process leads, entity dossiers, and follow-up lanes
   - accepted external match and second-review evidence endpoints
   - graph-ready one-hop entity network endpoint
-  - saved investigation paths later
+  - source-record drilldowns
+  - graph exports
+  - token-protected saved notes, cases, and case links
+  - richer saved investigation paths later
 - Main references
   - Aleph
   - Sayari
@@ -117,9 +121,9 @@
 
 ## Immediate next best step
 
-- Harden the local-only internal API/console into the first analyst workspace, while keeping accepted matches, review-only candidates, external risk signals, and public-facing language separate.
+- Deepen the local-only analyst workspace into case timelines and source-record-to-note workflows, while keeping accepted matches, review-only candidates, external risk signals, analyst notes, and public-facing language separate.
 - Reason
-  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, and one accepted second-review match. The next leverage is making those layers explorable together instead of leaving them mostly in markdown reports.
+  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, and token-protected notes/cases. The next leverage is turning those saved objects into real case timelines and explanation workflows.
 - Expected carry-over
   - local API endpoints and console views that expose candidate records with durable human-review status, notes, source-backed promotion/rejection history, and second-review state
   - tighter use of hosted same-candidate confirmation versus different-result ambiguity inside analyst workflows

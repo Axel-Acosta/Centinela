@@ -185,3 +185,9 @@
 - Decision: Build the first local-only internal API/console on top of the live PostgreSQL views before adding a public dashboard, saved-case product layer, or separate graph database.
 - Why: The live foundation already has procurement rules, local identity anchors, external candidates, hosted comparison evidence, source-record checks, and second-review state. The highest leverage now is to make those layers explorable together through entity search, dossiers, queues, and graph-ready relationship neighborhoods.
 - Consequence: Centinela now has a reusable local analyst surface that advances Aleph/Sayari-style investigation, br/acc-style graph-ready provenance, Dozorro-style review queues, QQW-style company-contract accountability, and RUBLI/Integrity-Watch-style cautious explanation without prematurely exposing anything publicly.
+
+## 2026-04-26 - Analyst workspace primitives before public case management
+
+- Decision: Add saved analyst cases, case links, analyst notes, source-record drilldowns, and graph export to the local API/console before building a full UI, public case pages, or a graph database.
+- Why: Centinela needs durable human-review context, but analyst notes must stay separate from automated risk signals and public-facing conclusions. A small local write-token boundary is enough for the current local-only workspace without pretending to be production authentication.
+- Consequence: `sql/postgres/016_analyst_workspace.sql`, `src/storage/analystWorkspace.ts`, source-record endpoints, graph export, and token-protected note/case endpoints are now the first casework layer. Analyst notes are internal context, not accusations.

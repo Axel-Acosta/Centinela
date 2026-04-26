@@ -173,3 +173,8 @@
 - Kept the console local-only by default; non-local binding requires `CENTINELA_ALLOW_REMOTE_CONSOLE=true` and should not be used publicly until authentication and public-safety controls exist.
 - Smoke-tested the console against the VPS-backed live database: `8,716` entities, `13,529` processes, `1` accepted second review, top search hit for `CONSULTORA GUARANI`, `1` accepted match in the entity profile, and an `11` node / `10` edge graph-ready neighborhood sample.
 - Added `docs/architecture/internal-api-console.md` and updated the roadmap, investigation layer, analyst workflow docs, system foundation, data model, README, and reference execution plan so the API/console becomes the next operational surface rather than a detached experiment.
+- Added `sql/postgres/016_analyst_workspace.sql`, creating `analyst_cases`, `analyst_case_links`, `analyst_notes`, `analyst_case_overview`, and `analyst_note_overview`.
+- Implemented `src/storage/analystWorkspace.ts` plus API routes for source-record search/drilldown, graph export, saved cases, case links, and token-protected saved analyst notes.
+- Expanded the local console with source-record, analyst-note, and graph-export panels.
+- Applied migration 016 to the live VPS-backed database.
+- Smoke-tested the analyst-workspace slice: overview returned `8,376` source records, `0` analyst cases, and `0` analyst notes; Cytoscape graph export returned `19` elements for entity `3940`; source-record drilldown found IDB source record `10117`; dry-run note/case writes worked with a temporary token; wrong tokens returned `401`; no smoke notes or cases were persisted.

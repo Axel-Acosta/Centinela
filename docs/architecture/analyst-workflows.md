@@ -226,6 +226,26 @@
   - QQW/TodosLosContratos
   - RUBLI
 
+### 14. Analyst workspace notes, cases, source records, and graph export
+
+- Commands
+  - `npm run database:apply-sql -- --file sql/postgres/016_analyst_workspace.sql`
+  - `npm run serve:internal-console -- --host 127.0.0.1 --port 8787`
+- Purpose
+  - preserve internal notes and cases without treating notes as accusations
+  - drill into source records from the console/API
+  - export entity networks for graph-oriented review
+  - require a local write token before saved notes or cases can be written through the API
+- Methodology note
+  - `docs/methodology/analyst-workspace.md`
+- Main reference pressure
+  - Aleph
+  - Sayari
+  - br/acc
+  - Dozorro/ProZorro
+  - RUBLI
+  - Integrity Watch
+
 ## Current workflow design principles
 
 - Start from explainable leads, not accusations
@@ -235,7 +255,7 @@
 
 ## Current limits
 
-- The first API and interactive console slice is local-only and operational, but it has no authentication, saved cases, or public deployment posture yet
+- The first API and interactive console slice is local-only and operational. It now has token-protected saved notes/cases, source-record drilldowns, and graph export, but it still has no production authentication, role-based permissions, or public deployment posture.
 - The rule registry exists, but the DNCP crosswalk and public methodology layer are still incomplete
 - Entity briefs now include external enrichment, DNIT identity validation, and official DNCP supplier-anchor sections, and the company-level queue plus anchor-gap report now make local identity gaps and local administrative history visible; 1 procurement-linked supplier company still remains without a local identity anchor because the procurement-side RUC is missing a check digit
 - OpenSanctions candidate review is active. The current queue has one company-level external candidate lead and keeps weak representative/person overlaps visible as rejected diagnostics rather than treating them as accepted matches.
@@ -247,4 +267,4 @@
 
 ## Next workflow milestone
 
-- Harden the internal API/console into an analyst workspace with saved review notes, source-record drilldowns, graph export, and field-level explanation surfaces.
+- Harden the internal API/console into a fuller analyst workspace with case timelines, source-record-to-note linking, field-level explanation surfaces, and eventually production-grade authentication if remote access becomes necessary.

@@ -501,10 +501,45 @@ Concrete proof artifacts:
 - `npm run serve:internal-console`
 - `docs/architecture/internal-api-console.md`
 
+## 2026-04-26 analyst workspace hardening advancement
+
+- br/acc
+  - advanced through `sql/postgres/016_analyst_workspace.sql`, source-record drilldowns, and graph exports that keep relationship exploration tied to provenance.
+- Aleph
+  - advanced through saved notes, saved cases, source-record drilldowns, and entity-centric casework primitives inside the internal console/API.
+- Sayari
+  - advanced through graph export and target-linked notes that start to resemble mature entity-intelligence analyst workflows.
+- Dozorro/ProZorro
+  - advanced through token-protected notes and cases that preserve human follow-up rather than leaving review queues as read-only lists.
+- Integrity Watch
+  - advanced because the workspace keeps limitations and non-accusatory language visible before anything becomes public-facing.
+- OpenSanctions / OpenOwnership / OpenCorporates / ICIJ
+  - advanced because accepted matches, external candidates, source records, and future ownership/offshore edges can now be linked into casework without automatically becoming risk findings.
+- FUNES
+  - advanced by giving future relationship-aware Latin American risk leads a saved analyst context instead of only a score or report row.
+- QuiénEsQuién/TodosLosContratos
+  - advanced through the caseable company-contract-accountability path: entity, process, source record, accepted match, and note can now live in one workspace model.
+- Rosie / Serenata
+  - advanced through human-readable notes and follow-up semantics that keep anomaly surfacing review-first.
+- Paraguay DNCP red flags work
+  - advanced because local DNCP process/entity context can be carried into saved review notes without detaching it from source records.
+- RUBLI
+  - advanced through explicit note visibility, limitations notes, reproducible source-record drilldowns, and no opaque guilt score.
+
+Concrete proof artifacts:
+
+- `sql/postgres/016_analyst_workspace.sql`
+- `src/storage/analystWorkspace.ts`
+- `/api/source-records`
+- `/api/entities/:id/network/export`
+- `/api/analyst-cases`
+- `/api/analyst-notes`
+- `docs/methodology/analyst-workspace.md`
+
 ## Next extraction priority
 
 - highest priority
-  - harden the internal API/console into an analyst workspace with saved review notes, source-record drilldowns, graph export, and field-level explanation surfaces
+  - turn saved notes/cases into a richer case timeline with target linking, source-record-to-note workflows, and field-level explanation surfaces
 - next after that
   - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
 - then
@@ -513,7 +548,7 @@ Concrete proof artifacts:
 ## Still pending deeper extraction
 
 - Integrity Watch: needs a real public-safe flag metadata model and later explorer/filter contract once the rule registry exists.
-- OpenSanctions / Open Ownership / OpenCorporates / ICIJ: the first live external connector, the first hosted API comparison run, the PostgreSQL-backed hosted comparison overview, the wide official Paraguay supplier anchor, the DNIT identity-validation layer, the representative/person screening lane, the candidate-review table, the manual review-state workflow, the official IDB row-level source check, the repo-side second-review governance workflow, the candidate review report, the anchor-gap review backlog, and the first company-level match-review queue now exist, but they still need migration 015 applied live, candidate `59` decided through second review, better candidate scoring, ownership data, offshore traversal, and either renewed hosted API quota or a longer-term Yente/paid-access decision.
+- OpenSanctions / Open Ownership / OpenCorporates / ICIJ: the first live external connector, the first hosted API comparison run, the PostgreSQL-backed hosted comparison overview, the wide official Paraguay supplier anchor, the DNIT identity-validation layer, the representative/person screening lane, the candidate-review table, the manual review-state workflow, the official IDB row-level source check, the live second-review governance workflow, the accepted candidate `59` case, the analyst-workspace schema, the candidate review report, the anchor-gap review backlog, and the first company-level match-review queue now exist, but they still need better candidate scoring, ownership data, offshore traversal, source-record-to-case workflows, and either renewed hosted API quota or a longer-term Yente/paid-access decision.
 - FUNES: needs relationship-aware rules that use political, financial, or oversight context beyond procurement alone.
 - Paraguay DNCP red flags work: needs a formal rule crosswalk instead of only language and framing influence.
 - RUBLI: needs the exact intended source confirmed, then direct methodology and limitations structure can be borrowed more concretely.

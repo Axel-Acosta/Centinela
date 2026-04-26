@@ -15,6 +15,9 @@ The surface is designed to expose:
 - review-only external candidates
 - accepted external enrichment matches
 - second-review rationale and limitations
+- source-record drilldowns
+- graph exports
+- internal analyst notes and cases
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -36,7 +39,9 @@ The console is local-only by default. Binding to anything other than `127.0.0.1`
 CENTINELA_ALLOW_REMOTE_CONSOLE=true
 ```
 
-Do not expose this first internal console publicly. It has no authentication layer yet.
+Do not expose this first internal console publicly. It has no production authentication layer yet.
+
+Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled locally, the token must be supplied as `X-Centinela-Write-Token` or as a Bearer token.
 
 ## API endpoints
 
@@ -48,6 +53,8 @@ Do not expose this first internal console publicly. It has no authentication lay
   - dossier JSON with identifiers, source mentions, local profiles, local signals, accepted matches, review candidates, second reviews, representatives, counterparty edges, and linked processes
 - `GET /api/entities/:id/network?limit=25`
   - one-hop graph-ready nodes and edges for procurement counterparties, legal representatives, accepted external matches, reviewable external candidates, and linked procurement processes
+- `GET /api/entities/:id/network/export?format=node-link|cytoscape|jsonl&limit=25`
+  - graph export for relationship analysis tools and future graph UI work
 - `GET /api/queue/entities?lane=<lane>&priority=<priority>&limit=25`
   - company-level entity intelligence queue
 - `GET /api/queue/processes?lane=<lane>&priority=<priority>&limit=25`
@@ -56,17 +63,31 @@ Do not expose this first internal console publicly. It has no authentication lay
   - review-only candidate and diagnostic layer, including second-review state
 - `GET /api/accepted-matches?limit=25`
   - accepted second-review enrichment matches
+- `GET /api/source-records?source_key=<key>&external_id=<id>&q=<text>&limit=25`
+  - source-record search and drilldown index
+- `GET /api/source-records/:id`
+  - full source-record payload and source-run context
+- `GET /api/analyst-cases?status=open&limit=25`
+  - saved internal cases
+- `POST /api/analyst-cases`
+  - create a case; requires local write token
+- `POST /api/analyst-cases/:id/links`
+  - link a case to an entity, process, candidate, source record, accepted match, or second review; requires local write token
+- `GET /api/analyst-notes?target_type=entity&target_id=3940`
+  - saved notes for a target
+- `POST /api/analyst-notes`
+  - save an internal note; requires local write token
 
 ## Reference synthesis
 
 - br/acc
   - Shapes the graph-ready neighborhood response and source-linked entity model.
 - OCCRP Aleph
-  - Shapes entity search, dossier-first investigation, and pivotable casework.
+  - Shapes entity search, dossier-first investigation, source drilldowns, and pivotable casework.
 - Sayari
   - Shapes professional entity-intelligence ergonomics and one-hop company/person exploration.
 - Dozorro / ProZorro
-  - Shapes review queues and follow-up lanes.
+  - Shapes review queues, follow-up lanes, and saved analyst notes.
 - QuiénEsQuién / TodosLosContratos
   - Shapes company-contract-accountability views and public-product direction.
 - OpenSanctions / OpenOwnership / OpenCorporates / ICIJ
@@ -74,7 +95,7 @@ Do not expose this first internal console publicly. It has no authentication lay
 - Open Contracting / Cardinal / OCDS, GTI, DNCP
   - Shape process and contract review endpoints.
 - Integrity Watch, Rosie, RUBLI, FUNES
-  - Shape non-accusatory language, human-review boundaries, methodology visibility, and cautious surfacing.
+  - Shape non-accusatory language, human-review boundaries, methodology visibility, cautious surfacing, and internal-note limitations.
 
 ## Current smoke-test result
 
@@ -87,10 +108,19 @@ On 2026-04-26, the first live smoke test against the VPS-backed database returne
 - `1` accepted match in that entity profile
 - `11` graph nodes and `10` graph edges in the entity network sample
 
+On the later analyst-workspace hardening smoke test, the API also returned:
+
+- `8,376` source records
+- `0` analyst cases and `0` analyst notes before any real saved casework
+- a Cytoscape export with `19` elements for entity `3940`
+- source-record drilldown for IDB source record `10117`, external ID `idb-sanctions-row-76193`
+- dry-run note/case writes with a temporary local token
+- wrong-token rejection with `401`
+
 ## Limits
 
-- No authentication or role-based permissions yet.
-- No saved cases or analyst notes through the API yet.
+- Write-token protection is local hardening, not production authentication or role-based permissions.
+- Saved cases and analyst notes exist, but the console casework UI is still minimal.
 - No full-text document index yet.
 - Network output is graph-ready JSON, not a graph database.
 - Public-facing use requires a separate safety, privacy, methodology, and UX layer.

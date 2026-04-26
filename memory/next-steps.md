@@ -3,11 +3,11 @@
 1. Treat candidate `59` as the first live second-review accepted enrichment match:
    second review ID `2`, accepted match ID `11`, external entity ID `12431`, and zero second-review-created external risk signals.
 2. Use the local internal API/console as the next operational surface:
-   `npm run serve:internal-console -- --host 127.0.0.1 --port 8787` exposes overview, entity search, entity dossiers, graph-ready neighborhoods, entity/process queues, external candidates, and accepted matches from the live database.
+   `npm run serve:internal-console -- --host 127.0.0.1 --port 8787` exposes overview, entity search, entity dossiers, graph-ready neighborhoods, graph export, source-record drilldowns, entity/process queues, external candidates, accepted matches, and token-protected analyst notes/cases from the live database.
 3. Keep accepted matches, external risk signals, review-only candidates, and public-facing language separate:
    `promotable` means ready for stronger second review, not accepted identity resolution or proof of wrongdoing.
-4. Harden the internal API/console into a first analyst workspace:
-   add saved review notes, source-record drilldowns, second-review history views, graph export, field-level methodology explanations, and safe local authentication before any remote exposure.
+4. Deepen the analyst workspace:
+   turn saved cases, case links, source records, notes, external candidates, accepted matches, and processes into a case timeline/workbench; keep notes internal until a public-safety workflow exists.
 5. Extend analyst outputs/API requirements around candidate review:
    expose source-record evidence, review evidence history, local DNCP/DNIT identifiers, hosted comparison support, second-review status, rationale, limitations, accepted-match IDs, and relationship pivots together.
 6. Improve OpenSanctions candidate scoring before any broader matching:

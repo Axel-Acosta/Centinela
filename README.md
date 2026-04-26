@@ -19,6 +19,7 @@ This first foundation run prioritizes:
 - `research/` comparative system analysis and Paraguay source mapping
 - `docs/` architecture, red-flag, and VPS/storage notes
 - `docs/architecture/internal-api-console.md` first local analyst API and console surface
+- `docs/methodology/analyst-workspace.md` saved notes, cases, source-record drilldowns, and graph export rules
 - `docs/methodology/external-candidate-review-workflow.md` manual external-candidate review status workflow
 - `scripts/` local operational helpers, including GitHub publication
 - `sql/postgres/` canonical PostgreSQL schema
@@ -63,6 +64,7 @@ npm run enrichment:dncp-supplier-anchor -- --limit 500 --only-unanchored true --
 npm run enrichment:dnit-ruc-equivalence -- --limit 10000 --only-anchor-gaps false
 npm run enrichment:idb-sanctions-candidate -- --candidate-id 59 --update-review true
 npm run database:apply-sql -- --file sql/postgres/015_external_candidate_second_review.sql
+npm run database:apply-sql -- --file sql/postgres/016_analyst_workspace.sql
 npm run database:load-bundle -- --file data/normalized/paraguay/dncp-2026-bulk-processes.json
 npm run database:analyst-brief -- --source-key py-dncp-bulk-2026
 npm run database:review-queue -- --source-key py-dncp-bulk-2026
@@ -78,7 +80,7 @@ npm run serve:internal-console -- --host 127.0.0.1 --port 8787
 
 Those commands fetch annual DNCP OCDS bulk slices, persist them into PostgreSQL, and then generate database-backed internal investigation artifacts including analyst briefs, review queues, entity dossiers, external-candidate review, manual candidate-review status updates, and rulebook methodology outputs.
 The IDB command is a source-document evidence check for OpenSanctions/IADB candidates; it does not create accepted matches or risk signals.
-The internal console command serves a local-only analyst surface and JSON API for entity search, dossiers, graph-ready network neighborhoods, review queues, external candidates, and accepted matches.
+The internal console command serves a local-only analyst surface and JSON API for entity search, dossiers, graph-ready network neighborhoods, graph export, source-record drilldowns, review queues, external candidates, accepted matches, and token-protected analyst notes/cases.
 Generated output paths are controlled by `CENTINELA_OUTPUT_DIR`; leave it blank to use the non-sync local runtime folder.
 
 ## Current working state
@@ -89,6 +91,7 @@ Generated output paths are controlled by `CENTINELA_OUTPUT_DIR`; leave it blank 
 - The first row-level external source-document connector now checks the official IDB Open Data sanctioned firms and individuals dataset for OpenSanctions/IADB candidates and stores source-record evidence separately from accepted matches.
 - The second-review governance workflow is live. Candidate `59`, `CONSULTORA GUARANI SA INGENIEROS CIVILES` -> `Consultora Guaraní S.A. Ingenieros Civiles`, is the first accepted external enrichment match; it created accepted identity context, not an external risk signal.
 - The first internal API/console slice is live locally through `npm run serve:internal-console`, exposing entity search, entity profiles, graph-ready networks, queues, candidates, and accepted matches.
+- The first analyst-workspace hardening slice is live in schema and API: source-record drilldowns, graph exports, saved cases, case links, and saved analyst notes. Write endpoints require `CENTINELA_WRITE_TOKEN`.
 - The current local Paraguay identity anchor now covers 2,533 of 2,534 procurement-linked supplier companies, with 1 missing-check-digit gap still unanchored, alongside 446 supplier companies with local administrative signals, 3,642 representative links, and 2,518 DNIT identity-validation profiles.
 - The anchor-gap backlog is now first-class through `centinela.entity_anchor_gap_review` and `npm run database:entity-anchor-gaps -- --limit 50`.
 - The next implementation phase is defined by `docs/execution/reference-to-component-execution-plan.md` and `docs/execution/next-phase-roadmap.md`, which turn the major reference systems into real component pressure instead of passive inspiration.

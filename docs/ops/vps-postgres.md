@@ -19,7 +19,7 @@
 ## Recommended next infrastructure step
 
 1. Keep using the batched local loader over an SSH tunnel until there is a clear reason to add a remote runtime
-2. Keep the first internal API/console local-only while it has no authentication or role-based permissions
+2. Keep the first internal API/console local-only while it has only local write-token protection and no production authentication or role-based permissions
 3. Keep extending the SQL query layer for process, entity, edge, candidate-review, and second-review investigation
 4. Add a remote runtime only after the analyst workspace needs remote access, saved cases, authentication, or scheduled jobs
 5. Keep database credentials in `.env` and never in repo files
@@ -47,6 +47,7 @@ The first analyst API/console now runs locally against the same tunneled Postgre
 - Hosted comparison storage applied from `sql/postgres/013_hosted_match_comparisons.sql`
 - Manual external candidate review workflow applied from `sql/postgres/014_external_candidate_review_workflow.sql`
 - External candidate second-review workflow applied from `sql/postgres/015_external_candidate_second_review.sql`
+- Analyst workspace tables and views applied from `sql/postgres/016_analyst_workspace.sql`
 - DNCP 2025 and 2026 bulk bundles loaded successfully into PostgreSQL
 - OpenSanctions bulk screening run persisted under `ext-opensanctions-default`
 - OpenSanctions hosted comparison persisted under `ext-opensanctions-hosted-match`
@@ -59,3 +60,4 @@ The first analyst API/console now runs locally against the same tunneled Postgre
 - Current hosted-match reality: the first real hosted comparison result is already stored and exposed through analyst surfaces, but the trial API key hit a monthly `429` rate limit on a later rerun attempt
 - Current manual-review reality: `centinela.entity_enrichment_candidate_review_overview` exposes 58 OpenSanctions candidate/diagnostic rows with reviewer state, suggested review status, hosted-comparison support, source-check evidence history, and next-step guidance. The current live distribution is 1 `accepted_match` second-review case, 5 `monitor`, 4 `rejected`, and 48 `unreviewed` diagnostics.
 - Current second-review reality: schema, CLI, live DB, reports, and dossiers are operational. Candidate `59` has second-review decision `accepted_match`, accepted enrichment match ID `11`, accepted external entity ID `12431`, and the workflow created zero external risk signals.
+- Current analyst-workspace reality: `centinela.analyst_cases`, `centinela.analyst_case_links`, `centinela.analyst_notes`, and overview views are live. The local API can drill into source records, export graph-ready neighborhoods, and dry-run token-protected note/case writes.

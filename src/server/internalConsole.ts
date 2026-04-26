@@ -4,6 +4,7 @@ import {
   type ListOptions,
   type QueueOptions,
   type SearchEntitiesOptions,
+  getEntityNetworkExport,
   getAcceptedExternalMatches,
   getEntityNetwork,
   getEntityProfile,
@@ -13,6 +14,15 @@ import {
   getProcessReviewQueue,
   searchEntities,
 } from "../storage/internalApi";
+import {
+  createAnalystCase,
+  createAnalystNote,
+  linkAnalystCaseTarget,
+  listAnalystCases,
+  listAnalystNotes,
+  listSourceRecords,
+  getSourceRecord,
+} from "../storage/analystWorkspace";
 
 export interface InternalConsoleOptions {
   host?: string;
@@ -50,7 +60,21 @@ function sendHtml(response: http.ServerResponse, statusCode: number, body: strin
   response.end(body);
 }
 
-function parseEntityRoute(pathname: string): { entityId: number; network: boolean } | undefined {
+function parseEntityRoute(pathname: string): { entityId: number; network: boolean; exportNetwork: boolean } | undefined {
+  const exportMatch = pathname.match(/^\/api\/entities\/(\d+)\/network\/export$/);
+  if (exportMatch) {
+    const entityId = Number(exportMatch[1]);
+    if (!Number.isInteger(entityId) || entityId <= 0) {
+      return undefined;
+    }
+
+    return {
+      entityId,
+      network: true,
+      exportNetwork: true,
+    };
+  }
+
   const match = pathname.match(/^\/api\/entities\/(\d+)(\/network)?$/);
   if (!match) {
     return undefined;
@@ -64,7 +88,28 @@ function parseEntityRoute(pathname: string): { entityId: number; network: boolea
   return {
     entityId,
     network: Boolean(match[2]),
+    exportNetwork: false,
   };
+}
+
+function parseSourceRecordRoute(pathname: string): number | undefined {
+  const match = pathname.match(/^\/api\/source-records\/(\d+)$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const recordId = Number(match[1]);
+  return Number.isInteger(recordId) && recordId > 0 ? recordId : undefined;
+}
+
+function parseCaseLinkRoute(pathname: string): number | undefined {
+  const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/links$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const caseId = Number(match[1]);
+  return Number.isInteger(caseId) && caseId > 0 ? caseId : undefined;
 }
 
 function listOptions(url: URL): ListOptions {
@@ -128,6 +173,201 @@ function externalCandidateOptions(url: URL): ExternalCandidateOptions {
   }
 
   return options;
+}
+
+function sourceRecordOptions(url: URL): {
+  sourceKey?: string;
+  externalId?: string;
+  recordKind?: string;
+  q?: string;
+  limit?: number;
+} {
+  const options: {
+    sourceKey?: string;
+    externalId?: string;
+    recordKind?: string;
+    q?: string;
+    limit?: number;
+  } = {};
+  const sourceKey = textParam(url, "source_key");
+  const externalId = textParam(url, "external_id");
+  const recordKind = textParam(url, "record_kind");
+  const q = textParam(url, "q");
+  const limit = numberParam(url, "limit");
+
+  if (sourceKey !== undefined) {
+    options.sourceKey = sourceKey;
+  }
+
+  if (externalId !== undefined) {
+    options.externalId = externalId;
+  }
+
+  if (recordKind !== undefined) {
+    options.recordKind = recordKind;
+  }
+
+  if (q !== undefined) {
+    options.q = q;
+  }
+
+  if (limit !== undefined) {
+    options.limit = limit;
+  }
+
+  return options;
+}
+
+function analystNoteOptions(url: URL): {
+  targetType?: string;
+  targetId?: string;
+  caseId?: number;
+  limit?: number;
+} {
+  const options: {
+    targetType?: string;
+    targetId?: string;
+    caseId?: number;
+    limit?: number;
+  } = {};
+  const targetType = textParam(url, "target_type");
+  const targetId = textParam(url, "target_id");
+  const caseId = numberParam(url, "case_id");
+  const limit = numberParam(url, "limit");
+
+  if (targetType !== undefined) {
+    options.targetType = targetType;
+  }
+
+  if (targetId !== undefined) {
+    options.targetId = targetId;
+  }
+
+  if (caseId !== undefined) {
+    options.caseId = caseId;
+  }
+
+  if (limit !== undefined) {
+    options.limit = limit;
+  }
+
+  return options;
+}
+
+function analystCaseOptions(url: URL): { status?: string; limit?: number } {
+  const options: { status?: string; limit?: number } = {};
+  const status = textParam(url, "status");
+  const limit = numberParam(url, "limit");
+
+  if (status !== undefined) {
+    options.status = status;
+  }
+
+  if (limit !== undefined) {
+    options.limit = limit;
+  }
+
+  return options;
+}
+
+function networkExportOptions(url: URL): { format?: string; limit?: number } {
+  const options: { format?: string; limit?: number } = {};
+  const format = textParam(url, "format");
+  const limit = numberParam(url, "limit");
+
+  if (format !== undefined) {
+    options.format = format;
+  }
+
+  if (limit !== undefined) {
+    options.limit = limit;
+  }
+
+  return options;
+}
+
+async function readJsonBody(request: http.IncomingMessage): Promise<Record<string, unknown>> {
+  const chunks: Buffer[] = [];
+  let totalBytes = 0;
+  const maxBytes = 64 * 1024;
+
+  for await (const chunk of request) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    totalBytes += buffer.length;
+    if (totalBytes > maxBytes) {
+      throw new Error("Request body is too large for the internal console.");
+    }
+    chunks.push(buffer);
+  }
+
+  const raw = Buffer.concat(chunks).toString("utf8").trim();
+  if (!raw) {
+    return {};
+  }
+
+  const parsed: unknown = JSON.parse(raw);
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error("Request body must be a JSON object.");
+  }
+
+  return parsed as Record<string, unknown>;
+}
+
+function stringField(body: Record<string, unknown>, name: string): string | undefined {
+  const value = body[name];
+  return typeof value === "string" ? value : undefined;
+}
+
+function numberField(body: Record<string, unknown>, name: string): number | undefined {
+  const value = body[name];
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function recordField(body: Record<string, unknown>, name: string): Record<string, unknown> | undefined {
+  const value = body[name];
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
+function booleanParam(url: URL, name: string): boolean | undefined {
+  const value = textParam(url, name);
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return value === "true" || value === "1";
+}
+
+function getWriteToken(request: http.IncomingMessage): string | undefined {
+  const direct = request.headers["x-centinela-write-token"];
+  if (typeof direct === "string" && direct.trim()) {
+    return direct.trim();
+  }
+
+  const authorization = request.headers.authorization;
+  if (authorization?.toLowerCase().startsWith("bearer ")) {
+    return authorization.slice("bearer ".length).trim();
+  }
+
+  return undefined;
+}
+
+function requireWriteAccess(request: http.IncomingMessage): void {
+  const configured = process.env.CENTINELA_WRITE_TOKEN?.trim();
+  if (!configured) {
+    const error = new Error(
+      "Write endpoints are disabled. Set CENTINELA_WRITE_TOKEN, then send it as X-Centinela-Write-Token or Bearer token.",
+    );
+    (error as Error & { statusCode?: number }).statusCode = 403;
+    throw error;
+  }
+
+  if (getWriteToken(request) !== configured) {
+    const error = new Error("Invalid or missing Centinela write token.");
+    (error as Error & { statusCode?: number }).statusCode = 401;
+    throw error;
+  }
 }
 
 function consoleHtml(): string {
@@ -263,7 +503,7 @@ function consoleHtml(): string {
       margin-bottom: 14px;
     }
 
-    input {
+    input, textarea, select {
       flex: 1;
       border: 1px solid var(--line);
       border-radius: 999px;
@@ -271,6 +511,18 @@ function consoleHtml(): string {
       background: #fffaf0;
       font: inherit;
       color: var(--ink);
+    }
+
+    textarea {
+      min-height: 88px;
+      border-radius: 18px;
+      resize: vertical;
+    }
+
+    .mini-form {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
     }
 
     button {
@@ -368,6 +620,36 @@ function consoleHtml(): string {
       </article>
 
       <article class="panel span-4">
+        <h2>Source Records</h2>
+        <div id="source-records" class="list"></div>
+      </article>
+
+      <article class="panel span-4">
+        <h2>Analyst Notes</h2>
+        <div class="mini-form">
+          <input id="write-token" type="password" placeholder="Write token for saved notes" aria-label="Write token" />
+          <input id="analyst-name" value="centinela-operator" aria-label="Analyst name" />
+          <select id="note-type" aria-label="Note type">
+            <option value="analyst_note">Analyst note</option>
+            <option value="evidence_note">Evidence note</option>
+            <option value="limitation">Limitation</option>
+            <option value="follow_up">Follow-up</option>
+            <option value="source_check">Source check</option>
+            <option value="methodology_note">Methodology note</option>
+          </select>
+          <textarea id="note-text" placeholder="Saved notes are internal leads and context, not conclusions."></textarea>
+          <button id="save-note" type="button">Save entity note</button>
+        </div>
+        <div id="notes" class="list"></div>
+      </article>
+
+      <article class="panel span-4">
+        <h2>Graph Export</h2>
+        <button id="export-graph" type="button" class="secondary">Load Cytoscape export</button>
+        <pre id="graph-export">Open an entity first.</pre>
+      </article>
+
+      <article class="panel span-4">
         <h2>Accepted Matches</h2>
         <div id="accepted" class="list"></div>
       </article>
@@ -385,8 +667,26 @@ function consoleHtml(): string {
   </main>
 
   <script>
+    let currentEntityId = null;
+
     async function getJson(path) {
       const response = await fetch(path);
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      return response.json();
+    }
+
+    async function postJson(path, body, token) {
+      const headers = { 'content-type': 'application/json' };
+      if (token) {
+        headers['x-centinela-write-token'] = token;
+      }
+      const response = await fetch(path, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body)
+      });
       if (!response.ok) {
         throw new Error(await response.text());
       }
@@ -453,6 +753,7 @@ function consoleHtml(): string {
     }
 
     async function loadEntity(entityId) {
+      currentEntityId = entityId;
       const [profile, network] = await Promise.all([
         getJson('/api/entities/' + entityId),
         getJson('/api/entities/' + entityId + '/network?limit=18')
@@ -461,6 +762,85 @@ function consoleHtml(): string {
         profile: profile.data,
         network: network.data
       }, null, 2);
+      renderSourceRecords(profile.data.sourceRecords || []);
+      renderNotes(profile.data.analystNotes || []);
+      document.getElementById('graph-export').textContent = 'Ready to export entity #' + entityId + '.';
+    }
+
+    function renderSourceRecords(records) {
+      const container = document.getElementById('source-records');
+      container.innerHTML = '';
+      if (!records.length) {
+        renderItem(container, 'No direct source records found', [
+          'source drilldown',
+          'Use /api/source-records for broader source search.'
+        ]);
+        return;
+      }
+      records.forEach((record) => {
+        const button = document.createElement('button');
+        button.className = 'secondary';
+        button.textContent = 'Open source record';
+        button.onclick = async () => {
+          const payload = await getJson('/api/source-records/' + record.id);
+          document.getElementById('detail').textContent = JSON.stringify(payload.data, null, 2);
+        };
+        renderItem(container, record.source_key + ' #' + record.external_id, [
+          record.record_kind,
+          'record ID: ' + record.id
+        ], button);
+      });
+    }
+
+    function renderNotes(notes) {
+      const container = document.getElementById('notes');
+      container.innerHTML = '';
+      if (!notes.length) {
+        renderItem(container, 'No saved notes for this entity', [
+          'analyst workspace',
+          'Add one when a review needs durable context.'
+        ]);
+        return;
+      }
+      notes.forEach((note) => renderItem(container, note.note_text, [
+        note.note_type + ' / ' + note.visibility,
+        'by ' + text(note.analyst) + ' at ' + text(note.created_at)
+      ]));
+    }
+
+    async function saveCurrentEntityNote() {
+      if (!currentEntityId) {
+        document.getElementById('detail').textContent = 'Open an entity before saving a note.';
+        return;
+      }
+      const token = document.getElementById('write-token').value;
+      const noteText = document.getElementById('note-text').value;
+      const analyst = document.getElementById('analyst-name').value || 'centinela-operator';
+      const noteType = document.getElementById('note-type').value;
+      const payload = await postJson('/api/analyst-notes', {
+        targetType: 'entity',
+        targetId: String(currentEntityId),
+        noteText,
+        analyst,
+        noteType,
+        provenance: {
+          source: 'internal_console',
+          nonAccusatoryUse: true
+        }
+      }, token);
+      document.getElementById('note-text').value = '';
+      const notes = await getJson('/api/analyst-notes?target_type=entity&target_id=' + encodeURIComponent(String(currentEntityId)) + '&limit=20');
+      renderNotes(notes.data);
+      document.getElementById('detail').textContent = JSON.stringify(payload.data, null, 2);
+    }
+
+    async function exportCurrentGraph() {
+      if (!currentEntityId) {
+        document.getElementById('graph-export').textContent = 'Open an entity before exporting a graph.';
+        return;
+      }
+      const payload = await getJson('/api/entities/' + currentEntityId + '/network/export?format=cytoscape&limit=30');
+      document.getElementById('graph-export').textContent = JSON.stringify(payload.data, null, 2);
     }
 
     async function loadAccepted() {
@@ -495,6 +875,16 @@ function consoleHtml(): string {
     }
 
     document.getElementById('search-form').addEventListener('submit', searchEntities);
+    document.getElementById('save-note').addEventListener('click', () => {
+      saveCurrentEntityNote().catch((error) => {
+        document.getElementById('detail').textContent = error.message;
+      });
+    });
+    document.getElementById('export-graph').addEventListener('click', () => {
+      exportCurrentGraph().catch((error) => {
+        document.getElementById('graph-export').textContent = error.message;
+      });
+    });
     loadOverview().then(loadAccepted).then(loadQueues).then(() => searchEntities()).catch((error) => {
       document.getElementById('detail').textContent = error.message;
     });
@@ -503,7 +893,62 @@ function consoleHtml(): string {
 </html>`;
 }
 
-async function handleApiRequest(url: URL): Promise<unknown> {
+async function handleApiRequest(url: URL, request: http.IncomingMessage): Promise<unknown> {
+  const method = request.method ?? "GET";
+
+  if (method === "POST") {
+    requireWriteAccess(request);
+    const body = await readJsonBody(request);
+    const dryRun = booleanParam(url, "dry_run") ?? false;
+
+    if (url.pathname === "/api/analyst-notes") {
+      return createAnalystNote({
+        targetType: stringField(body, "targetType") ?? stringField(body, "target_type") ?? "",
+        targetId: stringField(body, "targetId") ?? stringField(body, "target_id") ?? "",
+        noteText: stringField(body, "noteText") ?? stringField(body, "note_text") ?? "",
+        analyst: stringField(body, "analyst") ?? "centinela-operator",
+        noteType: stringField(body, "noteType") ?? stringField(body, "note_type"),
+        caseId: numberField(body, "caseId") ?? numberField(body, "case_id"),
+        visibility: stringField(body, "visibility"),
+        provenance: recordField(body, "provenance"),
+        dryRun,
+      });
+    }
+
+    if (url.pathname === "/api/analyst-cases") {
+      return createAnalystCase({
+        title: stringField(body, "title") ?? "",
+        caseKey: stringField(body, "caseKey") ?? stringField(body, "case_key"),
+        status: stringField(body, "status"),
+        priority: stringField(body, "priority"),
+        summary: stringField(body, "summary"),
+        createdBy: stringField(body, "createdBy") ?? stringField(body, "created_by"),
+        metadata: recordField(body, "metadata"),
+        dryRun,
+      });
+    }
+
+    const caseId = parseCaseLinkRoute(url.pathname);
+    if (caseId !== undefined) {
+      return linkAnalystCaseTarget({
+        caseId,
+        targetType: stringField(body, "targetType") ?? stringField(body, "target_type") ?? "",
+        targetId: stringField(body, "targetId") ?? stringField(body, "target_id") ?? "",
+        label: stringField(body, "label"),
+        rationale: stringField(body, "rationale"),
+        createdBy: stringField(body, "createdBy") ?? stringField(body, "created_by"),
+        metadata: recordField(body, "metadata"),
+        dryRun,
+      });
+    }
+
+    throw new Error(`Unknown POST API path: ${url.pathname}`);
+  }
+
+  if (method !== "GET") {
+    throw new Error("Only GET and selected POST requests are supported in the internal console.");
+  }
+
   if (url.pathname === "/api/overview") {
     return getInternalOverview();
   }
@@ -514,6 +959,10 @@ async function handleApiRequest(url: URL): Promise<unknown> {
 
   const entityRoute = parseEntityRoute(url.pathname);
   if (entityRoute) {
+    if (entityRoute.exportNetwork) {
+      return getEntityNetworkExport(entityRoute.entityId, networkExportOptions(url));
+    }
+
     if (entityRoute.network) {
       return getEntityNetwork(entityRoute.entityId, listOptions(url));
     }
@@ -535,6 +984,23 @@ async function handleApiRequest(url: URL): Promise<unknown> {
 
   if (url.pathname === "/api/accepted-matches") {
     return getAcceptedExternalMatches(listOptions(url));
+  }
+
+  if (url.pathname === "/api/source-records") {
+    return listSourceRecords(sourceRecordOptions(url));
+  }
+
+  const sourceRecordId = parseSourceRecordRoute(url.pathname);
+  if (sourceRecordId !== undefined) {
+    return getSourceRecord(sourceRecordId);
+  }
+
+  if (url.pathname === "/api/analyst-notes") {
+    return listAnalystNotes(analystNoteOptions(url));
+  }
+
+  if (url.pathname === "/api/analyst-cases") {
+    return listAnalystCases(analystCaseOptions(url));
   }
 
   throw new Error(`Unknown API path: ${url.pathname}`);
@@ -560,19 +1026,19 @@ export async function serveInternalConsole(options: InternalConsoleOptions = {})
 
       const url = new URL(request.url, `http://${request.headers.host ?? `${host}:${port}`}`);
 
-      if (request.method !== "GET") {
-        sendJson(response, 405, { error: "Only GET requests are supported in the first internal console slice." });
+      if (request.method !== "GET" && request.method !== "POST") {
+        sendJson(response, 405, { error: "Only GET and selected POST requests are supported." });
         return;
       }
 
-      if (url.pathname === "/" || url.pathname === "/console") {
+      if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/console")) {
         sendHtml(response, 200, consoleHtml());
         return;
       }
 
       if (url.pathname.startsWith("/api/")) {
         try {
-          const data = await handleApiRequest(url);
+          const data = await handleApiRequest(url, request);
           sendJson(response, 200, {
             data,
             meta: {
@@ -582,8 +1048,13 @@ export async function serveInternalConsole(options: InternalConsoleOptions = {})
             },
           });
         } catch (error) {
-          sendJson(response, 500, {
+          const statusCode =
+            error instanceof Error && "statusCode" in error
+              ? Number((error as Error & { statusCode?: number }).statusCode)
+              : 500;
+          sendJson(response, Number.isFinite(statusCode) ? statusCode : 500, {
             error: error instanceof Error ? error.message : String(error),
+            statusCode: Number.isFinite(statusCode) ? statusCode : 500,
           });
         }
         return;
