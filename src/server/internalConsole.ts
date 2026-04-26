@@ -16,6 +16,7 @@ import {
 } from "../storage/internalApi";
 import {
   createAnalystCase,
+  createAnalystEvidenceLink,
   createAnalystNote,
   getAnalystCase,
   linkAnalystCaseTarget,
@@ -105,6 +106,16 @@ function parseSourceRecordRoute(pathname: string): number | undefined {
 
 function parseCaseLinkRoute(pathname: string): number | undefined {
   const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/links$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const caseId = Number(match[1]);
+  return Number.isInteger(caseId) && caseId > 0 ? caseId : undefined;
+}
+
+function parseCaseEvidenceRoute(pathname: string): number | undefined {
+  const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/evidence-links$/);
   if (!match) {
     return undefined;
   }
@@ -674,6 +685,19 @@ function consoleHtml(): string {
               </select>
               <button id="create-case" type="button">Create case</button>
               <button id="link-entity-case" type="button" class="secondary">Link current entity to case</button>
+              <select id="evidence-role" aria-label="Evidence role">
+                <option value="context">Context</option>
+                <option value="supports_identity_context">Supports identity context</option>
+                <option value="supports_review_lead">Supports review lead</option>
+                <option value="supports_limitation">Supports limitation</option>
+                <option value="contradicts_or_limits">Contradicts or limits</option>
+                <option value="needs_follow_up">Needs follow-up</option>
+              </select>
+              <input id="evidence-field-path" placeholder="Field path, e.g. payload.records[0].name" aria-label="Evidence field path" />
+              <input id="evidence-field-value" placeholder="Field value or excerpt" aria-label="Evidence field value" />
+              <textarea id="evidence-summary" placeholder="Why this source record matters. Lead, not conclusion."></textarea>
+              <textarea id="evidence-limitations" placeholder="What this source record does not prove."></textarea>
+              <button id="link-source-evidence" type="button" class="secondary">Link current source record as evidence</button>
             </div>
             <div id="cases" class="list"></div>
           </div>
@@ -703,6 +727,8 @@ function consoleHtml(): string {
   <script>
     let currentEntityId = null;
     let currentCaseId = null;
+    let currentSourceRecordId = null;
+    let currentNoteId = null;
 
     async function getJson(path) {
       const response = await fetch(path);
@@ -757,6 +783,7 @@ function consoleHtml(): string {
         ['Risk signals', counts.procurement_risk_signals],
         ['Relationships', counts.relationship_edges],
         ['Accepted matches', counts.accepted_second_reviews],
+        ['Evidence links', counts.analyst_evidence_links],
         ['External risk signals', counts.external_risk_signals]
       ].forEach(([label, value]) => {
         const stat = document.createElement('div');
@@ -818,6 +845,7 @@ function consoleHtml(): string {
         button.textContent = 'Open source record';
         button.onclick = async () => {
           const payload = await getJson('/api/source-records/' + record.id);
+          currentSourceRecordId = Number(record.id);
           document.getElementById('detail').textContent = JSON.stringify(payload.data, null, 2);
         };
         renderItem(container, record.source_key + ' #' + record.external_id, [
@@ -837,10 +865,20 @@ function consoleHtml(): string {
         ]);
         return;
       }
-      notes.forEach((note) => renderItem(container, note.note_text, [
-        note.note_type + ' / ' + note.visibility,
-        'by ' + text(note.analyst) + ' at ' + text(note.created_at)
-      ]));
+      notes.forEach((note) => {
+        const button = document.createElement('button');
+        button.className = 'secondary';
+        button.textContent = 'Use as evidence note';
+        button.onclick = () => {
+          currentNoteId = Number(note.id);
+          document.getElementById('detail').textContent = 'Selected note #' + note.id + ' for source-record evidence linking.';
+        };
+        renderItem(container, note.note_text, [
+          note.note_type + ' / ' + note.visibility,
+          'by ' + text(note.analyst) + ' at ' + text(note.created_at),
+          'linked source records: ' + text(note.linked_source_record_count)
+        ], button);
+      });
     }
 
     async function saveCurrentEntityNote() {
@@ -864,6 +902,7 @@ function consoleHtml(): string {
           nonAccusatoryUse: true
         }
       }, token);
+      currentNoteId = Number(payload.data.id);
       document.getElementById('note-text').value = '';
       const notes = await getJson('/api/analyst-notes?target_type=entity&target_id=' + encodeURIComponent(String(currentEntityId)) + '&limit=20');
       renderNotes(notes.data);
@@ -964,6 +1003,41 @@ function consoleHtml(): string {
       document.getElementById('detail').textContent = JSON.stringify(payload.data, null, 2);
     }
 
+    async function linkCurrentSourceRecordEvidence() {
+      if (!currentCaseId || !currentSourceRecordId) {
+        document.getElementById('case-detail').textContent = 'Open both a case and a source record before linking evidence.';
+        return;
+      }
+
+      const token = document.getElementById('write-token').value;
+      const analyst = document.getElementById('analyst-name').value || 'centinela-operator';
+      const summary = document.getElementById('evidence-summary').value ||
+        'Source record linked for analyst review context. This is not a conclusion.';
+      const targetType = currentEntityId ? 'entity' : 'source_record';
+      const targetId = currentEntityId ? String(currentEntityId) : String(currentSourceRecordId);
+      const payload = await postJson('/api/analyst-cases/' + currentCaseId + '/evidence-links', {
+        sourceRecordId: Number(currentSourceRecordId),
+        noteId: currentNoteId ? Number(currentNoteId) : undefined,
+        targetType,
+        targetId,
+        fieldPath: document.getElementById('evidence-field-path').value,
+        fieldValue: document.getElementById('evidence-field-value').value,
+        evidenceSummary: summary,
+        limitations: document.getElementById('evidence-limitations').value,
+        evidenceRole: document.getElementById('evidence-role').value,
+        createdBy: analyst,
+        metadata: {
+          source: 'internal_console',
+          nonAccusatoryUse: true
+        }
+      }, token);
+      document.getElementById('evidence-summary').value = '';
+      document.getElementById('evidence-limitations').value = '';
+      await loadCases();
+      await openCase(currentCaseId);
+      document.getElementById('detail').textContent = JSON.stringify(payload.data, null, 2);
+    }
+
     async function loadQueues() {
       const [queue, candidates] = await Promise.all([
         getJson('/api/queue/entities?limit=5'),
@@ -1005,6 +1079,11 @@ function consoleHtml(): string {
         document.getElementById('case-detail').textContent = error.message;
       });
     });
+    document.getElementById('link-source-evidence').addEventListener('click', () => {
+      linkCurrentSourceRecordEvidence().catch((error) => {
+        document.getElementById('case-detail').textContent = error.message;
+      });
+    });
     loadOverview().then(loadAccepted).then(loadQueues).then(loadCases).then(() => searchEntities()).catch((error) => {
       document.getElementById('detail').textContent = error.message;
     });
@@ -1042,6 +1121,27 @@ async function handleApiRequest(url: URL, request: http.IncomingMessage): Promis
         status: stringField(body, "status"),
         priority: stringField(body, "priority"),
         summary: stringField(body, "summary"),
+        createdBy: stringField(body, "createdBy") ?? stringField(body, "created_by"),
+        metadata: recordField(body, "metadata"),
+        dryRun,
+      });
+    }
+
+    const evidenceCaseId = parseCaseEvidenceRoute(url.pathname);
+    if (evidenceCaseId !== undefined) {
+      return createAnalystEvidenceLink({
+        caseId: evidenceCaseId,
+        sourceRecordId: numberField(body, "sourceRecordId") ?? numberField(body, "source_record_id") ?? 0,
+        noteId: numberField(body, "noteId") ?? numberField(body, "note_id"),
+        targetType: stringField(body, "targetType") ?? stringField(body, "target_type") ?? "",
+        targetId: stringField(body, "targetId") ?? stringField(body, "target_id") ?? "",
+        fieldPath: stringField(body, "fieldPath") ?? stringField(body, "field_path"),
+        fieldValue: stringField(body, "fieldValue") ?? stringField(body, "field_value"),
+        evidenceSummary: stringField(body, "evidenceSummary") ?? stringField(body, "evidence_summary") ?? "",
+        analystInterpretation:
+          stringField(body, "analystInterpretation") ?? stringField(body, "analyst_interpretation"),
+        limitations: stringField(body, "limitations"),
+        evidenceRole: stringField(body, "evidenceRole") ?? stringField(body, "evidence_role"),
         createdBy: stringField(body, "createdBy") ?? stringField(body, "created_by"),
         metadata: recordField(body, "metadata"),
         dryRun,

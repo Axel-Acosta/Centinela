@@ -183,3 +183,7 @@
 - Expanded the local console with a case timeline workbench that can create cases, open timelines, and link the current entity into a case.
 - Applied migration 017 to the live VPS-backed database over the SSH tunnel.
 - Smoke-tested the case timeline slice: one temporary case, one entity link to entity `3940`, and one temporary note returned `3` timeline events (`note`, `case_link`, `case_created`); cleanup deleted the smoke case/note and returned analyst cases and notes to `0`.
+- Added `sql/postgres/018_analyst_evidence_links.sql`, creating `centinela.analyst_evidence_links` and `centinela.analyst_case_evidence_overview` for source-record evidence bundles with optional note linkage, field paths, field values, interpretations, limitations, and evidence roles.
+- Added `POST /api/analyst-cases/:id/evidence-links`, evidence-link counts in overview, evidence links in `GET /api/analyst-cases/:id`, and evidence-link controls in the local console.
+- Applied migration 018 to the live VPS-backed database over the SSH tunnel.
+- Smoke-tested the evidence-link slice: one temporary case, one entity link to entity `3940`, one note, and one source-record evidence link to source record `10117` returned `1` evidence link, `1` linked source record on the note, and `4` timeline events (`evidence_link`, `note`, `case_link`, `case_created`); cleanup returned analyst cases, notes, and evidence links to `0`.

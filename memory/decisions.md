@@ -197,3 +197,9 @@
 - Decision: Add a database-backed `analyst_case_timeline` view and `GET /api/analyst-cases/:id` workbench endpoint before building a richer public UI, graph database, or production case-management system.
 - Why: Centinela needs case history to be queryable, source-linked, and reusable across SQL, API, console, and future UI layers. A database view keeps the case timeline close to provenance and avoids hiding important review history inside client-side UI state.
 - Consequence: `sql/postgres/017_analyst_case_timeline.sql`, `getAnalystCase`, and the console case panel now expose case creation, linked targets, and case-scoped notes as one internal timeline. The next layer should attach source-record-to-note links and field-level explanations into that timeline.
+
+## 2026-04-26 - Evidence links before public explanations
+
+- Decision: Add `analyst_evidence_links` and `POST /api/analyst-cases/:id/evidence-links` before attempting public explanations or a document index.
+- Why: Source records need to be carried through casework with field paths, evidence roles, interpretations, and limitations. This gives analysts provenance-backed explanation bundles without turning notes or source records into accusations.
+- Consequence: Case timelines now include `evidence_link` events, notes can show linked source-record counts, and future public/product layers can draw from explicit evidence roles and limitations instead of free-text notes alone.

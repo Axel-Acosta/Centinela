@@ -119,7 +119,8 @@ export async function getInternalOverview(): Promise<Record<string, unknown>> {
          (select count(*) from ${schema}.entity_relationships)::int as relationship_edges,
          (select count(*) from ${schema}.source_records)::int as source_records,
          (select count(*) from ${schema}.analyst_case_overview)::int as analyst_cases,
-         (select count(*) from ${schema}.analyst_note_overview)::int as analyst_notes`,
+         (select count(*) from ${schema}.analyst_note_overview)::int as analyst_notes,
+         (select count(*) from ${schema}.analyst_evidence_links)::int as analyst_evidence_links`,
     );
 
     const coverage = await client.query<Record<string, unknown>>(

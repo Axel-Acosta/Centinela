@@ -568,10 +568,42 @@ Concrete proof artifacts:
 - case timeline panel in `src/server/internalConsole.ts`
 - `getAnalystCase` in `src/storage/analystWorkspace.ts`
 
+## 2026-04-26 analyst evidence-link advancement
+
+- br/acc
+  - advanced through `analyst_evidence_links`, a source-registry-aware evidence bundle that keeps source records, case targets, and provenance explicit.
+- Aleph
+  - advanced by linking source records to case notes and targets so investigation work can preserve document/source evidence next to analyst interpretation.
+- Sayari
+  - advanced by making entity casework more evidence-oriented: a target can carry source record, field path, interpretation, limitations, and role in one reviewable object.
+- Dozorro/ProZorro
+  - advanced because review follow-up now has source-backed evidence objects rather than only queue rows and free-text notes.
+- Integrity Watch
+  - advanced through explainable evidence roles and limitations that can later feed public-safe transparency views.
+- OpenSanctions / OpenOwnership / OpenCorporates / ICIJ
+  - advanced because external candidates, ownership/offshore records, and accepted matches can later be tied to exact source fields without automatic accusations.
+- FUNES
+  - advanced by creating a place for relationship-aware regional risk logic to cite exact source fields and limitations.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because company-contract accountability cases can now assemble source-backed field explanations around companies, contracts, and relationships.
+- Rosie / Serenata
+  - advanced through human-readable suspicious-lead explanations that remain internal and review-first.
+- Paraguay DNCP red flags work
+  - advanced because DNCP source records and field-level procurement facts can be linked into case evidence without detaching from official context.
+- RUBLI
+  - advanced through reproducible evidence roles, field paths, limitations, and non-accusatory explanation bundles.
+
+Concrete proof artifacts:
+
+- `sql/postgres/018_analyst_evidence_links.sql`
+- `POST /api/analyst-cases/:id/evidence-links`
+- `analyst_case_evidence_overview`
+- evidence-link panel controls in `src/server/internalConsole.ts`
+
 ## Next extraction priority
 
 - highest priority
-  - build source-record-to-note workflows and field-level explanation surfaces on top of the live case timeline/workbench
+  - make evidence bundles easier to create and review with source-record search inside cases, common field-path helpers, and case evidence exports
 - next after that
   - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
 - then

@@ -7,9 +7,9 @@
 3. Keep accepted matches, external risk signals, review-only candidates, and public-facing language separate:
    `promotable` means ready for stronger second review, not accepted identity resolution or proof of wrongdoing.
 4. Build on the live case timeline/workbench:
-   link source records, field-level explanations, external candidates, accepted matches, and processes into case evidence bundles; keep notes internal until a public-safety workflow exists.
+   evidence links now connect source records, optional notes, targets, field paths, explanations, limitations, and evidence roles; next make evidence creation easier with source-record search inside cases and field-path helpers.
 5. Extend analyst outputs/API requirements around candidate review:
-   expose source-record evidence, review evidence history, local DNCP/DNIT identifiers, hosted comparison support, second-review status, rationale, limitations, accepted-match IDs, relationship pivots, and case timeline context together.
+   expose source-record evidence, review evidence history, local DNCP/DNIT identifiers, hosted comparison support, second-review status, rationale, limitations, accepted-match IDs, relationship pivots, evidence links, and case timeline context together.
 6. Improve OpenSanctions candidate scoring before any broader matching:
    add stronger name-order scoring, source-document evidence scoring, local identifier comparison where external identifiers exist, and explicit handling for generic business terms.
 7. Resolve the last remaining local identity anchor gap:

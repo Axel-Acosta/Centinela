@@ -16,6 +16,7 @@
 - `analyst_cases`: internal casework containers for analyst follow-up
 - `analyst_case_links`: links between cases and entities, processes, candidates, source records, accepted matches, or second reviews
 - `analyst_notes`: internal notes with target, note type, visibility, analyst, and provenance
+- `analyst_evidence_links`: source-record evidence bundles linking cases, notes, targets, field paths, explanations, limitations, and evidence roles
 - `procurement_processes`: tender and process-level normalized records
 - `process_parties`: party roles within a process
 - `awards`: award-level normalized records
@@ -58,5 +59,7 @@
   - summary surface for anchored vs. unanchored supplier companies and current local/external intelligence coverage
 - `analyst_case_timeline`
   - chronological internal casework surface combining case creation, linked targets, and case-scoped notes
+- `analyst_case_evidence_overview`
+  - source-record evidence-link surface for case evidence bundles and field-level explanation
 - internal API/console endpoints
-  - expose these views as JSON for entity search, entity dossiers, graph-ready one-hop networks, graph export, source-record drilldowns, review queues, external candidates, accepted matches, saved notes, cases, and case timelines without introducing a separate public database or graph store yet
+  - expose these views as JSON for entity search, entity dossiers, graph-ready one-hop networks, graph export, source-record drilldowns, review queues, external candidates, accepted matches, saved notes, cases, evidence links, and case timelines without introducing a separate public database or graph store yet

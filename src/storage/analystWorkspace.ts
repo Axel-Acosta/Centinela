@@ -26,12 +26,21 @@ export const analystNoteTypes = [
 
 export const analystCaseStatuses = ["open", "monitoring", "paused", "closed"] as const;
 export const analystCasePriorities = ["low", "normal", "high", "urgent"] as const;
+export const analystEvidenceRoles = [
+  "context",
+  "supports_identity_context",
+  "supports_review_lead",
+  "supports_limitation",
+  "contradicts_or_limits",
+  "needs_follow_up",
+] as const;
 
 export type AnalystTargetType = (typeof analystTargetTypes)[number];
 export type AnalystCaseLinkTargetType = (typeof analystCaseLinkTargetTypes)[number];
 export type AnalystNoteType = (typeof analystNoteTypes)[number];
 export type AnalystCaseStatus = (typeof analystCaseStatuses)[number];
 export type AnalystCasePriority = (typeof analystCasePriorities)[number];
+export type AnalystEvidenceRole = (typeof analystEvidenceRoles)[number];
 
 export interface ListAnalystNotesOptions {
   targetType?: string | undefined;
@@ -78,6 +87,23 @@ export interface LinkAnalystCaseTargetOptions {
   targetId: string;
   label?: string | undefined;
   rationale?: string | undefined;
+  createdBy?: string | undefined;
+  metadata?: Record<string, unknown> | undefined;
+  dryRun?: boolean | undefined;
+}
+
+export interface CreateAnalystEvidenceLinkOptions {
+  caseId: number;
+  sourceRecordId: number;
+  targetType: string;
+  targetId: string;
+  noteId?: number | undefined;
+  fieldPath?: string | undefined;
+  fieldValue?: string | undefined;
+  evidenceSummary: string;
+  analystInterpretation?: string | undefined;
+  limitations?: string | undefined;
+  evidenceRole?: string | undefined;
   createdBy?: string | undefined;
   metadata?: Record<string, unknown> | undefined;
   dryRun?: boolean | undefined;
@@ -186,7 +212,9 @@ export async function listAnalystCases(
          metadata,
          linked_target_count,
          note_count,
-         latest_note_at::text
+         evidence_link_count,
+         latest_note_at::text,
+         latest_evidence_at::text
        from ${schema}.analyst_case_overview
        where ($1::text is null or status = $1)
        order by
@@ -227,7 +255,9 @@ export async function getAnalystCase(
          metadata,
          linked_target_count,
          note_count,
-         latest_note_at::text
+         evidence_link_count,
+         latest_note_at::text,
+         latest_evidence_at::text
        from ${schema}.analyst_case_overview
        where id = $1`,
       [caseId],
@@ -269,9 +299,45 @@ export async function getAnalystCase(
          analyst,
          visibility,
          provenance,
+         linked_source_record_count,
          created_at::text,
          updated_at::text
        from ${schema}.analyst_note_overview
+       where case_id = $1
+       order by created_at desc, id desc
+       limit $2`,
+      [caseId, limit],
+    );
+
+    const evidenceLinks = await client.query<Record<string, unknown>>(
+      `select
+         id::text,
+         case_id::text,
+         case_key,
+         case_title,
+         note_id::text,
+         note_type,
+         note_text,
+         source_record_id::text,
+         source_key,
+         external_id,
+         record_kind,
+         source_url,
+         retrieved_at::text,
+         source_run_status,
+         target_type,
+         target_id,
+         target_label,
+         field_path,
+         field_value,
+         evidence_summary,
+         analyst_interpretation,
+         limitations,
+         evidence_role,
+         created_by,
+         created_at::text,
+         metadata
+       from ${schema}.analyst_case_evidence_overview
        where case_id = $1
        order by created_at desc, id desc
        limit $2`,
@@ -303,6 +369,7 @@ export async function getAnalystCase(
       case: normalizeRows([caseRow])[0],
       links: normalizeRows(links.rows),
       notes: normalizeRows(notes.rows),
+      evidenceLinks: normalizeRows(evidenceLinks.rows),
       timeline: normalizeRows(timeline.rows),
     };
   });
@@ -434,6 +501,158 @@ export async function linkAnalystCaseTarget(
   });
 }
 
+export async function createAnalystEvidenceLink(
+  options: CreateAnalystEvidenceLinkOptions,
+): Promise<Record<string, unknown>> {
+  assertPositiveInteger(options.caseId, "caseId");
+  assertPositiveInteger(options.sourceRecordId, "sourceRecordId");
+  assertPositiveInteger(options.noteId, "noteId");
+
+  const targetType = optionalText(options.targetType);
+  const targetId = optionalText(options.targetId);
+  const evidenceSummary = optionalText(options.evidenceSummary);
+  const evidenceRole = optionalText(options.evidenceRole) ?? "context";
+  const createdBy = optionalText(options.createdBy) ?? "centinela-operator";
+
+  if (!targetType || !targetId || !evidenceSummary) {
+    throw new Error("targetType, targetId, sourceRecordId, and evidenceSummary are required.");
+  }
+
+  assertChoice(targetType, analystTargetTypes, "target type");
+  assertChoice(evidenceRole, analystEvidenceRoles, "evidence role");
+
+  const preview = {
+    id: "(dry-run)",
+    case_id: String(options.caseId),
+    note_id: options.noteId ? String(options.noteId) : null,
+    source_record_id: String(options.sourceRecordId),
+    target_type: targetType,
+    target_id: targetId,
+    field_path: options.fieldPath ?? null,
+    field_value: options.fieldValue ?? null,
+    evidence_summary: evidenceSummary,
+    analyst_interpretation: options.analystInterpretation ?? null,
+    limitations: options.limitations ?? null,
+    evidence_role: evidenceRole,
+    created_by: createdBy,
+    metadata: options.metadata ?? {},
+  };
+
+  if (options.dryRun) {
+    return preview;
+  }
+
+  return withDatabase(async (client, schema) => {
+    if (options.noteId !== undefined) {
+      const noteCheck = await client.query(
+        `select 1
+         from ${schema}.analyst_notes
+         where id = $1
+           and case_id = $2
+         limit 1`,
+        [options.noteId, options.caseId],
+      );
+
+      if (noteCheck.rowCount === 0) {
+        throw new Error(`Analyst note ${options.noteId} is not linked to case ${options.caseId}.`);
+      }
+    }
+
+    const inserted = await client.query<{ id: string }>(
+      `insert into ${schema}.analyst_evidence_links
+         (
+           case_id,
+           note_id,
+           source_record_id,
+           target_type,
+           target_id,
+           field_path,
+           field_value,
+           evidence_summary,
+           analyst_interpretation,
+           limitations,
+           evidence_role,
+           created_by,
+           metadata
+         )
+       values (
+         $1::bigint,
+         $2::bigint,
+         $3::bigint,
+         $4,
+         $5,
+         nullif($6, ''),
+         nullif($7, ''),
+         $8,
+         nullif($9, ''),
+         nullif($10, ''),
+         $11,
+         $12,
+         $13::jsonb
+       )
+       returning id::text`,
+      [
+        options.caseId,
+        options.noteId ?? null,
+        options.sourceRecordId,
+        targetType,
+        targetId,
+        options.fieldPath ?? "",
+        options.fieldValue ?? "",
+        evidenceSummary,
+        options.analystInterpretation ?? "",
+        options.limitations ?? "",
+        evidenceRole,
+        createdBy,
+        jsonb(options.metadata ?? {}),
+      ],
+    );
+
+    const insertedId = inserted.rows[0]?.id;
+    await client.query(
+      `update ${schema}.analyst_cases
+       set updated_at = now()
+       where id = $1`,
+      [options.caseId],
+    );
+
+    const result = await client.query<Record<string, unknown>>(
+      `select
+         id::text,
+         case_id::text,
+         case_key,
+         case_title,
+         note_id::text,
+         note_type,
+         note_text,
+         source_record_id::text,
+         source_key,
+         external_id,
+         record_kind,
+         source_url,
+         retrieved_at::text,
+         source_run_status,
+         target_type,
+         target_id,
+         target_label,
+         field_path,
+         field_value,
+         evidence_summary,
+         analyst_interpretation,
+         limitations,
+         evidence_role,
+         created_by,
+         created_at::text,
+         metadata
+       from ${schema}.analyst_case_evidence_overview
+       where id = $1`,
+      [insertedId],
+    );
+
+    return normalizeRows(result.rows)[0] ?? preview;
+  });
+}
+
 export async function listAnalystNotes(
   options: ListAnalystNotesOptions = {},
 ): Promise<Array<Record<string, unknown>>> {
@@ -461,6 +680,7 @@ export async function listAnalystNotes(
          analyst,
          visibility,
          provenance,
+         linked_source_record_count,
          created_at::text,
          updated_at::text
        from ${schema}.analyst_note_overview
