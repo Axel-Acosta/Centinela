@@ -17,6 +17,7 @@
 - `analyst_case_links`: links between cases and entities, processes, candidates, source records, accepted matches, or second reviews
 - `analyst_notes`: internal notes with target, note type, visibility, analyst, and provenance
 - `analyst_evidence_links`: source-record evidence bundles linking cases, notes, targets, field paths, explanations, limitations, and evidence roles
+- `analyst_case_public_reviews`: append-only public-safety review states for case evidence export
 - `procurement_processes`: tender and process-level normalized records
 - `process_parties`: party roles within a process
 - `awards`: award-level normalized records
@@ -61,5 +62,9 @@
   - chronological internal casework surface combining case creation, linked targets, and case-scoped notes
 - `analyst_case_evidence_overview`
   - source-record evidence-link surface for case evidence bundles and field-level explanation
+- `analyst_case_public_review_overview`
+  - latest public-safety review state per case
+- `analyst_case_evidence_export`
+  - source-backed evidence export surface with internal/public gate metadata
 - internal API/console endpoints
-  - expose these views as JSON for entity search, entity dossiers, graph-ready one-hop networks, graph export, source-record drilldowns, review queues, external candidates, accepted matches, saved notes, cases, evidence links, and case timelines without introducing a separate public database or graph store yet
+  - expose these views as JSON for entity search, entity dossiers, graph-ready one-hop networks, graph export, source-record drilldowns, review queues, external candidates, accepted matches, saved notes, cases, evidence links, case timelines, public-safety reviews, and gated evidence export without introducing a separate public database or graph store yet

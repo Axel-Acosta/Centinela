@@ -621,10 +621,43 @@ Concrete proof artifacts:
 - in-case source-record search controls in `src/server/internalConsole.ts`
 - field suggestion click-to-fill evidence form behavior in `src/server/internalConsole.ts`
 
+## 2026-04-29 case evidence export and public-safety gate advancement
+
+- br/acc
+  - advanced through source-linked case evidence export that keeps provenance, source record IDs, source keys, external IDs, and field paths attached to every exported evidence row.
+- Aleph
+  - advanced because saved cases can now be packaged as evidence bundles and reviewed for public-safety state, moving closer to investigator casework rather than isolated search results.
+- Sayari
+  - advanced through analyst-grade governance around when internal evidence can become externally shareable, without collapsing accepted matches, candidates, and evidence into one risk label.
+- Dozorro/ProZorro
+  - advanced because human follow-up now has a review/escalation gate between internal casework and any outward-facing evidence use.
+- Integrity Watch
+  - advanced because explainable evidence export now has explicit public-safe summary/limitations requirements before public-only output.
+- OpenSanctions / OpenOwnership / OpenCorporates / ICIJ
+  - advanced because enrichment, ownership, foreign-company, and offshore source records can later flow into the same gated evidence-export path without being treated as accusations.
+- FUNES
+  - advanced by giving future relationship-aware risk leads a disciplined export boundary with limitations and review state.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because company-contract accountability cases can be assembled into public-safe evidence packages later, not just internal notes.
+- Rosie / Serenata
+  - advanced through citizen-readable suspicious-lead posture kept behind public-safety review until approved.
+- Paraguay DNCP red flags work
+  - advanced because DNCP source/context can be exported with limitations and local institutional caution preserved.
+- RUBLI
+  - advanced through reproducible export gates, explicit limitations, and a clear separation between internal review evidence and public-ready material.
+
+Concrete proof artifacts:
+
+- `sql/postgres/019_case_evidence_exports.sql`
+- `POST /api/analyst-cases/:id/public-review`
+- `GET /api/analyst-cases/:id/evidence-export`
+- public-safety controls in `src/server/internalConsole.ts`
+- `reviewAnalystCasePublicSafety` and `getAnalystCaseEvidenceExport` in `src/storage/analystWorkspace.ts`
+
 ## Next extraction priority
 
 - highest priority
-  - add case evidence exports and public-safety review states for outward-facing explanation readiness
+  - add document/source evidence ergonomics or downloadable case-export artifacts on top of the new public-safety gate
 - next after that
   - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
 - then

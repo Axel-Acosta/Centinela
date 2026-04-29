@@ -21,6 +21,7 @@ The surface is designed to expose:
 - internal case timeline workbench
 - source-record evidence bundles with field-level explanation and limitation context
 - in-case source-record search and field-path helpers for evidence links
+- case evidence exports with public-safety review gates
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -73,13 +74,17 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
 - `GET /api/analyst-cases?status=open&limit=25`
   - saved internal cases
 - `GET /api/analyst-cases/:id?limit=20`
-  - saved case detail with linked targets, notes, and chronological timeline events
+  - saved case detail with linked targets, notes, evidence links, public-review history, and chronological timeline events
+- `GET /api/analyst-cases/:id/evidence-export?public_only=true&limit=25`
+  - source-backed case evidence export; `public_only=true` is blocked unless the latest public-safety status is `approved_public`
 - `POST /api/analyst-cases`
   - create a case; requires local write token
 - `POST /api/analyst-cases/:id/links`
   - link a case to an entity, process, candidate, source record, accepted match, or second review; requires local write token
 - `POST /api/analyst-cases/:id/evidence-links`
   - link a source record to a case, optional note, target, field path/value, explanation, limitations, and evidence role; requires local write token
+- `POST /api/analyst-cases/:id/public-review`
+  - append a public-safety review state; `approved_public` requires public-safe summary and limitations
 - `GET /api/analyst-notes?target_type=entity&target_id=3940`
   - saved notes for a target
 - `POST /api/analyst-notes`
@@ -144,11 +149,21 @@ On the field-helper smoke test, the API/console path also confirmed:
 - the top suggestion was `payload.centinelaExternalCandidateName`, with role hint `supports_identity_context`
 - a temporary evidence link used that suggested field successfully, then cleanup returned case, note, and evidence-link counts to `0`
 
+On the evidence-export/public-safety smoke test, the API/console path also confirmed:
+
+- `sql/postgres/019_case_evidence_exports.sql` applied to the live VPS-backed database
+- one temporary source-record evidence bundle used source record `10117`
+- `public_only=true` export was blocked before `approved_public`
+- internal evidence export returned `1` evidence row
+- approved public export returned `1` public row and did not expose `internal_analyst_interpretation`
+- cleanup returned analyst cases, notes, evidence links, and public reviews to `0`
+
 ## Limits
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
 - Saved cases, analyst notes, evidence links, and case timelines exist, but the console casework UI is still an internal workbench rather than a full case-management product.
 - Field suggestions are heuristic helpers, not automatic evidence judgments.
+- Public-safety review gates reduce accidental disclosure risk, but they are not a substitute for full public-product review, role-based authorization, privacy review, or methodology publication.
 - The console renders source-derived item text as text content rather than HTML, because source records can contain public-source strings.
 - No full-text document index yet.
 - Network output is graph-ready JSON, not a graph database.

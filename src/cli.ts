@@ -713,6 +713,7 @@ async function main(): Promise<void> {
 - tsx src/cli.ts enrichment dnit-ruc-equivalence --limit 10000 --only-anchor-gaps false
 - tsx src/cli.ts enrichment idb-sanctions-candidate --candidate-id 59 --update-review true
 - tsx src/cli.ts database apply-sql --file sql/postgres/015_external_candidate_second_review.sql
+- tsx src/cli.ts database apply-sql --file sql/postgres/019_case_evidence_exports.sql
 - tsx src/cli.ts database load-bundle --file data/normalized/paraguay/dncp-2026-bulk-processes.json
 - tsx src/cli.ts database analyst-brief --source-key py-dncp-bulk-2026
 - tsx src/cli.ts database entity-brief --name "Entity Name"

@@ -209,3 +209,9 @@
 - Decision: Add bounded source-record field suggestions and in-case source-record search before building a full document index or document UI.
 - Why: Centinela already has useful `source_records.payload` data, but analysts need a faster way to cite exact fields when building evidence links. A small helper over existing JSON payloads gives immediate value without adding search infrastructure too early.
 - Consequence: `GET /api/source-records/:id` now returns `fieldSuggestions`, and the console can search source records inside a case, open a record, and click suggested fields into the evidence-link form.
+
+## 2026-04-29 - Public-safety review gates before any outward evidence export
+
+- Decision: Add append-only case public-safety review states and require `approved_public` before `public_only=true` evidence export.
+- Why: Centinela now has enough source-linked case evidence to be packaged, but packaging evidence must not accidentally expose analyst notes, internal interpretation, weak candidates, or language that reads like a public finding.
+- Consequence: `sql/postgres/019_case_evidence_exports.sql`, `POST /api/analyst-cases/:id/public-review`, and `GET /api/analyst-cases/:id/evidence-export` now separate internal evidence bundles from public-approved exports. `approved_public` requires public-safe summary and limitations, and public-only export strips internal analyst interpretation and internal actor metadata.

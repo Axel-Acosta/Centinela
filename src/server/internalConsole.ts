@@ -18,12 +18,14 @@ import {
   createAnalystCase,
   createAnalystEvidenceLink,
   createAnalystNote,
+  getAnalystCaseEvidenceExport,
   getAnalystCase,
   linkAnalystCaseTarget,
   listAnalystCases,
   listAnalystNotes,
   listSourceRecords,
   getSourceRecord,
+  reviewAnalystCasePublicSafety,
 } from "../storage/analystWorkspace";
 
 export interface InternalConsoleOptions {
@@ -116,6 +118,26 @@ function parseCaseLinkRoute(pathname: string): number | undefined {
 
 function parseCaseEvidenceRoute(pathname: string): number | undefined {
   const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/evidence-links$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const caseId = Number(match[1]);
+  return Number.isInteger(caseId) && caseId > 0 ? caseId : undefined;
+}
+
+function parseCaseEvidenceExportRoute(pathname: string): number | undefined {
+  const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/evidence-export$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const caseId = Number(match[1]);
+  return Number.isInteger(caseId) && caseId > 0 ? caseId : undefined;
+}
+
+function parseCasePublicReviewRoute(pathname: string): number | undefined {
+  const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/public-review$/);
   if (!match) {
     return undefined;
   }
@@ -700,6 +722,18 @@ function consoleHtml(): string {
               <textarea id="evidence-summary" placeholder="Why this source record matters. Lead, not conclusion."></textarea>
               <textarea id="evidence-limitations" placeholder="What this source record does not prove."></textarea>
               <button id="link-source-evidence" type="button" class="secondary">Link current source record as evidence</button>
+              <select id="public-review-status" aria-label="Public safety review status">
+                <option value="internal_only">Internal only</option>
+                <option value="public_candidate">Public candidate</option>
+                <option value="needs_redaction">Needs redaction</option>
+                <option value="approved_public">Approved public</option>
+                <option value="rejected_public">Rejected public</option>
+              </select>
+              <textarea id="public-summary" placeholder="Public-safe summary. No accusations. Required for approved public export."></textarea>
+              <textarea id="public-limitations" placeholder="Public-safe limitations. Required for approved public export."></textarea>
+              <button id="save-public-review" type="button" class="secondary">Save public-safety review</button>
+              <button id="load-evidence-export" type="button" class="secondary">Load internal evidence export</button>
+              <button id="load-public-export" type="button" class="secondary">Load public-approved export</button>
             </div>
             <div id="cases" class="list"></div>
             <div id="case-source-record-results" class="list"></div>
@@ -707,6 +741,7 @@ function consoleHtml(): string {
           </div>
           <div class="span-7">
             <pre id="case-detail">Create or open a case to see the timeline.</pre>
+            <pre id="case-export">Evidence export appears here after public-safety review.</pre>
           </div>
         </div>
       </article>
@@ -799,6 +834,7 @@ function consoleHtml(): string {
         ['Relationships', counts.relationship_edges],
         ['Accepted matches', counts.accepted_second_reviews],
         ['Evidence links', counts.analyst_evidence_links],
+        ['Public reviews', counts.analyst_public_reviews],
         ['External risk signals', counts.external_risk_signals]
       ].forEach(([label, value]) => {
         const stat = document.createElement('div');
@@ -997,6 +1033,7 @@ function consoleHtml(): string {
         button.onclick = () => openCase(item.id);
         renderItem(container, item.title, [
           item.priority + ' / ' + item.status,
+          'public review: ' + text(item.public_review_status),
           'links: ' + text(item.linked_target_count) + ', notes: ' + text(item.note_count)
         ], button);
       });
@@ -1006,6 +1043,10 @@ function consoleHtml(): string {
       currentCaseId = caseId;
       const payload = await getJson('/api/analyst-cases/' + caseId + '?limit=50');
       document.getElementById('case-detail').textContent = JSON.stringify(payload.data, null, 2);
+      const status = payload.data.case && payload.data.case.public_review_status;
+      if (status) {
+        document.getElementById('public-review-status').value = status;
+      }
     }
 
     async function createCase() {
@@ -1112,6 +1153,42 @@ function consoleHtml(): string {
       document.getElementById('detail').textContent = JSON.stringify(payload.data, null, 2);
     }
 
+    async function savePublicReview() {
+      if (!currentCaseId) {
+        document.getElementById('case-export').textContent = 'Open a case before saving public-safety review.';
+        return;
+      }
+
+      const token = document.getElementById('write-token').value;
+      const analyst = document.getElementById('analyst-name').value || 'centinela-operator';
+      const payload = await postJson('/api/analyst-cases/' + currentCaseId + '/public-review', {
+        reviewStatus: document.getElementById('public-review-status').value,
+        publicSummary: document.getElementById('public-summary').value,
+        publicLimitations: document.getElementById('public-limitations').value,
+        reviewedBy: analyst,
+        metadata: {
+          source: 'internal_console',
+          nonAccusatoryUse: true,
+          publicSafetyGate: true
+        }
+      }, token);
+      await loadCases();
+      await openCase(currentCaseId);
+      document.getElementById('case-export').textContent = JSON.stringify(payload.data, null, 2);
+    }
+
+    async function loadCaseEvidenceExport(publicOnly) {
+      if (!currentCaseId) {
+        document.getElementById('case-export').textContent = 'Open a case before loading evidence export.';
+        return;
+      }
+
+      const path = '/api/analyst-cases/' + currentCaseId + '/evidence-export?limit=50' +
+        (publicOnly ? '&public_only=true' : '');
+      const payload = await getJson(path);
+      document.getElementById('case-export').textContent = JSON.stringify(payload.data, null, 2);
+    }
+
     async function loadQueues() {
       const [queue, candidates] = await Promise.all([
         getJson('/api/queue/entities?limit=5'),
@@ -1161,6 +1238,21 @@ function consoleHtml(): string {
     document.getElementById('link-source-evidence').addEventListener('click', () => {
       linkCurrentSourceRecordEvidence().catch((error) => {
         document.getElementById('case-detail').textContent = error.message;
+      });
+    });
+    document.getElementById('save-public-review').addEventListener('click', () => {
+      savePublicReview().catch((error) => {
+        document.getElementById('case-export').textContent = error.message;
+      });
+    });
+    document.getElementById('load-evidence-export').addEventListener('click', () => {
+      loadCaseEvidenceExport(false).catch((error) => {
+        document.getElementById('case-export').textContent = error.message;
+      });
+    });
+    document.getElementById('load-public-export').addEventListener('click', () => {
+      loadCaseEvidenceExport(true).catch((error) => {
+        document.getElementById('case-export').textContent = error.message;
       });
     });
     loadOverview().then(loadAccepted).then(loadQueues).then(loadCases).then(() => searchEntities()).catch((error) => {
@@ -1222,6 +1314,19 @@ async function handleApiRequest(url: URL, request: http.IncomingMessage): Promis
         limitations: stringField(body, "limitations"),
         evidenceRole: stringField(body, "evidenceRole") ?? stringField(body, "evidence_role"),
         createdBy: stringField(body, "createdBy") ?? stringField(body, "created_by"),
+        metadata: recordField(body, "metadata"),
+        dryRun,
+      });
+    }
+
+    const publicReviewCaseId = parseCasePublicReviewRoute(url.pathname);
+    if (publicReviewCaseId !== undefined) {
+      return reviewAnalystCasePublicSafety({
+        caseId: publicReviewCaseId,
+        reviewStatus: stringField(body, "reviewStatus") ?? stringField(body, "review_status") ?? "",
+        publicSummary: stringField(body, "publicSummary") ?? stringField(body, "public_summary"),
+        publicLimitations: stringField(body, "publicLimitations") ?? stringField(body, "public_limitations"),
+        reviewedBy: stringField(body, "reviewedBy") ?? stringField(body, "reviewed_by"),
         metadata: recordField(body, "metadata"),
         dryRun,
       });
@@ -1296,6 +1401,14 @@ async function handleApiRequest(url: URL, request: http.IncomingMessage): Promis
 
   if (url.pathname === "/api/analyst-notes") {
     return listAnalystNotes(analystNoteOptions(url));
+  }
+
+  const caseEvidenceExportId = parseCaseEvidenceExportRoute(url.pathname);
+  if (caseEvidenceExportId !== undefined) {
+    return getAnalystCaseEvidenceExport(caseEvidenceExportId, {
+      publicOnly: booleanParam(url, "public_only") ?? false,
+      limit: numberParam(url, "limit"),
+    });
   }
 
   const analystCaseId = parseAnalystCaseRoute(url.pathname);

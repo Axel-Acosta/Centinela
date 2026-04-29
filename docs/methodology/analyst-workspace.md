@@ -18,14 +18,20 @@ Everything remains internal, reviewable, and non-accusatory.
   - stores internal notes on a target with note type, analyst, visibility, provenance, and timestamps
 - `centinela.analyst_evidence_links`
   - links a case, optional note, source record, target, field path, field value/excerpt, explanation, limitations, and evidence role into one reviewable evidence bundle
+- `centinela.analyst_case_public_reviews`
+  - stores append-only public-safety review states for case evidence export decisions
 - `centinela.analyst_case_overview`
-  - summarizes cases with linked-target and note counts
+  - summarizes cases with linked-target, note, evidence-link, and latest public-review state
 - `centinela.analyst_note_overview`
   - exposes notes with optional case context
 - `centinela.analyst_case_evidence_overview`
   - exposes source-record evidence bundles with case, note, source, target, field, explanation, and limitation context
+- `centinela.analyst_case_evidence_export`
+  - packages source-backed case evidence without raw note text and labels whether the latest public-safety state allows public-only export
+- `centinela.analyst_case_public_review_overview`
+  - exposes the latest public-safety review state per case
 - `centinela.analyst_case_timeline`
-  - unifies case creation, case links, case-scoped notes, and evidence links into one internal chronological review surface
+  - unifies case creation, case links, case-scoped notes, evidence links, and public-safety reviews into one internal chronological review surface
 
 ## API behavior
 
@@ -36,6 +42,8 @@ Read endpoints:
   - includes bounded `fieldSuggestions` that point to useful scalar JSON fields, likely evidence role, and why the field may matter
 - `GET /api/analyst-cases`
 - `GET /api/analyst-cases/:id`
+- `GET /api/analyst-cases/:id/evidence-export`
+  - with `public_only=true`, requires latest public-safety status `approved_public`
 - `GET /api/analyst-notes`
 - `GET /api/entities/:id/network/export?format=cytoscape`
 
@@ -44,6 +52,7 @@ Write endpoints:
 - `POST /api/analyst-cases`
 - `POST /api/analyst-cases/:id/links`
 - `POST /api/analyst-cases/:id/evidence-links`
+- `POST /api/analyst-cases/:id/public-review`
 - `POST /api/analyst-notes`
 
 Write endpoints require `CENTINELA_WRITE_TOKEN` and either:
@@ -61,6 +70,9 @@ If `CENTINELA_WRITE_TOKEN` is not set, write endpoints are disabled.
 - Source-record drilldowns show raw/source-backed evidence, but interpretation still belongs in review notes or methodology.
 - Evidence links are explanation bundles for review. They can support identity context, review leads, limitations, contradictions, or follow-up, but they are not legal findings.
 - Field suggestions are convenience helpers. Analysts still decide whether a field is relevant and must preserve limitations when using it in evidence.
+- Public-safety review states are gates, not publication themselves. `approved_public` allows a public-only export format, but it does not mean the material is ready for a live public product without methodology, privacy, and UX review.
+- `approved_public` requires both a public-safe summary and public-safe limitations.
+- Public-only evidence export strips internal analyst interpretation and internal actor metadata. It keeps source references, field paths, evidence summaries, limitations, and explicit non-accusatory language.
 - Write-token authentication is a local hardening step, not a full production auth system.
 
 ## Current smoke-test result
@@ -79,7 +91,9 @@ On 2026-04-26, the first live analyst-workspace smoke test confirmed:
 - a later case-timeline smoke created one temporary case, linked entity `3940`, saved one temporary note, returned `3` timeline events (`note`, `case_link`, `case_created`), then deleted the smoke case and returned analyst cases/notes to `0`
 - the evidence-link smoke created one temporary case, one entity link, one note, and one source-record evidence link to source record `10117`; case detail returned `1` evidence link, the note reported `1` linked source record, the timeline returned `4` events (`evidence_link`, `note`, `case_link`, `case_created`), then cleanup returned analyst cases, notes, and evidence links to `0`
 - the field-helper smoke searched source records for `Consultora Guarani`, found `4` records, returned `18` field suggestions for source record `10117`, ranked `payload.centinelaExternalCandidateName` first, created one temporary evidence link from that suggested field, then cleanup returned analyst cases, notes, and evidence links to `0`
+- migration `sql/postgres/019_case_evidence_exports.sql` applied to the VPS-backed database
+- the public-safety gate smoke created one temporary case and one source-record evidence link to source record `10117`; public-only export was blocked before approval, internal export returned `1` evidence row, approved public export returned `1` evidence row without `internal_analyst_interpretation`, and cleanup returned analyst cases, notes, evidence links, and public reviews to `0`
 
 ## Next hardening step
 
-Add case evidence exports and public-safety review states for any later outward-facing explanation.
+Add a small document/source evidence index or downloadable case-export artifact so cases can move closer to Aleph-style document-linked investigation while keeping public-safety gates intact.

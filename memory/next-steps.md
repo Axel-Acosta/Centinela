@@ -10,12 +10,14 @@
    evidence links now connect source records, optional notes, targets, field paths, explanations, limitations, and evidence roles; source-record search inside cases and field-path helpers are also live.
 5. Extend analyst outputs/API requirements around candidate review:
    expose source-record evidence, review evidence history, local DNCP/DNIT identifiers, hosted comparison support, second-review status, rationale, limitations, accepted-match IDs, relationship pivots, evidence links, and case timeline context together.
-6. Add case evidence exports and public-safety review states:
-   prepare internal evidence bundles for later public methodology without exposing raw notes, overclaiming matches, or converting review leads into accusations.
-7. Improve OpenSanctions candidate scoring before any broader matching:
+6. Use the live case evidence export and public-safety review gate:
+   migration `019` is applied, `GET /api/analyst-cases/:id/evidence-export` packages source-backed evidence, `POST /api/analyst-cases/:id/public-review` records append-only safety review state, and `public_only=true` is blocked unless the latest status is `approved_public`.
+7. Add document/source evidence ergonomics next:
+   build a small document/source index path or case export download artifact so Aleph-style casework can move from source-record JSON toward document-linked investigation without exposing analyst notes.
+8. Improve OpenSanctions candidate scoring before any broader matching:
    add stronger name-order scoring, source-document evidence scoring, local identifier comparison where external identifiers exist, and explicit handling for generic business terms.
-8. Resolve the last remaining local identity anchor gap:
+9. Resolve the last remaining local identity anchor gap:
    `MENDEZ GONZALEZ FLORIANA *` has `PY-RUC-4070792` without a check digit, so recover the complete RUC from DNCP source records, official documents, or another lawful Paraguay identity source before rerunning DNIT validation.
-9. Keep the DNCP legal-representative/person screening lane active, but preserve weak person-name overlaps as rejected diagnostics unless exact person-name agreement, stronger multi-token evidence, hosted matcher evidence, or source documents justify review escalation.
-10. Ask OpenSanctions about higher trial limits or longer-term access if another hosted rerun is needed before the monthly quota resets; otherwise continue using the already-stored hosted comparison evidence.
-11. Refine the DNCP-to-Centinela crosswalk with the best available local public red-flag descriptions and terminology.
+10. Keep the DNCP legal-representative/person screening lane active, but preserve weak person-name overlaps as rejected diagnostics unless exact person-name agreement, stronger multi-token evidence, hosted matcher evidence, or source documents justify review escalation.
+11. Ask OpenSanctions about higher trial limits or longer-term access if another hosted rerun is needed before the monthly quota resets; otherwise continue using the already-stored hosted comparison evidence.
+12. Refine the DNCP-to-Centinela crosswalk with the best available local public red-flag descriptions and terminology.

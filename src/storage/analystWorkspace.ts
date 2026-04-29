@@ -35,6 +35,13 @@ export const analystEvidenceRoles = [
   "contradicts_or_limits",
   "needs_follow_up",
 ] as const;
+export const analystPublicReviewStatuses = [
+  "internal_only",
+  "public_candidate",
+  "needs_redaction",
+  "approved_public",
+  "rejected_public",
+] as const;
 
 export type AnalystTargetType = (typeof analystTargetTypes)[number];
 export type AnalystCaseLinkTargetType = (typeof analystCaseLinkTargetTypes)[number];
@@ -42,6 +49,7 @@ export type AnalystNoteType = (typeof analystNoteTypes)[number];
 export type AnalystCaseStatus = (typeof analystCaseStatuses)[number];
 export type AnalystCasePriority = (typeof analystCasePriorities)[number];
 export type AnalystEvidenceRole = (typeof analystEvidenceRoles)[number];
+export type AnalystPublicReviewStatus = (typeof analystPublicReviewStatuses)[number];
 
 export interface ListAnalystNotesOptions {
   targetType?: string | undefined;
@@ -108,6 +116,21 @@ export interface CreateAnalystEvidenceLinkOptions {
   createdBy?: string | undefined;
   metadata?: Record<string, unknown> | undefined;
   dryRun?: boolean | undefined;
+}
+
+export interface ReviewAnalystCasePublicSafetyOptions {
+  caseId: number;
+  reviewStatus: string;
+  publicSummary?: string | undefined;
+  publicLimitations?: string | undefined;
+  reviewedBy?: string | undefined;
+  metadata?: Record<string, unknown> | undefined;
+  dryRun?: boolean | undefined;
+}
+
+export interface GetAnalystCaseEvidenceExportOptions {
+  publicOnly?: boolean | undefined;
+  limit?: number | undefined;
 }
 
 export interface SourceRecordOptions {
@@ -185,6 +208,15 @@ function defaultCaseKey(title: string): string {
 
 function jsonb(value: unknown): string {
   return JSON.stringify(value ?? {});
+}
+
+function omitInternalEvidenceFields(row: Record<string, unknown>): Record<string, unknown> {
+  const sanitized = { ...row };
+  delete sanitized.internal_analyst_interpretation;
+  delete sanitized.evidence_metadata;
+  delete sanitized.created_by;
+  delete sanitized.public_reviewed_by;
+  return sanitized;
 }
 
 function valueType(value: unknown): string {
@@ -358,7 +390,9 @@ export async function listAnalystCases(
          note_count,
          evidence_link_count,
          latest_note_at::text,
-         latest_evidence_at::text
+         latest_evidence_at::text,
+         public_review_status,
+         public_reviewed_at::text
        from ${schema}.analyst_case_overview
        where ($1::text is null or status = $1)
        order by
@@ -401,7 +435,9 @@ export async function getAnalystCase(
          note_count,
          evidence_link_count,
          latest_note_at::text,
-         latest_evidence_at::text
+         latest_evidence_at::text,
+         public_review_status,
+         public_reviewed_at::text
        from ${schema}.analyst_case_overview
        where id = $1`,
       [caseId],
@@ -507,6 +543,23 @@ export async function getAnalystCase(
       [caseId, limit],
     );
 
+    const publicReviews = await client.query<Record<string, unknown>>(
+      `select
+         id::text,
+         case_id::text,
+         review_status,
+         public_summary,
+         public_limitations,
+         reviewed_by,
+         reviewed_at::text,
+         metadata
+       from ${schema}.analyst_case_public_reviews
+       where case_id = $1
+       order by reviewed_at desc, id desc
+       limit $2`,
+      [caseId, limit],
+    );
+
     return {
       disclaimer:
         "Case timelines are internal review context. They are not proof of wrongdoing or a public finding.",
@@ -514,6 +567,7 @@ export async function getAnalystCase(
       links: normalizeRows(links.rows),
       notes: normalizeRows(notes.rows),
       evidenceLinks: normalizeRows(evidenceLinks.rows),
+      publicReviews: normalizeRows(publicReviews.rows),
       timeline: normalizeRows(timeline.rows),
     };
   });
@@ -794,6 +848,202 @@ export async function createAnalystEvidenceLink(
     );
 
     return normalizeRows(result.rows)[0] ?? preview;
+  });
+}
+
+export async function reviewAnalystCasePublicSafety(
+  options: ReviewAnalystCasePublicSafetyOptions,
+): Promise<Record<string, unknown>> {
+  assertPositiveInteger(options.caseId, "caseId");
+
+  const reviewStatus = optionalText(options.reviewStatus);
+  const reviewedBy = optionalText(options.reviewedBy) ?? "centinela-operator";
+  const publicSummary = optionalText(options.publicSummary);
+  const publicLimitations = optionalText(options.publicLimitations);
+
+  if (!reviewStatus) {
+    throw new Error("reviewStatus is required.");
+  }
+
+  assertChoice(reviewStatus, analystPublicReviewStatuses, "public review status");
+
+  if (reviewStatus === "approved_public" && (!publicSummary || !publicLimitations)) {
+    throw new Error("approved_public requires publicSummary and publicLimitations.");
+  }
+
+  const preview = {
+    id: "(dry-run)",
+    case_id: String(options.caseId),
+    review_status: reviewStatus,
+    public_summary: publicSummary,
+    public_limitations: publicLimitations,
+    reviewed_by: reviewedBy,
+    metadata: options.metadata ?? {},
+  };
+
+  if (options.dryRun) {
+    return preview;
+  }
+
+  return withDatabase(async (client, schema) => {
+    const inserted = await client.query<{ id: string }>(
+      `insert into ${schema}.analyst_case_public_reviews
+         (case_id, review_status, public_summary, public_limitations, reviewed_by, metadata)
+       values ($1::bigint, $2, $3, $4, $5, $6::jsonb)
+       returning id::text`,
+      [options.caseId, reviewStatus, publicSummary, publicLimitations, reviewedBy, jsonb(options.metadata ?? {})],
+    );
+
+    await client.query(
+      `update ${schema}.analyst_cases
+       set updated_at = now()
+       where id = $1`,
+      [options.caseId],
+    );
+
+    const result = await client.query<Record<string, unknown>>(
+      `select
+         id::text,
+         case_id::text,
+         case_key,
+         case_title,
+         review_status,
+         public_summary,
+         public_limitations,
+         reviewed_by,
+         reviewed_at::text,
+         metadata,
+         review_history_count
+       from ${schema}.analyst_case_public_review_overview
+       where id = $1`,
+      [inserted.rows[0]?.id],
+    );
+
+    return normalizeRows(result.rows)[0] ?? preview;
+  });
+}
+
+export async function getAnalystCaseEvidenceExport(
+  caseId: number,
+  options: GetAnalystCaseEvidenceExportOptions = {},
+): Promise<Record<string, unknown>> {
+  assertPositiveInteger(caseId, "caseId");
+  const limit = clampLimit(options.limit);
+  const publicOnly = options.publicOnly === true;
+
+  return withDatabase(async (client, schema) => {
+    const caseResult = await client.query<Record<string, unknown>>(
+      `select
+         id::text,
+         case_key,
+         title,
+         status,
+         priority,
+         summary,
+         created_by,
+         created_at::text,
+         updated_at::text,
+         metadata,
+         linked_target_count,
+         note_count,
+         evidence_link_count,
+         latest_note_at::text,
+         latest_evidence_at::text,
+         public_review_status,
+         public_reviewed_at::text
+       from ${schema}.analyst_case_overview
+       where id = $1`,
+      [caseId],
+    );
+
+    const caseRow = caseResult.rows[0];
+    if (!caseRow) {
+      throw new Error(`Analyst case ${caseId} was not found.`);
+    }
+
+    const publicReviewStatus = String(caseRow.public_review_status ?? "internal_only");
+    if (publicOnly && publicReviewStatus !== "approved_public") {
+      throw new Error(
+        `Case ${caseId} is not approved for public export. Current public review status: ${publicReviewStatus}.`,
+      );
+    }
+
+    const reviewResult = await client.query<Record<string, unknown>>(
+      `select
+         id::text,
+         case_id::text,
+         case_key,
+         case_title,
+         review_status,
+         public_summary,
+         public_limitations,
+         reviewed_by,
+         reviewed_at::text,
+         metadata,
+         review_history_count
+       from ${schema}.analyst_case_public_review_overview
+       where case_id = $1`,
+      [caseId],
+    );
+
+    const evidenceResult = await client.query<Record<string, unknown>>(
+      `select
+         evidence_link_id::text,
+         case_id::text,
+         case_key,
+         case_title,
+         case_status,
+         case_priority,
+         public_review_status,
+         public_summary,
+         public_limitations,
+         public_reviewed_by,
+         public_reviewed_at::text,
+         source_record_id::text,
+         source_key,
+         external_id,
+         record_kind,
+         source_url,
+         retrieved_at::text,
+         source_run_status,
+         target_type,
+         target_id,
+         target_label,
+         field_path,
+         field_value,
+         evidence_summary,
+         internal_analyst_interpretation,
+         limitations,
+         evidence_role,
+         created_by,
+         created_at::text,
+         evidence_metadata,
+         export_disclaimer
+       from ${schema}.analyst_case_evidence_export
+       where case_id = $1
+       order by created_at desc, evidence_link_id desc
+       limit $2`,
+      [caseId, limit],
+    );
+
+    const evidenceRows = normalizeRows(evidenceResult.rows);
+    const evidence = publicOnly ? evidenceRows.map(omitInternalEvidenceFields) : evidenceRows;
+
+    return {
+      disclaimer:
+        "Evidence exports package source-backed review material. They are not proof of wrongdoing or a public finding.",
+      mode: publicOnly ? "public_approved" : "internal_review",
+      publicSafety: {
+        status: publicReviewStatus,
+        publicOnly,
+        publicExportAllowed: publicReviewStatus === "approved_public",
+        latestReview: normalizeRows(reviewResult.rows)[0] ?? null,
+        gate:
+          "Public-only export requires an explicit approved_public review. Internal exports may contain analyst interpretation.",
+      },
+      case: normalizeRows([caseRow])[0],
+      evidence,
+    };
   });
 }
 

@@ -251,6 +251,31 @@
   - RUBLI
   - Integrity Watch
 
+### 15. Case evidence export and public-safety review gate
+
+- Commands
+  - `npm run database:apply-sql -- --file sql/postgres/019_case_evidence_exports.sql`
+  - `npm run serve:internal-console -- --host 127.0.0.1 --port 8787`
+- API
+  - `POST /api/analyst-cases/:id/public-review`
+  - `GET /api/analyst-cases/:id/evidence-export`
+  - `GET /api/analyst-cases/:id/evidence-export?public_only=true`
+- Purpose
+  - package source-backed case evidence without exposing raw analyst notes by default
+  - preserve append-only public-safety review states before any public-facing use
+  - block public-only export unless the latest review status is `approved_public`
+  - require public-safe summary and limitations before approval
+  - strip internal analyst interpretation and internal actor metadata from public-only export rows
+- Methodology note
+  - `docs/methodology/analyst-workspace.md`
+- Main reference pressure
+  - Aleph
+  - Integrity Watch
+  - RUBLI
+  - Dozorro/ProZorro
+  - QQW/TodosLosContratos
+  - br/acc
+
 ## Current workflow design principles
 
 - Start from explainable leads, not accusations
@@ -260,7 +285,7 @@
 
 ## Current limits
 
-- The first API and interactive console slice is local-only and operational. It now has token-protected saved notes/cases, evidence links, case timelines, source-record drilldowns, and graph export, but it still has no production authentication, role-based permissions, or public deployment posture.
+- The first API and interactive console slice is local-only and operational. It now has token-protected saved notes/cases, evidence links, case timelines, source-record drilldowns, graph export, evidence exports, and public-safety review states, but it still has no production authentication, role-based permissions, or public deployment posture.
 - The rule registry exists, but the DNCP crosswalk and public methodology layer are still incomplete
 - Entity briefs now include external enrichment, DNIT identity validation, and official DNCP supplier-anchor sections, and the company-level queue plus anchor-gap report now make local identity gaps and local administrative history visible; 1 procurement-linked supplier company still remains without a local identity anchor because the procurement-side RUC is missing a check digit
 - OpenSanctions candidate review is active. The current queue has one company-level external candidate lead and keeps weak representative/person overlaps visible as rejected diagnostics rather than treating them as accepted matches.
@@ -272,4 +297,4 @@
 
 ## Next workflow milestone
 
-- Harden the internal API/console with case evidence exports, public-safety review states, and eventually production-grade authentication if remote access becomes necessary.
+- Add document/source evidence ergonomics or downloadable case-export artifacts, then eventually production-grade authentication if remote access becomes necessary.

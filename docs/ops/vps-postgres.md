@@ -50,6 +50,7 @@ The first analyst API/console now runs locally against the same tunneled Postgre
 - Analyst workspace tables and views applied from `sql/postgres/016_analyst_workspace.sql`
 - Analyst case timeline view applied from `sql/postgres/017_analyst_case_timeline.sql`
 - Analyst evidence-link tables/views applied from `sql/postgres/018_analyst_evidence_links.sql`
+- Analyst case evidence export and public-safety review gates applied from `sql/postgres/019_case_evidence_exports.sql`
 - DNCP 2025 and 2026 bulk bundles loaded successfully into PostgreSQL
 - OpenSanctions bulk screening run persisted under `ext-opensanctions-default`
 - OpenSanctions hosted comparison persisted under `ext-opensanctions-hosted-match`
@@ -62,4 +63,4 @@ The first analyst API/console now runs locally against the same tunneled Postgre
 - Current hosted-match reality: the first real hosted comparison result is already stored and exposed through analyst surfaces, but the trial API key hit a monthly `429` rate limit on a later rerun attempt
 - Current manual-review reality: `centinela.entity_enrichment_candidate_review_overview` exposes 58 OpenSanctions candidate/diagnostic rows with reviewer state, suggested review status, hosted-comparison support, source-check evidence history, and next-step guidance. The current live distribution is 1 `accepted_match` second-review case, 5 `monitor`, 4 `rejected`, and 48 `unreviewed` diagnostics.
 - Current second-review reality: schema, CLI, live DB, reports, and dossiers are operational. Candidate `59` has second-review decision `accepted_match`, accepted enrichment match ID `11`, accepted external entity ID `12431`, and the workflow created zero external risk signals.
-- Current analyst-workspace reality: `centinela.analyst_cases`, `centinela.analyst_case_links`, `centinela.analyst_notes`, `centinela.analyst_evidence_links`, overview views, and `centinela.analyst_case_timeline` are live. The local API can drill into source records, export graph-ready neighborhoods, open a case timeline, and write token-protected note/case/evidence-link records.
+- Current analyst-workspace reality: `centinela.analyst_cases`, `centinela.analyst_case_links`, `centinela.analyst_notes`, `centinela.analyst_evidence_links`, `centinela.analyst_case_public_reviews`, overview/export views, and `centinela.analyst_case_timeline` are live. The local API can drill into source records, export graph-ready neighborhoods, open a case timeline, write token-protected note/case/evidence-link/public-review records, and block public-only evidence export until `approved_public`.
