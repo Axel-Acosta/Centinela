@@ -315,6 +315,26 @@
   - Integrity Watch
   - QQW/TodosLosContratos
 
+### 18. Case source bundle
+
+- Command
+  - `npm run database:case-source-bundle -- --case-id <id> --public-only false --copy-assets true`
+  - `npm run database:case-source-bundle -- --case-id <id> --public-only true --copy-assets true`
+- Purpose
+  - write a local review bundle with `bundle-index.json`, `README.md`, case evidence JSON/Markdown, source manifest JSON/Markdown, and copied source-run assets when paths resolve
+  - preserve copied-file hashes and copy status beside source-record provenance
+  - keep public-only bundle creation behind `approved_public`
+  - preserve the warning that copied raw source files need separate review before public reuse
+- Methodology note
+  - `docs/methodology/analyst-workspace.md`
+- Main reference pressure
+  - Aleph
+  - br/acc
+  - Sayari
+  - RUBLI
+  - Integrity Watch
+  - QQW/TodosLosContratos
+
 ## Current workflow design principles
 
 - Start from explainable leads, not accusations
@@ -324,7 +344,7 @@
 
 ## Current limits
 
-- The first API and interactive console slice is local-only and operational. It now has token-protected saved notes/cases, evidence links, case timelines, source-record drilldowns, graph export, evidence exports, public-safety review states, local Markdown/JSON case export artifacts, and source attachment manifests, but it still has no production authentication, role-based permissions, or public deployment posture.
+- The first API and interactive console slice is local-only and operational. It now has token-protected saved notes/cases, evidence links, case timelines, source-record drilldowns, graph export, evidence exports, public-safety review states, local Markdown/JSON case export artifacts, source attachment manifests, and local source bundles, but it still has no production authentication, role-based permissions, or public deployment posture.
 - The rule registry exists, but the DNCP crosswalk and public methodology layer are still incomplete
 - Entity briefs now include external enrichment, DNIT identity validation, and official DNCP supplier-anchor sections, and the company-level queue plus anchor-gap report now make local identity gaps and local administrative history visible; 1 procurement-linked supplier company still remains without a local identity anchor because the procurement-side RUC is missing a check digit
 - OpenSanctions candidate review is active. The current queue has one company-level external candidate lead and keeps weak representative/person overlaps visible as rejected diagnostics rather than treating them as accepted matches.
@@ -336,4 +356,4 @@
 
 ## Next workflow milestone
 
-- Add downloadable source-file bundles or a lightweight document/source index, then eventually production-grade authentication if remote access becomes necessary.
+- Add a lightweight document/source index, then eventually production-grade authentication if remote access becomes necessary.

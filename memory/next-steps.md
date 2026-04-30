@@ -16,12 +16,14 @@
    `npm run database:case-evidence-export -- --case-id <id> --public-only false` writes Markdown and JSON artifacts under the local non-sync runtime folder with a source-record index; `--public-only true` still requires the case's latest public-safety review state to be `approved_public`.
 8. Use the source attachment manifest command as the next casework evidence layer:
    `npm run database:case-source-manifest -- --case-id <id> --public-only false` writes Markdown and JSON manifests that list linked source records, source-run assets, source URLs, hashes, local path availability, and payload previews under the local non-sync runtime folder; `--public-only true` still requires `approved_public`.
-9. Add the next source-document packaging layer:
-   build a downloadable case bundle or lightweight document/source index that can optionally copy linked source files beside the case artifacts without committing them to Git or weakening public-safety gates.
-10. Improve OpenSanctions candidate scoring before any broader matching:
+9. Use the case source bundle command as the first downloadable local case packet:
+   `npm run database:case-source-bundle -- --case-id <id> --public-only false --copy-assets true` writes a local runtime bundle with evidence JSON/Markdown, source manifest JSON/Markdown, `bundle-index.json`, `README.md`, and copied source-run assets where local paths can be resolved.
+10. Add the next document/source index layer:
+   build a lightweight source-document index over case bundles so analysts can search bundled source files and see which case/evidence row uses each file.
+11. Improve OpenSanctions candidate scoring before any broader matching:
    add stronger name-order scoring, source-document evidence scoring, local identifier comparison where external identifiers exist, and explicit handling for generic business terms.
-11. Resolve the last remaining local identity anchor gap:
+12. Resolve the last remaining local identity anchor gap:
    `MENDEZ GONZALEZ FLORIANA *` has `PY-RUC-4070792` without a check digit, so recover the complete RUC from DNCP source records, official documents, or another lawful Paraguay identity source before rerunning DNIT validation.
-12. Keep the DNCP legal-representative/person screening lane active, but preserve weak person-name overlaps as rejected diagnostics unless exact person-name agreement, stronger multi-token evidence, hosted matcher evidence, or source documents justify review escalation.
-13. Ask OpenSanctions about higher trial limits or longer-term access if another hosted rerun is needed before the monthly quota resets; otherwise continue using the already-stored hosted comparison evidence.
-14. Refine the DNCP-to-Centinela crosswalk with the best available local public red-flag descriptions and terminology.
+13. Keep the DNCP legal-representative/person screening lane active, but preserve weak person-name overlaps as rejected diagnostics unless exact person-name agreement, stronger multi-token evidence, hosted matcher evidence, or source documents justify review escalation.
+14. Ask OpenSanctions about higher trial limits or longer-term access if another hosted rerun is needed before the monthly quota resets; otherwise continue using the already-stored hosted comparison evidence.
+15. Refine the DNCP-to-Centinela crosswalk with the best available local public red-flag descriptions and terminology.

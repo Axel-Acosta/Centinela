@@ -23,6 +23,7 @@ The surface is designed to expose:
 - in-case source-record search and field-path helpers for evidence links
 - case evidence exports with public-safety review gates
 - local case source attachment manifests with source-run asset paths, hashes, and availability checks
+- local case source bundles that copy resolvable source-run assets beside evidence and manifest files
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -82,6 +83,8 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
   - writes Markdown and JSON evidence artifacts to the local runtime folder, including a source-record index
 - `npm run database:case-source-manifest -- --case-id <id> --public-only false`
   - writes Markdown and JSON source attachment manifests to the local runtime folder, including source-run asset paths, source URLs, hashes, and local path availability
+- `npm run database:case-source-bundle -- --case-id <id> --public-only false --copy-assets true`
+  - writes a local review bundle with evidence files, source manifest files, `bundle-index.json`, `README.md`, and copied source-run assets when local paths resolve
 - `POST /api/analyst-cases`
   - create a case; requires local write token
 - `POST /api/analyst-cases/:id/links`
@@ -179,6 +182,14 @@ On the source attachment manifest smoke test, the CLI path also confirmed:
 - public-only manifests did not expose `internal_analyst_interpretation`
 - cleanup returned smoke cases and artifacts to `0`
 
+On the source bundle smoke test, the CLI path also confirmed:
+
+- a temporary case and evidence link using source record `10117` could not write a public bundle before `approved_public`
+- after public-safety approval, the bundle wrote `bundle-index.json`, `README.md`, evidence JSON/Markdown, source manifest JSON/Markdown, and `attachments/`
+- the bundle copied `2` of `2` source-run assets by resolving old repo `data/` paths into the current runtime folder
+- public-only bundle metadata did not expose `internal_analyst_interpretation`
+- cleanup returned smoke cases and artifacts to `0`
+
 ## Limits
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
@@ -187,6 +198,7 @@ On the source attachment manifest smoke test, the CLI path also confirmed:
 - Public-safety review gates reduce accidental disclosure risk, but they are not a substitute for full public-product review, role-based authorization, privacy review, or methodology publication.
 - Case evidence artifacts are generated runtime outputs and should stay out of Git.
 - Source attachment manifests are generated runtime outputs and should stay out of Git. They point to source-run assets; they do not yet copy source files into a portable bundle.
+- Source bundles are generated runtime outputs and should stay out of Git. They copy raw source artifacts for local review only; public reuse still requires source, privacy, methodology, and UX review.
 - The console renders source-derived item text as text content rather than HTML, because source records can contain public-source strings.
 - No full-text document index yet.
 - Network output is graph-ready JSON, not a graph database.

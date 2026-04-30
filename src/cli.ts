@@ -36,6 +36,7 @@ import { buildRulebookReport } from "./storage/rules";
 import {
   buildCaseEvidenceExportArtifacts,
   buildCaseSourceAttachmentManifestArtifacts,
+  buildCaseSourceBundleArtifacts,
 } from "./storage/caseEvidenceExport";
 
 interface FirstSliceOptions {
@@ -651,6 +652,35 @@ async function runDatabaseCaseSourceManifest(args: string[]): Promise<void> {
   console.log("Reminder: source manifests are attachment checklists, not proof of wrongdoing.");
 }
 
+async function runDatabaseCaseSourceBundle(args: string[]): Promise<void> {
+  const caseId = readNumberArg(args, "--case-id", 0);
+  const publicOnly = readBooleanArg(args, "--public-only", false);
+  const copyAssets = readBooleanArg(args, "--copy-assets", true);
+  const limit = readNumberArg(args, "--limit", 100);
+
+  if (!caseId) {
+    throw new Error("Missing required --case-id argument for case source bundle.");
+  }
+
+  const result = await buildCaseSourceBundleArtifacts({
+    caseId,
+    publicOnly,
+    copyAssets,
+    limit,
+  });
+
+  console.log(`Generated case source bundle for ${result.caseKey}.`);
+  console.log(`Mode: ${result.mode}`);
+  console.log(`Source records: ${result.sourceRecordCount}`);
+  console.log(`Source assets listed: ${result.sourceAssetCount}`);
+  console.log(`Source assets copied: ${result.copiedAssetCount}`);
+  console.log(`Source assets skipped: ${result.skippedAssetCount}`);
+  console.log(`Bundle: ${result.bundlePath}`);
+  console.log(`Index: ${result.indexPath}`);
+  console.log(`README: ${result.readmePath}`);
+  console.log("Reminder: source bundles are local review packets, not proof of wrongdoing or public-ready publication packages.");
+}
+
 async function runServeInternalConsole(args: string[]): Promise<void> {
   const host = readArg(args, "--host") ?? "127.0.0.1";
   const port = readNumberArg(args, "--port", 8787);
@@ -725,6 +755,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (domain === "database" && command === "case-source-bundle") {
+    await runDatabaseCaseSourceBundle(args);
+    return;
+  }
+
   if (domain === "database" && command === "entity-anchor-gaps") {
     await runDatabaseEntityAnchorGapReport(args);
     return;
@@ -786,6 +821,7 @@ async function main(): Promise<void> {
 - tsx src/cli.ts database second-review-external-candidate --candidate-id 1 --decision accepted_match --reviewer "Second Reviewer" --rationale "Source-backed identity review" --limitations "State known limits"
 - tsx src/cli.ts database case-evidence-export --case-id 1 --public-only false
 - tsx src/cli.ts database case-source-manifest --case-id 1 --public-only false
+- tsx src/cli.ts database case-source-bundle --case-id 1 --public-only false --copy-assets true
 - tsx src/cli.ts database entity-anchor-gaps --limit 50
 - tsx src/cli.ts database rulebook --source-key py-dncp-bulk-2026
 - tsx src/cli.ts serve internal-console --host 127.0.0.1 --port 8787`,

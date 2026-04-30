@@ -227,3 +227,9 @@
 - Decision: Add a source attachment manifest command before building downloadable bundles, automatic source-file copying, or a full document index.
 - Why: Case evidence artifacts now identify supporting source records, but analysts also need to know which source-run assets exist, where local files are expected, whether paths are currently present, and what source URLs/hashes can support later packaging. A manifest gives that evidence-chain visibility without duplicating files, increasing storage churn, or weakening public-safety gates.
 - Consequence: `npm run database:case-source-manifest` writes Markdown/JSON manifests under the local runtime folder. The manifest reuses the same gated export path, shows source records, source-run assets, SHA-256 hashes, source URLs, local path availability, and payload previews, and remains an attachment checklist rather than a public finding.
+
+## 2026-04-30 - Local source bundles before full document search
+
+- Decision: Add a local case source bundle command before building full-text document indexing, OCR, or public document downloads.
+- Why: The manifest made source-run assets visible, but analysts need a portable folder that keeps evidence exports, source manifests, copied available source files, hashes, and use limits together. This gives Aleph-style case packaging without introducing search infrastructure or publication risk too early.
+- Consequence: `npm run database:case-source-bundle` writes a local runtime bundle with `bundle-index.json`, `README.md`, case evidence files, source manifest files, and copied attachments when paths resolve. Public-only bundles still require `approved_public`, but copied raw files remain review material and are not automatically public-ready.

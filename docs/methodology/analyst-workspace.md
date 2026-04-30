@@ -57,6 +57,10 @@ Artifact command:
   - writes Markdown and JSON source attachment manifests under the local non-sync runtime folder
   - lists linked source records, source-run metadata, source-run assets, source URLs, SHA-256 hashes, local path availability, and payload previews
   - with `--public-only true`, reuses the same `approved_public` gate and strips internal analyst interpretation through the evidence-export path
+- `npm run database:case-source-bundle -- --case-id <id> --public-only false --copy-assets true`
+  - writes a local case bundle folder with `bundle-index.json`, `README.md`, evidence JSON/Markdown, source manifest JSON/Markdown, and copied source-run assets when local paths resolve
+  - resolves legacy absolute repo `data/` paths into the current local runtime folder when possible
+  - with `--public-only true`, reuses the same `approved_public` gate, but copied raw source files still need review before any public reuse
 
 Write endpoints:
 
@@ -86,6 +90,7 @@ If `CENTINELA_WRITE_TOKEN` is not set, write endpoints are disabled.
 - Public-only evidence export strips internal analyst interpretation and internal actor metadata. It keeps source references, field paths, evidence summaries, limitations, and explicit non-accusatory language.
 - Case evidence artifacts are runtime outputs, not committed source files. They belong under `CENTINELA_OUTPUT_DIR`, which defaults to `C:\Users\Axeld\AppData\Local\Centinela\data` on this machine.
 - Source attachment manifests are attachment checklists, not findings. `exists` means a local file path was present when the manifest was generated; verify paths again before evidence packaging or publication.
+- Source bundles are local review packets. Even in public-approved mode, copied raw source files are not automatically public-ready; they still need source, privacy, methodology, and UX review.
 - Write-token authentication is a local hardening step, not a full production auth system.
 
 ## Current smoke-test result
@@ -108,7 +113,8 @@ On 2026-04-26, the first live analyst-workspace smoke test confirmed:
 - the public-safety gate smoke created one temporary case and one source-record evidence link to source record `10117`; public-only export was blocked before approval, internal export returned `1` evidence row, approved public export returned `1` evidence row without `internal_analyst_interpretation`, and cleanup returned analyst cases, notes, evidence links, and public reviews to `0`
 - the case evidence artifact smoke created one temporary case and source-record evidence link to source record `10117`; artifact export was blocked before approval, approved public export wrote Markdown and JSON runtime artifacts, the source index contained `1` source record, no internal analyst interpretation leaked, and cleanup returned smoke cases/artifacts to `0`
 - the source attachment manifest smoke created one temporary case and source-record evidence link to source record `10117`; manifest creation was blocked before approval, approved public manifest wrote Markdown and JSON runtime artifacts, the manifest contained `1` linked source record and `2` source-run assets, no internal analyst interpretation leaked, and cleanup returned smoke cases/artifacts to `0`
+- the source bundle smoke created one temporary case and source-record evidence link to source record `10117`; bundle creation was blocked before approval, approved public bundle wrote `bundle-index.json`, `README.md`, evidence JSON/Markdown, source manifest JSON/Markdown, copied `2` of `2` source-run assets, did not leak internal analyst interpretation, and cleanup returned smoke cases/artifacts to `0`
 
 ## Next hardening step
 
-Add a downloadable case bundle or lightweight document/source index so exported case artifacts can eventually copy linked source files beside the manifests, not only point to source-run asset paths.
+Add a lightweight document/source index so analysts can search bundled source files and see which case/evidence row uses each file.

@@ -1,6 +1,8 @@
-import { writeOutputJson, writeOutputText } from "./files";
+import { resolveOutputPath, writeOutputJson, writeOutputText } from "./files";
 import { getAnalystCaseEvidenceExport } from "./analystWorkspace";
 import { connectToPostgres } from "./postgres";
+import { outputRoot, projectRoot } from "../config";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -8,6 +10,10 @@ export interface BuildCaseEvidenceExportOptions {
   caseId: number;
   publicOnly?: boolean;
   limit?: number;
+}
+
+export interface BuildCaseSourceBundleOptions extends BuildCaseEvidenceExportOptions {
+  copyAssets?: boolean;
 }
 
 interface CaseEvidenceArtifactResult {
@@ -20,6 +26,15 @@ interface CaseEvidenceArtifactResult {
   jsonPath: string;
 }
 
+interface CaseEvidenceBuild {
+  artifact: Record<string, unknown>;
+  caseId: string;
+  caseKey: string;
+  mode: string;
+  evidence: Array<Record<string, unknown>>;
+  sourceIndex: Array<Record<string, unknown>>;
+}
+
 interface CaseSourceAttachmentManifestResult {
   caseId: string;
   caseKey: string;
@@ -28,6 +43,28 @@ interface CaseSourceAttachmentManifestResult {
   sourceAssetCount: number;
   markdownPath: string;
   jsonPath: string;
+}
+
+interface CaseSourceAttachmentManifestBuild {
+  artifact: Record<string, unknown>;
+  caseId: string;
+  caseKey: string;
+  mode: string;
+  sourceRecords: Array<Record<string, unknown>>;
+  sourceAssetCount: number;
+}
+
+interface CaseSourceBundleResult {
+  caseId: string;
+  caseKey: string;
+  mode: string;
+  sourceRecordCount: number;
+  sourceAssetCount: number;
+  copiedAssetCount: number;
+  skippedAssetCount: number;
+  bundlePath: string;
+  indexPath: string;
+  readmePath: string;
 }
 
 function text(value: unknown): string {
@@ -53,6 +90,19 @@ function slugify(value: string): string {
 
 function timestampSlug(date = new Date()): string {
   return date.toISOString().replace(/[:.]/g, "-");
+}
+
+function safeFileName(value: string): string {
+  const baseName = path.basename(value);
+  const sanitized = baseName
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 96);
+
+  return sanitized || "source-asset";
 }
 
 function record(value: unknown): Record<string, unknown> {
@@ -115,16 +165,44 @@ function sourceRecordIdsFromEvidence(evidence: Array<Record<string, unknown>>): 
   return [...ids].sort((left, right) => left - right);
 }
 
+function resolveLocalAssetPath(assetPath: string | null): string | null {
+  if (!assetPath) {
+    return null;
+  }
+
+  if (path.isAbsolute(assetPath)) {
+    const projectDataRoot = path.resolve(projectRoot, "data");
+    const candidates = [assetPath];
+
+    if (assetPath.toLowerCase().startsWith(projectDataRoot.toLowerCase())) {
+      candidates.push(path.resolve(outputRoot, path.relative(projectDataRoot, assetPath)));
+    }
+
+    return candidates.find((candidate) => fs.existsSync(candidate)) ?? assetPath;
+  }
+
+  const outputRelativePath = assetPath.replace(/^data[\\/]/, "");
+  const candidates = [
+    path.resolve(projectRoot, assetPath),
+    path.resolve(outputRoot, outputRelativePath),
+    path.resolve(outputRoot, assetPath),
+  ];
+
+  return candidates.find((candidate) => fs.existsSync(candidate)) ?? null;
+}
+
 function localPathStatus(assetPath: string | null): string {
   if (!assetPath) {
     return "not_applicable";
   }
 
+  const resolvedPath = resolveLocalAssetPath(assetPath);
+
   if (!path.isAbsolute(assetPath)) {
-    return "not_absolute";
+    return resolvedPath ? "exists_resolved" : "missing_relative";
   }
 
-  return fs.existsSync(assetPath) ? "exists" : "missing";
+  return resolvedPath && fs.existsSync(resolvedPath) ? "exists" : "missing";
 }
 
 function groupSourceAttachments(inputRows: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
@@ -166,6 +244,7 @@ function groupSourceAttachments(inputRows: Array<Record<string, unknown>>): Arra
         sourceAssetId,
         assetKind: row.asset_kind ?? null,
         path: assetPath,
+        resolvedPath: resolveLocalAssetPath(assetPath),
         sourceUrl: row.asset_source_url ?? null,
         sha256: row.sha256 ?? null,
         retrievedAt: row.asset_retrieved_at ?? null,
@@ -355,6 +434,65 @@ function sourceAssetStatusCounts(sourceRecords: Array<Record<string, unknown>>):
   return counts;
 }
 
+function createCaseEvidenceArtifact(exportPayload: Record<string, unknown>, generatedAt: string): CaseEvidenceBuild {
+  const caseRow = record(exportPayload.case);
+  const evidence = rows(exportPayload.evidence);
+  const sourceIndex = sourceIndexFromEvidence(evidence);
+  const caseKey = text(caseRow.case_key);
+  const caseId = text(caseRow.id);
+  const mode = text(exportPayload.mode);
+  const artifact = {
+    generatedAt,
+    disclaimer:
+      "Case evidence artifacts are source-backed review material. They are not proof of wrongdoing or a public finding.",
+    sourceIndex,
+    export: exportPayload,
+  };
+
+  return {
+    artifact,
+    caseId,
+    caseKey,
+    mode,
+    evidence,
+    sourceIndex,
+  };
+}
+
+async function createCaseSourceAttachmentManifest(
+  exportPayload: Record<string, unknown>,
+  generatedAt: string,
+): Promise<CaseSourceAttachmentManifestBuild> {
+  const caseRow = record(exportPayload.case);
+  const evidence = rows(exportPayload.evidence);
+  const sourceRecords = groupSourceAttachments(await loadSourceAttachmentRows(sourceRecordIdsFromEvidence(evidence)));
+  const attachmentCount = sourceAssetCount(sourceRecords);
+  const caseKey = text(caseRow.case_key);
+  const caseId = text(caseRow.id);
+  const mode = text(exportPayload.mode);
+  const artifact = {
+    generatedAt,
+    disclaimer:
+      "Source attachment manifests list source records and source-run assets for review. They are not proof of wrongdoing or a public finding.",
+    attachmentSummary: {
+      sourceRecordCount: sourceRecords.length,
+      sourceAssetCount: attachmentCount,
+      assetPathStatusCounts: sourceAssetStatusCounts(sourceRecords),
+    },
+    sourceRecords,
+    export: exportPayload,
+  };
+
+  return {
+    artifact,
+    caseId,
+    caseKey,
+    mode,
+    sourceRecords,
+    sourceAssetCount: attachmentCount,
+  };
+}
+
 function renderSourceAttachmentManifestMarkdown(artifact: Record<string, unknown>): string {
   const exportPayload = record(artifact.export);
   const caseRow = record(exportPayload.case);
@@ -447,6 +585,188 @@ function renderSourceAttachmentManifestMarkdown(artifact: Record<string, unknown
   return `${lines.join("\n")}\n`;
 }
 
+function collectBundleAssets(sourceRecords: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  const assetsByKey = new Map<string, Record<string, unknown>>();
+
+  for (const sourceRecord of sourceRecords) {
+    const sourceRecordId = text(sourceRecord.sourceRecordId);
+    const assets = rows(sourceRecord.assets);
+
+    for (const asset of assets) {
+      const key = text(asset.sourceAssetId) === "n/a" ? `${sourceRecordId}:${text(asset.path)}` : text(asset.sourceAssetId);
+      const existing = assetsByKey.get(key);
+
+      if (existing) {
+        const sourceRecordIds = Array.isArray(existing.sourceRecordIds) ? existing.sourceRecordIds : [];
+        if (!sourceRecordIds.includes(sourceRecordId)) {
+          sourceRecordIds.push(sourceRecordId);
+        }
+        existing.sourceRecordIds = sourceRecordIds;
+        continue;
+      }
+
+      assetsByKey.set(key, {
+        ...asset,
+        sourceRecordIds: [sourceRecordId],
+        sourceKeys: [sourceRecord.sourceKey ?? null],
+        externalIds: [sourceRecord.externalId ?? null],
+      });
+    }
+  }
+
+  return [...assetsByKey.values()];
+}
+
+function sha256File(filePath: string): string {
+  const hash = crypto.createHash("sha256");
+  hash.update(fs.readFileSync(filePath));
+  return hash.digest("hex");
+}
+
+function copyBundleAssets(
+  sourceRecords: Array<Record<string, unknown>>,
+  bundleRoot: string,
+  copyAssets: boolean,
+): Array<Record<string, unknown>> {
+  const assets = collectBundleAssets(sourceRecords);
+  const attachmentsDir = path.join(bundleRoot, "attachments");
+  const results: Array<Record<string, unknown>> = [];
+
+  if (copyAssets && assets.length > 0) {
+    fs.mkdirSync(attachmentsDir, { recursive: true });
+  }
+
+  assets.forEach((asset, index) => {
+    const sourcePath = typeof asset.path === "string" ? asset.path : null;
+    const resolvedPath =
+      typeof asset.resolvedPath === "string" ? asset.resolvedPath : resolveLocalAssetPath(sourcePath);
+    const expectedSha256 = typeof asset.sha256 === "string" ? asset.sha256 : null;
+    const result: Record<string, unknown> = {
+      sourceAssetId: asset.sourceAssetId ?? null,
+      assetKind: asset.assetKind ?? null,
+      sourceRecordIds: asset.sourceRecordIds ?? [],
+      sourceKeys: asset.sourceKeys ?? [],
+      externalIds: asset.externalIds ?? [],
+      sourcePath,
+      resolvedPath,
+      sourceUrl: asset.sourceUrl ?? null,
+      expectedSha256,
+      bundleRelativePath: null,
+      copiedSha256: null,
+      bytes: null,
+      status: "not_copied",
+      reason: copyAssets ? null : "copy_assets_false",
+    };
+
+    if (!copyAssets) {
+      results.push(result);
+      return;
+    }
+
+    if (!sourcePath) {
+      result.status = "skipped_no_path";
+      result.reason = "Source asset has no local path.";
+      results.push(result);
+      return;
+    }
+
+    if (!resolvedPath) {
+      result.status = path.isAbsolute(sourcePath) ? "missing" : "missing_relative";
+      result.reason = "Source asset path was not present when the bundle was generated.";
+      results.push(result);
+      return;
+    }
+
+    if (!fs.existsSync(resolvedPath)) {
+      result.status = "missing";
+      result.reason = "Source asset path was not present when the bundle was generated.";
+      results.push(result);
+      return;
+    }
+
+    const sourceStat = fs.statSync(resolvedPath);
+    if (!sourceStat.isFile()) {
+      result.status = "skipped_not_file";
+      result.reason = "Source asset path exists but is not a regular file.";
+      results.push(result);
+      return;
+    }
+
+    const extension = path.extname(resolvedPath).slice(0, 16);
+    const targetBaseName = `${String(index + 1).padStart(3, "0")}-${safeFileName(text(asset.assetKind))}-${safeFileName(
+      text(asset.sourceAssetId),
+    )}`;
+    const targetName = `${targetBaseName}${extension && !targetBaseName.endsWith(extension) ? extension : ""}`;
+    const targetPath = path.join(attachmentsDir, targetName);
+    fs.copyFileSync(resolvedPath, targetPath);
+    const copiedSha256 = sha256File(targetPath);
+
+    result.bundleRelativePath = path.relative(bundleRoot, targetPath).replace(/\\/g, "/");
+    result.copiedSha256 = copiedSha256;
+    result.bytes = sourceStat.size;
+    result.status =
+      expectedSha256 && expectedSha256.toLowerCase() !== copiedSha256.toLowerCase()
+        ? "copied_hash_mismatch"
+        : "copied";
+    result.reason =
+      result.status === "copied_hash_mismatch"
+        ? "Copied file hash does not match the source_assets.sha256 value."
+        : null;
+    results.push(result);
+  });
+
+  return results;
+}
+
+function copiedAssetCount(assets: Array<Record<string, unknown>>): number {
+  return assets.filter((asset) => text(asset.status).startsWith("copied")).length;
+}
+
+function skippedAssetCount(assets: Array<Record<string, unknown>>): number {
+  return assets.filter((asset) => !text(asset.status).startsWith("copied")).length;
+}
+
+function renderBundleReadme(bundleIndex: Record<string, unknown>): string {
+  const caseRow = record(bundleIndex.case);
+  const publicSafety = record(bundleIndex.publicSafety);
+  const counts = record(bundleIndex.counts);
+  const files = record(bundleIndex.files);
+  const copiedAssets = rows(bundleIndex.attachments).filter((asset) => asset.status === "copied").length;
+  const lines: string[] = [];
+
+  lines.push(`# Centinela case source bundle: ${text(caseRow.title)}`);
+  lines.push("");
+  lines.push("This folder is a local review bundle. It is not proof of wrongdoing or a public finding.");
+  lines.push("");
+  lines.push("## Bundle metadata");
+  lines.push("");
+  lines.push(`- Generated at: ${text(bundleIndex.generatedAt)}`);
+  lines.push(`- Mode: ${text(bundleIndex.mode)}`);
+  lines.push(`- Public-only: ${publicSafety.publicOnly === true ? "yes" : "no"}`);
+  lines.push(`- Source records: ${text(counts.sourceRecordCount)}`);
+  lines.push(`- Source assets listed: ${text(counts.sourceAssetCount)}`);
+  lines.push(`- Source assets copied: ${copiedAssets}`);
+  lines.push("");
+  lines.push("## Files");
+  lines.push("");
+  lines.push(`- Bundle index: ${text(files.bundleIndex)}`);
+  lines.push(`- Case evidence JSON: ${text(files.caseEvidenceJson)}`);
+  lines.push(`- Case evidence Markdown: ${text(files.caseEvidenceMarkdown)}`);
+  lines.push(`- Source manifest JSON: ${text(files.sourceManifestJson)}`);
+  lines.push(`- Source manifest Markdown: ${text(files.sourceManifestMarkdown)}`);
+  lines.push(`- Attachments folder: ${text(files.attachmentsFolder)}`);
+  lines.push("");
+  lines.push("## Use limits");
+  lines.push("");
+  lines.push("- Copied files are raw source artifacts. Review them before any public reuse.");
+  lines.push("- Public-approved mode means the exported metadata passed Centinela's public-safety gate; it does not automatically make copied source files public-ready.");
+  lines.push("- Preserve this folder together with `bundle-index.json` so source paths, hashes, and limitations remain traceable.");
+  lines.push("- Keep non-accusatory language: this bundle supports review, not legal conclusions.");
+  lines.push("");
+
+  return `${lines.join("\n")}\n`;
+}
+
 export async function buildCaseEvidenceExportArtifacts(
   options: BuildCaseEvidenceExportOptions,
 ): Promise<CaseEvidenceArtifactResult> {
@@ -454,20 +774,9 @@ export async function buildCaseEvidenceExportArtifacts(
     publicOnly: options.publicOnly,
     limit: options.limit,
   });
-  const caseRow = record(exportPayload.case);
-  const evidence = rows(exportPayload.evidence);
-  const sourceIndex = sourceIndexFromEvidence(evidence);
-  const caseKey = text(caseRow.case_key);
-  const caseId = text(caseRow.id);
-  const mode = text(exportPayload.mode);
   const generatedAt = new Date().toISOString();
-  const artifact = {
-    generatedAt,
-    disclaimer:
-      "Case evidence artifacts are source-backed review material. They are not proof of wrongdoing or a public finding.",
-    sourceIndex,
-    export: exportPayload,
-  };
+  const built = createCaseEvidenceArtifact(exportPayload, generatedAt);
+  const { artifact, caseId, caseKey, evidence, mode, sourceIndex } = built;
   const caseSlug = slugify(caseKey);
   const fileStem = `${timestampSlug(new Date(generatedAt))}-${mode}`;
   const basePath = ["reports", "cases", caseSlug];
@@ -492,26 +801,9 @@ export async function buildCaseSourceAttachmentManifestArtifacts(
     publicOnly: options.publicOnly,
     limit: options.limit,
   });
-  const caseRow = record(exportPayload.case);
-  const evidence = rows(exportPayload.evidence);
-  const sourceRecords = groupSourceAttachments(await loadSourceAttachmentRows(sourceRecordIdsFromEvidence(evidence)));
-  const attachmentCount = sourceAssetCount(sourceRecords);
-  const caseKey = text(caseRow.case_key);
-  const caseId = text(caseRow.id);
-  const mode = text(exportPayload.mode);
   const generatedAt = new Date().toISOString();
-  const artifact = {
-    generatedAt,
-    disclaimer:
-      "Source attachment manifests list source records and source-run assets for review. They are not proof of wrongdoing or a public finding.",
-    attachmentSummary: {
-      sourceRecordCount: sourceRecords.length,
-      sourceAssetCount: attachmentCount,
-      assetPathStatusCounts: sourceAssetStatusCounts(sourceRecords),
-    },
-    sourceRecords,
-    export: exportPayload,
-  };
+  const built = await createCaseSourceAttachmentManifest(exportPayload, generatedAt);
+  const { artifact, caseId, caseKey, mode, sourceRecords, sourceAssetCount: attachmentCount } = built;
   const caseSlug = slugify(caseKey);
   const fileStem = `${timestampSlug(new Date(generatedAt))}-${mode}-source-manifest`;
   const basePath = ["reports", "cases", caseSlug];
@@ -529,5 +821,83 @@ export async function buildCaseSourceAttachmentManifestArtifacts(
     sourceAssetCount: attachmentCount,
     markdownPath,
     jsonPath,
+  };
+}
+
+export async function buildCaseSourceBundleArtifacts(
+  options: BuildCaseSourceBundleOptions,
+): Promise<CaseSourceBundleResult> {
+  const exportPayload = await getAnalystCaseEvidenceExport(options.caseId, {
+    publicOnly: options.publicOnly,
+    limit: options.limit,
+  });
+  const generatedAt = new Date().toISOString();
+  const evidenceBuild = createCaseEvidenceArtifact(exportPayload, generatedAt);
+  const manifestBuild = await createCaseSourceAttachmentManifest(exportPayload, generatedAt);
+  const caseSlug = slugify(evidenceBuild.caseKey);
+  const fileStem = `${timestampSlug(new Date(generatedAt))}-${evidenceBuild.mode}-source-bundle`;
+  const bundleRelativePath = ["reports", "cases", caseSlug, fileStem];
+  const bundleRoot = resolveOutputPath(...bundleRelativePath);
+  const copyAssets = options.copyAssets !== false;
+  fs.mkdirSync(bundleRoot, { recursive: true });
+
+  const copiedAssets = copyBundleAssets(manifestBuild.sourceRecords, bundleRoot, copyAssets);
+  const files = {
+    bundleIndex: "bundle-index.json",
+    readme: "README.md",
+    caseEvidenceJson: "case-evidence.json",
+    caseEvidenceMarkdown: "case-evidence.md",
+    sourceManifestJson: "source-manifest.json",
+    sourceManifestMarkdown: "source-manifest.md",
+    attachmentsFolder: "attachments/",
+  };
+  const bundleIndex = {
+    generatedAt,
+    disclaimer:
+      "Case source bundles are local review packets. They are not proof of wrongdoing or public findings.",
+    mode: evidenceBuild.mode,
+    case: record(exportPayload.case),
+    publicSafety: record(exportPayload.publicSafety),
+    counts: {
+      evidenceCount: evidenceBuild.evidence.length,
+      sourceRecordCount: manifestBuild.sourceRecords.length,
+      sourceAssetCount: manifestBuild.sourceAssetCount,
+      copiedAssetCount: copiedAssetCount(copiedAssets),
+      skippedAssetCount: skippedAssetCount(copiedAssets),
+    },
+    files,
+    attachments: copiedAssets,
+    useLimits: [
+      "Copied files are raw source artifacts and need review before public reuse.",
+      "Public-only mode reuses Centinela's approved_public gate, but raw copied files still need methodology, privacy, and UX review.",
+      "This bundle supports analyst review and traceability. It is not a legal conclusion.",
+    ],
+  };
+
+  const indexPath = path.join(bundleRoot, files.bundleIndex);
+  const readmePath = path.join(bundleRoot, files.readme);
+  const evidenceJsonPath = path.join(bundleRoot, files.caseEvidenceJson);
+  const evidenceMarkdownPath = path.join(bundleRoot, files.caseEvidenceMarkdown);
+  const manifestJsonPath = path.join(bundleRoot, files.sourceManifestJson);
+  const manifestMarkdownPath = path.join(bundleRoot, files.sourceManifestMarkdown);
+
+  fs.writeFileSync(indexPath, `${JSON.stringify(bundleIndex, null, 2)}\n`, "utf8");
+  fs.writeFileSync(readmePath, renderBundleReadme(bundleIndex), "utf8");
+  fs.writeFileSync(evidenceJsonPath, `${JSON.stringify(evidenceBuild.artifact, null, 2)}\n`, "utf8");
+  fs.writeFileSync(evidenceMarkdownPath, renderMarkdown(evidenceBuild.artifact), "utf8");
+  fs.writeFileSync(manifestJsonPath, `${JSON.stringify(manifestBuild.artifact, null, 2)}\n`, "utf8");
+  fs.writeFileSync(manifestMarkdownPath, renderSourceAttachmentManifestMarkdown(manifestBuild.artifact), "utf8");
+
+  return {
+    caseId: evidenceBuild.caseId,
+    caseKey: evidenceBuild.caseKey,
+    mode: evidenceBuild.mode,
+    sourceRecordCount: manifestBuild.sourceRecords.length,
+    sourceAssetCount: manifestBuild.sourceAssetCount,
+    copiedAssetCount: copiedAssetCount(copiedAssets),
+    skippedAssetCount: skippedAssetCount(copiedAssets),
+    bundlePath: bundleRoot,
+    indexPath,
+    readmePath,
   };
 }

@@ -78,6 +78,7 @@ npm run database:review-external-candidate -- --candidate-id 59 --status needs_e
 npm run database:second-review-external-candidate -- --candidate-id 59 --decision accepted_match --reviewer "Second Reviewer" --rationale "Source-backed identity review" --limitations "Record what this match does not prove"
 npm run database:case-evidence-export -- --case-id 1 --public-only false
 npm run database:case-source-manifest -- --case-id 1 --public-only false
+npm run database:case-source-bundle -- --case-id 1 --public-only false --copy-assets true
 npm run database:entity-anchor-gaps -- --limit 50
 npm run database:rulebook -- --source-key py-dncp-bulk-2026
 npm run serve:internal-console -- --host 127.0.0.1 --port 8787
@@ -88,6 +89,7 @@ The IDB command is a source-document evidence check for OpenSanctions/IADB candi
 The internal console command serves a local-only analyst surface and JSON API for entity search, dossiers, graph-ready network neighborhoods, graph export, source-record drilldowns, source field suggestions, review queues, external candidates, accepted matches, token-protected analyst notes/cases, evidence links, case timelines, evidence export, and public-safety review gates.
 The case evidence export command writes Markdown and JSON artifacts to the local runtime folder with a source-record index; public-only artifacts require `approved_public`.
 The case source manifest command writes Markdown and JSON attachment manifests with linked source records, source-run assets, source URLs, hashes, and local path availability; public-only manifests require `approved_public`.
+The case source bundle command writes a local review folder with evidence files, source manifest files, `bundle-index.json`, `README.md`, and copied source-run assets when local paths resolve; public-only bundles require `approved_public`, but copied raw files still need review before public reuse.
 Generated output paths are controlled by `CENTINELA_OUTPUT_DIR`; leave it blank to use the non-sync local runtime folder.
 
 ## Current working state
@@ -98,7 +100,7 @@ Generated output paths are controlled by `CENTINELA_OUTPUT_DIR`; leave it blank 
 - The first row-level external source-document connector now checks the official IDB Open Data sanctioned firms and individuals dataset for OpenSanctions/IADB candidates and stores source-record evidence separately from accepted matches.
 - The second-review governance workflow is live. Candidate `59`, `CONSULTORA GUARANI SA INGENIEROS CIVILES` -> `Consultora Guaraní S.A. Ingenieros Civiles`, is the first accepted external enrichment match; it created accepted identity context, not an external risk signal.
 - The first internal API/console slice is live locally through `npm run serve:internal-console`, exposing entity search, entity profiles, graph-ready networks, queues, candidates, and accepted matches.
-- The first analyst-workspace hardening slice is live in schema, API, and CLI: source-record drilldowns, field suggestions, graph exports, saved cases, case links, saved analyst notes, source-record evidence links, case timelines, evidence exports, public-safety review states, Markdown/JSON case export artifacts, and source attachment manifests. Write endpoints require `CENTINELA_WRITE_TOKEN`.
+- The first analyst-workspace hardening slice is live in schema, API, and CLI: source-record drilldowns, field suggestions, graph exports, saved cases, case links, saved analyst notes, source-record evidence links, case timelines, evidence exports, public-safety review states, Markdown/JSON case export artifacts, source attachment manifests, and local source bundles. Write endpoints require `CENTINELA_WRITE_TOKEN`.
 - The current local Paraguay identity anchor now covers 2,533 of 2,534 procurement-linked supplier companies, with 1 missing-check-digit gap still unanchored, alongside 446 supplier companies with local administrative signals, 3,642 representative links, and 2,518 DNIT identity-validation profiles.
 - The anchor-gap backlog is now first-class through `centinela.entity_anchor_gap_review` and `npm run database:entity-anchor-gaps -- --limit 50`.
 - The next implementation phase is defined by `docs/execution/reference-to-component-execution-plan.md` and `docs/execution/next-phase-roadmap.md`, which turn the major reference systems into real component pressure instead of passive inspiration.

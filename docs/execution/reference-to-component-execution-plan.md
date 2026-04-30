@@ -696,10 +696,31 @@ Concrete proof artifacts:
 - `npm run database:case-source-manifest`
 - Markdown and JSON runtime manifests under `CENTINELA_OUTPUT_DIR/reports/cases/<case-key>/`
 
+## 2026-04-30 source bundle advancement
+
+- br/acc
+  - advanced because source-run assets can now be copied into a case packet while preserving source records, source URLs, path-resolution status, hashes, and provenance.
+- Aleph
+  - advanced because saved cases now have a portable local bundle shape with evidence files, source manifests, and attachments, moving closer to document-centered casework.
+- Sayari
+  - advanced through analyst-grade packaging of source files, bundle indexes, copy status, and hash checks before any stronger entity graph workflow or public surface.
+- Integrity Watch
+  - advanced because public-only bundles reuse the `approved_public` gate while preserving explicit warnings that raw copied files are not automatically public-ready.
+- RUBLI
+  - advanced through reproducible bundle contents, use limits, and a clear distinction between evidence, source files, and findings.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because future company-contract accountability outputs can be assembled from traceable local source packets instead of loose files or raw notes.
+
+Concrete proof artifacts:
+
+- `buildCaseSourceBundleArtifacts` in `src/storage/caseEvidenceExport.ts`
+- `npm run database:case-source-bundle`
+- local runtime source bundles under `CENTINELA_OUTPUT_DIR/reports/cases/<case-key>/<timestamp>-<mode>-source-bundle/`
+
 ## Next extraction priority
 
 - highest priority
-  - add downloadable source-file bundles or a lightweight document/source index on top of the source attachment manifests
+  - add a lightweight document/source index on top of the source bundles
 - next after that
   - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
 - then
