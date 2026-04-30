@@ -654,10 +654,31 @@ Concrete proof artifacts:
 - public-safety controls in `src/server/internalConsole.ts`
 - `reviewAnalystCasePublicSafety` and `getAnalystCaseEvidenceExport` in `src/storage/analystWorkspace.ts`
 
+## 2026-04-30 case evidence artifact advancement
+
+- br/acc
+  - advanced because generated case artifacts carry source-record IDs, source keys, external IDs, source URLs, retrieval context, and case evidence rows as durable provenance.
+- Aleph
+  - advanced because an analyst can now produce a portable case evidence packet instead of relying only on a live console response.
+- Integrity Watch
+  - advanced because public-only artifacts reuse the explicit `approved_public` gate and preserve public-safe summary/limitations.
+- RUBLI
+  - advanced through reproducible Markdown/JSON artifacts with methodology warnings, use limits, source index, and non-accusatory language.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because future company-contract accountability pages can draw from source-indexed case artifacts rather than raw notes.
+- Sayari
+  - advanced through more professional evidence packaging around entity/case review.
+
+Concrete proof artifacts:
+
+- `src/storage/caseEvidenceExport.ts`
+- `npm run database:case-evidence-export`
+- Markdown and JSON runtime artifacts under `CENTINELA_OUTPUT_DIR/reports/cases/<case-key>/`
+
 ## Next extraction priority
 
 - highest priority
-  - add document/source evidence ergonomics or downloadable case-export artifacts on top of the new public-safety gate
+  - add source-document attachment manifests or a lightweight document/source index on top of the source-indexed case artifacts
 - next after that
   - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
 - then

@@ -195,3 +195,10 @@
 - Added internal API/console support for `POST /api/analyst-cases/:id/public-review` and `GET /api/analyst-cases/:id/evidence-export`, including console controls for public-safety status, public-safe summary/limitations, internal export, and public-approved export.
 - Applied migration 019 to the live VPS-backed database over the SSH tunnel.
 - Smoke-tested the public-safety gate: one temporary case and source-record evidence link used source record `10117`; `public_only=true` export was blocked before approval, internal export returned `1` evidence row, `approved_public` export returned `1` public row without `internal_analyst_interpretation`, and cleanup returned analyst cases, notes, evidence links, and public reviews to `0`.
+
+## 2026-04-30
+
+- Added `src/storage/caseEvidenceExport.ts`, a case evidence artifact writer that reuses the gated export path and writes Markdown plus JSON to the local non-sync runtime folder.
+- Added `npm run database:case-evidence-export -- --case-id <id> --public-only false`, with `--public-only true` still enforced by the latest `approved_public` case review state.
+- The JSON artifact includes a `sourceIndex` derived from linked evidence rows so analysts can see source record IDs, source keys, external IDs, URLs, retrieval times, and record kinds without opening raw source payloads first.
+- Smoke-tested the artifact writer against the live VPS-backed database with a temporary case and source record `10117`: public export was blocked before approval, approved public export wrote Markdown and JSON artifacts, the source index contained `1` source record, no `internal_analyst_interpretation` leaked, and cleanup returned smoke cases/artifacts to `0`.

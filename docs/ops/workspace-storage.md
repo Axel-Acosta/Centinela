@@ -6,6 +6,7 @@ Centinela separates source code from generated investigation artifacts.
 
 - Source code, SQL, methodology docs, memory docs, and lightweight configuration live in the project workspace and can be tracked with Git/GitHub.
 - Generated raw data, normalized bundles, reports, downloaded ZIP files, and temporary connector outputs live outside the workspace by default.
+- Case evidence export artifacts are generated reports, so they also live outside the workspace by default.
 - PostgreSQL on the VPS remains the canonical query store for operational data.
 
 ## Default local runtime location
@@ -67,6 +68,18 @@ GitHub should not track:
 ## Command compatibility
 
 Commands that write reports or raw/normalized artifacts now write to the runtime data root unless `CENTINELA_OUTPUT_DIR` is explicitly set.
+
+Case evidence exports are written under:
+
+```text
+<CENTINELA_OUTPUT_DIR>\reports\cases\<case-key>\
+```
+
+Use:
+
+```bash
+npm run database:case-evidence-export -- --case-id <id> --public-only false
+```
 
 `database:load-bundle` still accepts old-style paths like:
 

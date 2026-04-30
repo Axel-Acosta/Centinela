@@ -77,6 +77,8 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
   - saved case detail with linked targets, notes, evidence links, public-review history, and chronological timeline events
 - `GET /api/analyst-cases/:id/evidence-export?public_only=true&limit=25`
   - source-backed case evidence export; `public_only=true` is blocked unless the latest public-safety status is `approved_public`
+- `npm run database:case-evidence-export -- --case-id <id> --public-only false`
+  - writes Markdown and JSON evidence artifacts to the local runtime folder, including a source-record index
 - `POST /api/analyst-cases`
   - create a case; requires local write token
 - `POST /api/analyst-cases/:id/links`
@@ -158,12 +160,21 @@ On the evidence-export/public-safety smoke test, the API/console path also confi
 - approved public export returned `1` public row and did not expose `internal_analyst_interpretation`
 - cleanup returned analyst cases, notes, evidence links, and public reviews to `0`
 
+On the case export artifact smoke test, the CLI path also confirmed:
+
+- a temporary case and evidence link using source record `10117` could not write a public artifact before `approved_public`
+- after public-safety approval, Markdown and JSON artifacts were written under the local runtime folder
+- the JSON artifact included a one-row `sourceIndex`
+- public-only artifacts did not expose `internal_analyst_interpretation`
+- cleanup returned smoke cases and artifacts to `0`
+
 ## Limits
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
 - Saved cases, analyst notes, evidence links, and case timelines exist, but the console casework UI is still an internal workbench rather than a full case-management product.
 - Field suggestions are heuristic helpers, not automatic evidence judgments.
 - Public-safety review gates reduce accidental disclosure risk, but they are not a substitute for full public-product review, role-based authorization, privacy review, or methodology publication.
+- Case evidence artifacts are generated runtime outputs and should stay out of Git.
 - The console renders source-derived item text as text content rather than HTML, because source records can contain public-source strings.
 - No full-text document index yet.
 - Network output is graph-ready JSON, not a graph database.

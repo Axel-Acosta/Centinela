@@ -33,6 +33,7 @@ import {
 } from "./storage/analyst";
 import { loadBundleToPostgres, readBundleFromFile } from "./storage/postgres";
 import { buildRulebookReport } from "./storage/rules";
+import { buildCaseEvidenceExportArtifacts } from "./storage/caseEvidenceExport";
 
 interface FirstSliceOptions {
   from: string;
@@ -599,6 +600,30 @@ async function runDatabaseEntityAnchorGapReport(args: string[]): Promise<void> {
   console.log(`Generated entity anchor gap report: ${reportPath}`);
 }
 
+async function runDatabaseCaseEvidenceExport(args: string[]): Promise<void> {
+  const caseId = readNumberArg(args, "--case-id", 0);
+  const publicOnly = readBooleanArg(args, "--public-only", false);
+  const limit = readNumberArg(args, "--limit", 100);
+
+  if (!caseId) {
+    throw new Error("Missing required --case-id argument for case evidence export.");
+  }
+
+  const result = await buildCaseEvidenceExportArtifacts({
+    caseId,
+    publicOnly,
+    limit,
+  });
+
+  console.log(`Generated case evidence export for ${result.caseKey}.`);
+  console.log(`Mode: ${result.mode}`);
+  console.log(`Evidence rows: ${result.evidenceCount}`);
+  console.log(`Source records: ${result.sourceCount}`);
+  console.log(`Markdown: ${result.markdownPath}`);
+  console.log(`JSON: ${result.jsonPath}`);
+  console.log("Reminder: evidence exports are source-backed review material, not proof of wrongdoing.");
+}
+
 async function runServeInternalConsole(args: string[]): Promise<void> {
   const host = readArg(args, "--host") ?? "127.0.0.1";
   const port = readNumberArg(args, "--port", 8787);
@@ -663,6 +688,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (domain === "database" && command === "case-evidence-export") {
+    await runDatabaseCaseEvidenceExport(args);
+    return;
+  }
+
   if (domain === "database" && command === "entity-anchor-gaps") {
     await runDatabaseEntityAnchorGapReport(args);
     return;
@@ -722,6 +752,7 @@ async function main(): Promise<void> {
 - tsx src/cli.ts database external-candidates --limit 50
 - tsx src/cli.ts database review-external-candidate --candidate-id 1 --status needs_evidence --reviewer "Analyst Name" --notes "Review note"
 - tsx src/cli.ts database second-review-external-candidate --candidate-id 1 --decision accepted_match --reviewer "Second Reviewer" --rationale "Source-backed identity review" --limitations "State known limits"
+- tsx src/cli.ts database case-evidence-export --case-id 1 --public-only false
 - tsx src/cli.ts database entity-anchor-gaps --limit 50
 - tsx src/cli.ts database rulebook --source-key py-dncp-bulk-2026
 - tsx src/cli.ts serve internal-console --host 127.0.0.1 --port 8787`,

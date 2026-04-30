@@ -215,3 +215,9 @@
 - Decision: Add append-only case public-safety review states and require `approved_public` before `public_only=true` evidence export.
 - Why: Centinela now has enough source-linked case evidence to be packaged, but packaging evidence must not accidentally expose analyst notes, internal interpretation, weak candidates, or language that reads like a public finding.
 - Consequence: `sql/postgres/019_case_evidence_exports.sql`, `POST /api/analyst-cases/:id/public-review`, and `GET /api/analyst-cases/:id/evidence-export` now separate internal evidence bundles from public-approved exports. `approved_public` requires public-safe summary and limitations, and public-only export strips internal analyst interpretation and internal actor metadata.
+
+## 2026-04-30 - Export artifacts before full document index
+
+- Decision: Add a Markdown/JSON case evidence artifact writer before building a full document index, OCR pipeline, or public case page.
+- Why: Analysts already have source-record evidence links and public-safety gates. The next useful step is portable, reviewable case packets in the local runtime folder, not new indexing infrastructure that would be premature without more document sources.
+- Consequence: `npm run database:case-evidence-export` now writes source-indexed case evidence artifacts. This advances Aleph-style case packaging while keeping the public-only gate, source provenance, limitations, and non-accusatory language intact.
