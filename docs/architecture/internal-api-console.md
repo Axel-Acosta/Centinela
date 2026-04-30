@@ -22,6 +22,7 @@ The surface is designed to expose:
 - source-record evidence bundles with field-level explanation and limitation context
 - in-case source-record search and field-path helpers for evidence links
 - case evidence exports with public-safety review gates
+- local case source attachment manifests with source-run asset paths, hashes, and availability checks
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -79,6 +80,8 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
   - source-backed case evidence export; `public_only=true` is blocked unless the latest public-safety status is `approved_public`
 - `npm run database:case-evidence-export -- --case-id <id> --public-only false`
   - writes Markdown and JSON evidence artifacts to the local runtime folder, including a source-record index
+- `npm run database:case-source-manifest -- --case-id <id> --public-only false`
+  - writes Markdown and JSON source attachment manifests to the local runtime folder, including source-run asset paths, source URLs, hashes, and local path availability
 - `POST /api/analyst-cases`
   - create a case; requires local write token
 - `POST /api/analyst-cases/:id/links`
@@ -168,6 +171,14 @@ On the case export artifact smoke test, the CLI path also confirmed:
 - public-only artifacts did not expose `internal_analyst_interpretation`
 - cleanup returned smoke cases and artifacts to `0`
 
+On the source attachment manifest smoke test, the CLI path also confirmed:
+
+- a temporary case and evidence link using source record `10117` could not write a public manifest before `approved_public`
+- after public-safety approval, Markdown and JSON manifests were written under the local runtime folder
+- the manifest included `1` linked source record and `2` source-run assets
+- public-only manifests did not expose `internal_analyst_interpretation`
+- cleanup returned smoke cases and artifacts to `0`
+
 ## Limits
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
@@ -175,6 +186,7 @@ On the case export artifact smoke test, the CLI path also confirmed:
 - Field suggestions are heuristic helpers, not automatic evidence judgments.
 - Public-safety review gates reduce accidental disclosure risk, but they are not a substitute for full public-product review, role-based authorization, privacy review, or methodology publication.
 - Case evidence artifacts are generated runtime outputs and should stay out of Git.
+- Source attachment manifests are generated runtime outputs and should stay out of Git. They point to source-run assets; they do not yet copy source files into a portable bundle.
 - The console renders source-derived item text as text content rather than HTML, because source records can contain public-source strings.
 - No full-text document index yet.
 - Network output is graph-ready JSON, not a graph database.

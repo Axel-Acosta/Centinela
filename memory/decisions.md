@@ -221,3 +221,9 @@
 - Decision: Add a Markdown/JSON case evidence artifact writer before building a full document index, OCR pipeline, or public case page.
 - Why: Analysts already have source-record evidence links and public-safety gates. The next useful step is portable, reviewable case packets in the local runtime folder, not new indexing infrastructure that would be premature without more document sources.
 - Consequence: `npm run database:case-evidence-export` now writes source-indexed case evidence artifacts. This advances Aleph-style case packaging while keeping the public-only gate, source provenance, limitations, and non-accusatory language intact.
+
+## 2026-04-30 - Source attachment manifests before copying source files
+
+- Decision: Add a source attachment manifest command before building downloadable bundles, automatic source-file copying, or a full document index.
+- Why: Case evidence artifacts now identify supporting source records, but analysts also need to know which source-run assets exist, where local files are expected, whether paths are currently present, and what source URLs/hashes can support later packaging. A manifest gives that evidence-chain visibility without duplicating files, increasing storage churn, or weakening public-safety gates.
+- Consequence: `npm run database:case-source-manifest` writes Markdown/JSON manifests under the local runtime folder. The manifest reuses the same gated export path, shows source records, source-run assets, SHA-256 hashes, source URLs, local path availability, and payload previews, and remains an attachment checklist rather than a public finding.

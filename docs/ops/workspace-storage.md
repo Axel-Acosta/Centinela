@@ -7,6 +7,7 @@ Centinela separates source code from generated investigation artifacts.
 - Source code, SQL, methodology docs, memory docs, and lightweight configuration live in the project workspace and can be tracked with Git/GitHub.
 - Generated raw data, normalized bundles, reports, downloaded ZIP files, and temporary connector outputs live outside the workspace by default.
 - Case evidence export artifacts are generated reports, so they also live outside the workspace by default.
+- Case source attachment manifests are generated reports, so they also live outside the workspace by default.
 - PostgreSQL on the VPS remains the canonical query store for operational data.
 
 ## Default local runtime location
@@ -79,7 +80,10 @@ Use:
 
 ```bash
 npm run database:case-evidence-export -- --case-id <id> --public-only false
+npm run database:case-source-manifest -- --case-id <id> --public-only false
 ```
+
+The source manifest command writes an attachment checklist beside the case evidence artifacts. It lists linked source records, source-run assets, source URLs, SHA-256 hashes, local path availability, and payload previews; it does not copy source files into a bundle yet.
 
 `database:load-bundle` still accepts old-style paths like:
 

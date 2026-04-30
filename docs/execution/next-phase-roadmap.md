@@ -102,6 +102,7 @@
   - bounded field suggestions from source-record JSON payloads to help analysts cite exact source fields
   - append-only public-safety review states and gated evidence export
   - local Markdown/JSON case evidence export artifacts with source-record indexes
+  - local Markdown/JSON source attachment manifests with source-run asset paths, source URLs, hashes, and local path availability
   - richer saved investigation paths later
 - Main references
   - Aleph
@@ -130,9 +131,9 @@
 
 ## Immediate next best step
 
-- Deepen the local-only analyst workspace from source-indexed case evidence artifacts into source-document attachment manifests or a lightweight document/source index, while keeping accepted matches, review-only candidates, external risk signals, analyst notes, and public-facing language separate.
+- Deepen the local-only analyst workspace from source attachment manifests into a downloadable source-file bundle or lightweight document/source index, while keeping accepted matches, review-only candidates, external risk signals, analyst notes, and public-facing language separate.
 - Reason
-  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, a live case timeline view, source-record evidence links, in-case source-record search, source field helpers, gated case evidence export, and source-indexed Markdown/JSON case artifacts. The next leverage is connecting source files/documents to those artifacts without weakening public-safety gates.
+  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, a live case timeline view, source-record evidence links, in-case source-record search, source field helpers, gated case evidence export, source-indexed Markdown/JSON case artifacts, and source attachment manifests. The next leverage is copying or indexing source files/documents beside those artifacts without weakening public-safety gates.
 - Expected carry-over
   - local API endpoints and console views that expose candidate records with durable human-review status, notes, source-backed promotion/rejection history, second-review state, source-record links, explanation bundles, and evidence-export posture
   - tighter use of hosted same-candidate confirmation versus different-result ambiguity inside analyst workflows

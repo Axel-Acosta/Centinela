@@ -675,10 +675,31 @@ Concrete proof artifacts:
 - `npm run database:case-evidence-export`
 - Markdown and JSON runtime artifacts under `CENTINELA_OUTPUT_DIR/reports/cases/<case-key>/`
 
+## 2026-04-30 source attachment manifest advancement
+
+- br/acc
+  - advanced because source-run assets, source records, source URLs, hashes, retrieval context, and local path state are now joined into one manifest instead of staying scattered across ingestion tables.
+- Aleph
+  - advanced because case exports now have an attachment checklist that helps analysts move from evidence summaries toward source-document review.
+- Sayari
+  - advanced through more professional source-chain handling: assets, hashes, URLs, and availability are explicit before any deeper graph/entity case package is shared.
+- Integrity Watch
+  - advanced because public-only manifests reuse the `approved_public` gate and keep public-safe limitations visible.
+- RUBLI
+  - advanced through reproducible attachment manifests with explicit use limits and path-status caveats.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because future public company-contract accountability pages can trace which source assets support a case packet without mixing source files into Git.
+
+Concrete proof artifacts:
+
+- `buildCaseSourceAttachmentManifestArtifacts` in `src/storage/caseEvidenceExport.ts`
+- `npm run database:case-source-manifest`
+- Markdown and JSON runtime manifests under `CENTINELA_OUTPUT_DIR/reports/cases/<case-key>/`
+
 ## Next extraction priority
 
 - highest priority
-  - add source-document attachment manifests or a lightweight document/source index on top of the source-indexed case artifacts
+  - add downloadable source-file bundles or a lightweight document/source index on top of the source attachment manifests
 - next after that
   - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
 - then

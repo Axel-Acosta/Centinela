@@ -53,6 +53,10 @@ Artifact command:
   - writes Markdown and JSON evidence artifacts under the local non-sync runtime folder
   - includes a source-record index for linked evidence rows
   - with `--public-only true`, requires the latest public-safety review status `approved_public`
+- `npm run database:case-source-manifest -- --case-id <id> --public-only false`
+  - writes Markdown and JSON source attachment manifests under the local non-sync runtime folder
+  - lists linked source records, source-run metadata, source-run assets, source URLs, SHA-256 hashes, local path availability, and payload previews
+  - with `--public-only true`, reuses the same `approved_public` gate and strips internal analyst interpretation through the evidence-export path
 
 Write endpoints:
 
@@ -81,6 +85,7 @@ If `CENTINELA_WRITE_TOKEN` is not set, write endpoints are disabled.
 - `approved_public` requires both a public-safe summary and public-safe limitations.
 - Public-only evidence export strips internal analyst interpretation and internal actor metadata. It keeps source references, field paths, evidence summaries, limitations, and explicit non-accusatory language.
 - Case evidence artifacts are runtime outputs, not committed source files. They belong under `CENTINELA_OUTPUT_DIR`, which defaults to `C:\Users\Axeld\AppData\Local\Centinela\data` on this machine.
+- Source attachment manifests are attachment checklists, not findings. `exists` means a local file path was present when the manifest was generated; verify paths again before evidence packaging or publication.
 - Write-token authentication is a local hardening step, not a full production auth system.
 
 ## Current smoke-test result
@@ -102,7 +107,8 @@ On 2026-04-26, the first live analyst-workspace smoke test confirmed:
 - migration `sql/postgres/019_case_evidence_exports.sql` applied to the VPS-backed database
 - the public-safety gate smoke created one temporary case and one source-record evidence link to source record `10117`; public-only export was blocked before approval, internal export returned `1` evidence row, approved public export returned `1` evidence row without `internal_analyst_interpretation`, and cleanup returned analyst cases, notes, evidence links, and public reviews to `0`
 - the case evidence artifact smoke created one temporary case and source-record evidence link to source record `10117`; artifact export was blocked before approval, approved public export wrote Markdown and JSON runtime artifacts, the source index contained `1` source record, no internal analyst interpretation leaked, and cleanup returned smoke cases/artifacts to `0`
+- the source attachment manifest smoke created one temporary case and source-record evidence link to source record `10117`; manifest creation was blocked before approval, approved public manifest wrote Markdown and JSON runtime artifacts, the manifest contained `1` linked source record and `2` source-run assets, no internal analyst interpretation leaked, and cleanup returned smoke cases/artifacts to `0`
 
 ## Next hardening step
 
-Add a source-document attachment manifest or lightweight document/source index so exported case artifacts can eventually include linked source files, not only source-record summaries.
+Add a downloadable case bundle or lightweight document/source index so exported case artifacts can eventually copy linked source files beside the manifests, not only point to source-run asset paths.
