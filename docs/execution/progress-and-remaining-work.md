@@ -1,0 +1,46 @@
+# Centinela progress and remaining work
+
+This is a working estimate, not a promise of exact dates. Centinela is being built as a serious long-term public-integrity intelligence system, so "complete" has more than one level.
+
+## Current completion estimate
+
+- Phase A - Skill, memory, reference universe: about 90-95% of the foundation is done.
+- Phase B - System foundation and internal storage: about 75-85% of the internal foundation is done.
+- Phase C - Paraguay internal implementation: about 45-55% of the first serious internal Paraguay implementation is done.
+- Phase D - Public/product publication layer: about 10-15% is done.
+- Overall long-term product: about 35-45% done, because the internal evidence spine is strong but the public product and more cross-domain Paraguay sources are still early.
+
+## What is already solid
+
+- DNCP/Postgres procurement foundation with 2025 and 2026 loaded.
+- Rule registry, review queue, methodology outputs, and non-accusatory language discipline.
+- DNCP plus DNIT local company identity anchor, with only one known local anchor gap remaining.
+- OpenSanctions bulk and hosted comparison workflows, candidate review, source-backed second review, and the first accepted external identity-context match.
+- Local internal console/API with entity dossiers, graph-ready networks, queues, source-record drilldowns, saved cases, notes, evidence links, timelines, public-safety gates, artifact generation, source bundles, source-document indexes, and artifact rediscovery.
+- Runtime storage kept outside OneDrive/Git by default.
+
+## What is still missing for the internal Paraguay MVP
+
+- Resolve the final RUC/check-digit anchor gap.
+- Improve external-candidate scoring with better name-order logic, generic-term handling, source-document evidence, and identifier comparisons where available.
+- Add at least one more lawful Paraguay cross-domain source beyond procurement/taxpayer identity, preferably ownership/officer/accountability data if accessible.
+- Expand entity relationship types enough to support ownership-ready and foreign/offshore-ready graph paths.
+- Add bounded artifact-detail reading only if analysts need to inspect selected bundle/index summaries directly in the console.
+- Add more automated tests around casework and enrichment flows.
+
+## What is still missing before public release
+
+- Production authentication and role-based access.
+- Privacy, legal, and publication review.
+- Public methodology and limitations pages.
+- Public-safe UX for risk signals, evidence, and source provenance.
+- Public deployment architecture, monitoring, backups, and data-refresh policy.
+- Stronger source licensing and redistribution decisions for copied artifacts.
+
+## Practical timeline estimate
+
+- Current analyst/casework phase: likely 1-2 more focused runs to feel complete enough for internal use.
+- First serious Paraguay internal MVP: likely 6-10 more focused implementation runs.
+- First public pilot: likely 10-16 more focused runs after the internal MVP, depending on source access and public-safety requirements.
+
+The next best work should usually prioritize intelligence value over more console polish, unless the console is blocking actual analysis.

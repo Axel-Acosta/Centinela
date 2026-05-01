@@ -80,6 +80,8 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
   - saved case detail with linked targets, notes, evidence links, public-review history, and chronological timeline events
 - `GET /api/analyst-cases/:id/evidence-export?public_only=true&limit=25`
   - source-backed case evidence export; `public_only=true` is blocked unless the latest public-safety status is `approved_public`
+- `GET /api/analyst-cases/:id/artifacts?limit=25`
+  - reads the local runtime artifact registry for a case by scanning `CENTINELA_OUTPUT_DIR/reports/cases/<case-key>/`; returns evidence artifact, source manifest, source bundle, and source-document index summaries without loading raw evidence text into the console response
 - `POST /api/analyst-cases/:id/evidence-artifacts`
   - writes local Markdown/JSON evidence artifacts through the API; requires local write token and reuses the `approved_public` gate when `publicOnly=true`
 - `POST /api/analyst-cases/:id/source-manifests`
@@ -218,6 +220,14 @@ On the case artifact API/console smoke test, the local API path also confirmed:
 - `/console` included the new artifact/source-bundle/source-index controls
 - cleanup removed the temporary case and smoke artifacts
 
+On the case artifact registry smoke test, the local API path also confirmed:
+
+- a temporary case generated one public-approved evidence artifact, one source manifest, and one source bundle
+- `GET /api/analyst-cases/:id/artifacts` returned `3` artifacts with evidence artifact, source manifest, and source bundle kinds
+- the registry returned the latest bundle path, `2` indexed documents, and `2` query matches from the bundle's source-document index
+- `/console` included the generated-artifact loading control
+- cleanup removed the temporary case and smoke artifacts
+
 ## Limits
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
@@ -229,6 +239,7 @@ On the case artifact API/console smoke test, the local API path also confirmed:
 - Source bundles are generated runtime outputs and should stay out of Git. They copy raw source artifacts for local review only; public reuse still requires source, privacy, methodology, and UX review.
 - Source-document indexes are generated runtime outputs and should stay out of Git. They are local navigation aids, not a substitute for source verification or full public-product review.
 - Artifact and bundle POST endpoints generate local files, so they require the local write token even though they do not mutate PostgreSQL case evidence.
+- The artifact registry is a lightweight runtime-folder reader, not a durable database audit table. It summarizes local files that currently exist under `CENTINELA_OUTPUT_DIR`.
 - The console renders source-derived item text as text content rather than HTML, because source records can contain public-source strings.
 - No full-text document index yet.
 - Network output is graph-ready JSON, not a graph database.

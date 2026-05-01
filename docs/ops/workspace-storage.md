@@ -94,9 +94,10 @@ POST /api/analyst-cases/:id/evidence-artifacts
 POST /api/analyst-cases/:id/source-manifests
 POST /api/analyst-cases/:id/source-bundles
 POST /api/source-document-indexes
+GET /api/analyst-cases/:id/artifacts
 ```
 
-Those endpoints still write under `CENTINELA_OUTPUT_DIR` and require the local write token. They do not move generated artifacts into Git or OneDrive.
+The POST endpoints still write under `CENTINELA_OUTPUT_DIR` and require the local write token. The GET artifact registry endpoint reads summaries from that same runtime folder. None of these endpoints move generated artifacts into Git or OneDrive.
 
 The source manifest command writes an attachment checklist beside the case evidence artifacts. It lists linked source records, source-run assets, source URLs, SHA-256 hashes, local path availability, and payload previews; it does not copy source files into a bundle yet.
 

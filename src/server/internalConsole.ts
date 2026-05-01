@@ -33,6 +33,7 @@ import {
   buildCaseSourceBundleArtifacts,
   buildCaseSourceDocumentIndexArtifacts,
 } from "../storage/caseEvidenceExport";
+import { listCaseArtifacts } from "../storage/caseArtifacts";
 
 export interface InternalConsoleOptions {
   host?: string;
@@ -164,6 +165,16 @@ function parseCaseSourceManifestRoute(pathname: string): number | undefined {
 
 function parseCaseSourceBundleRoute(pathname: string): number | undefined {
   const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/source-bundles$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const caseId = Number(match[1]);
+  return Number.isInteger(caseId) && caseId > 0 ? caseId : undefined;
+}
+
+function parseCaseArtifactsRoute(pathname: string): number | undefined {
+  const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/artifacts$/);
   if (!match) {
     return undefined;
   }
@@ -846,6 +857,7 @@ function consoleHtml(): string {
               <button id="write-source-manifest" type="button" class="secondary">Write source manifest</button>
               <button id="write-source-bundle" type="button" class="secondary">Write source bundle + index</button>
               <button id="refresh-source-index" type="button" class="secondary">Refresh bundle source index</button>
+              <button id="load-case-artifacts" type="button" class="secondary">Load generated artifacts</button>
             </div>
             <div id="cases" class="list"></div>
             <div id="case-source-record-results" class="list"></div>
@@ -1161,6 +1173,7 @@ function consoleHtml(): string {
       if (status) {
         document.getElementById('public-review-status').value = status;
       }
+      await fetchCaseArtifacts(true).catch(() => undefined);
     }
 
     async function createCase() {
@@ -1321,6 +1334,25 @@ function consoleHtml(): string {
       return body;
     }
 
+    async function fetchCaseArtifacts(updateOutput) {
+      if (!currentCaseId) {
+        if (updateOutput) {
+          document.getElementById('case-artifacts').textContent = 'Open a case before loading artifacts.';
+        }
+        return null;
+      }
+
+      const payload = await getJson('/api/analyst-cases/' + currentCaseId + '/artifacts?limit=25');
+      if (payload.data.latestBundlePath) {
+        currentBundlePath = payload.data.latestBundlePath;
+        document.getElementById('source-bundle-path').value = currentBundlePath;
+      }
+      if (updateOutput) {
+        document.getElementById('case-artifacts').textContent = JSON.stringify(payload.data, null, 2);
+      }
+      return payload;
+    }
+
     async function writeEvidenceArtifact() {
       if (!currentCaseId) {
         document.getElementById('case-artifacts').textContent = 'Open a case before writing artifacts.';
@@ -1333,7 +1365,11 @@ function consoleHtml(): string {
         artifactRequestBody(),
         token
       );
-      document.getElementById('case-artifacts').textContent = JSON.stringify(payload.data, null, 2);
+      const registry = await fetchCaseArtifacts(false);
+      document.getElementById('case-artifacts').textContent = JSON.stringify({
+        created: payload.data,
+        registry: registry ? registry.data : null
+      }, null, 2);
     }
 
     async function writeSourceManifest() {
@@ -1348,7 +1384,11 @@ function consoleHtml(): string {
         artifactRequestBody(),
         token
       );
-      document.getElementById('case-artifacts').textContent = JSON.stringify(payload.data, null, 2);
+      const registry = await fetchCaseArtifacts(false);
+      document.getElementById('case-artifacts').textContent = JSON.stringify({
+        created: payload.data,
+        registry: registry ? registry.data : null
+      }, null, 2);
     }
 
     async function writeSourceBundle() {
@@ -1372,7 +1412,11 @@ function consoleHtml(): string {
         currentBundlePath = bundle.bundlePath;
         document.getElementById('source-bundle-path').value = currentBundlePath;
       }
-      document.getElementById('case-artifacts').textContent = JSON.stringify(payload.data, null, 2);
+      const registry = await fetchCaseArtifacts(false);
+      document.getElementById('case-artifacts').textContent = JSON.stringify({
+        created: payload.data,
+        registry: registry ? registry.data : null
+      }, null, 2);
     }
 
     async function refreshSourceIndex() {
@@ -1393,7 +1437,11 @@ function consoleHtml(): string {
           localArtifactOnly: true
         }
       }, token);
-      document.getElementById('case-artifacts').textContent = JSON.stringify(payload.data, null, 2);
+      const registry = await fetchCaseArtifacts(false);
+      document.getElementById('case-artifacts').textContent = JSON.stringify({
+        refreshed: payload.data,
+        registry: registry ? registry.data : null
+      }, null, 2);
     }
 
     async function loadQueues() {
@@ -1479,6 +1527,11 @@ function consoleHtml(): string {
     });
     document.getElementById('refresh-source-index').addEventListener('click', () => {
       refreshSourceIndex().catch((error) => {
+        document.getElementById('case-artifacts').textContent = error.message;
+      });
+    });
+    document.getElementById('load-case-artifacts').addEventListener('click', () => {
+      fetchCaseArtifacts(true).catch((error) => {
         document.getElementById('case-artifacts').textContent = error.message;
       });
     });
@@ -1709,6 +1762,11 @@ async function handleApiRequest(url: URL, request: http.IncomingMessage): Promis
       publicOnly: booleanParam(url, "public_only") ?? false,
       limit: numberParam(url, "limit"),
     });
+  }
+
+  const caseArtifactsId = parseCaseArtifactsRoute(url.pathname);
+  if (caseArtifactsId !== undefined) {
+    return listCaseArtifacts(caseArtifactsId, listOptions(url));
   }
 
   const analystCaseId = parseAnalystCaseRoute(url.pathname);

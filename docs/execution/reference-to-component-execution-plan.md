@@ -762,10 +762,30 @@ Concrete proof artifacts:
 - case artifact controls in `src/server/internalConsole.ts`
 - live smoke result recorded in `memory/run-log.md`
 
+## 2026-05-01 case artifact registry advancement
+
+- br/acc
+  - advanced because generated evidence/source packets remain source-registry-linked while becoming rediscoverable through a stable case endpoint.
+- Aleph
+  - advanced because analysts can reopen case packet and document-index summaries after generation, closer to persistent casework rather than one-off exports.
+- Sayari
+  - advanced because entity/case review now has a more professional artifact-discovery surface with bundle paths, file existence, copied-asset counts, and source-index counts.
+- RUBLI
+  - advanced because generated artifacts remain reproducible and limitation-aware without becoming opaque scores or public findings.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because future public accountability pages can trace from a case to the existing local bundle/index summary instead of rebuilding source context from scratch.
+
+Concrete proof artifacts:
+
+- `src/storage/caseArtifacts.ts`
+- `GET /api/analyst-cases/:id/artifacts`
+- generated-artifact loader in `src/server/internalConsole.ts`
+- progress estimate in `docs/execution/progress-and-remaining-work.md`
+
 ## Next extraction priority
 
 - highest priority
-  - add a lightweight artifact registry or recent-artifact reader for generated source bundles and source-document indexes
+  - return to intelligence value: stronger candidate scoring, the final RUC anchor gap, and the next lawful Paraguay cross-domain source
 - next after that
   - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
 - then

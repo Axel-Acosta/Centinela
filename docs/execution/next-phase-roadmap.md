@@ -85,6 +85,7 @@
 - Status
   - first local-only slice operational
   - case artifact and source-bundle controls now exposed through local API/console
+  - generated case artifacts are now rediscoverable through a lightweight runtime-folder registry
   - first analyst-workspace hardening slice operational
   - first case timeline/workbench slice operational
   - first source-record evidence-link slice operational
@@ -107,6 +108,7 @@
   - local case source bundles with evidence files, source manifest files, copied source-run assets, and bundle indexes
   - local source-document indexes over case bundles with snippets, query matches, source-record IDs, evidence-link IDs, and JSONL output
   - token-protected console/API controls for writing evidence artifacts, source manifests, source bundles, and source-document indexes
+  - read-only artifact registry endpoint for generated case packets and bundle/index summaries
   - richer saved investigation paths later
 - Main references
   - Aleph
@@ -135,9 +137,9 @@
 
 ## Immediate next best step
 
-- Deepen the local-only analyst workspace by adding a lightweight artifact registry or recent-artifact reader for generated case bundles, while keeping accepted matches, review-only candidates, external risk signals, analyst notes, and public-facing language separate.
+- Move back from casework plumbing to intelligence value: improve external-candidate scoring/evidence and resolve the final local RUC anchor gap, unless analysts first need bounded artifact-detail reading for selected bundle/index files.
 - Reason
-  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, a live case timeline view, source-record evidence links, in-case source-record search, source field helpers, gated case evidence export, source-indexed Markdown/JSON case artifacts, source attachment manifests, source bundles that copy resolvable source-run assets, source-document indexes that search bundled files with evidence/source traceability, and console/API controls to generate those artifacts. The next leverage is making existing artifact paths rediscoverable after generation, without moving generated files into Git or OneDrive.
+  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, a live case timeline view, source-record evidence links, in-case source-record search, source field helpers, gated case evidence export, source-indexed Markdown/JSON case artifacts, source attachment manifests, source bundles that copy resolvable source-run assets, source-document indexes that search bundled files with evidence/source traceability, console/API controls to generate those artifacts, and a local artifact registry to rediscover them. The casework layer is now strong enough to return attention to entity intelligence.
 - Expected carry-over
   - local API endpoints and console views that expose candidate records with durable human-review status, notes, source-backed promotion/rejection history, second-review state, source-record links, explanation bundles, evidence-export posture, and recent generated artifact paths
   - tighter use of hosted same-candidate confirmation versus different-result ambiguity inside analyst workflows

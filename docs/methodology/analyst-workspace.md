@@ -44,6 +44,8 @@ Read endpoints:
 - `GET /api/analyst-cases/:id`
 - `GET /api/analyst-cases/:id/evidence-export`
   - with `public_only=true`, requires latest public-safety status `approved_public`
+- `GET /api/analyst-cases/:id/artifacts`
+  - summarizes generated local evidence artifacts, source manifests, source bundles, and source-document indexes for the case
 - `GET /api/analyst-notes`
 - `GET /api/entities/:id/network/export?format=cytoscape`
 
@@ -103,6 +105,7 @@ The artifact and bundle POST endpoints write local runtime files rather than dat
 - Source bundles are local review packets. Even in public-approved mode, copied raw source files are not automatically public-ready; they still need source, privacy, methodology, and UX review.
 - Source-document indexes are local navigation aids. Snippets and searchable text must be checked against the original source file before any public reuse.
 - Console/API artifact controls make bundle generation easier, but they do not change the review meaning: a generated artifact is a review packet, not a finding.
+- The artifact registry is a convenience reader over local runtime files. If a file is deleted, moved, or generated under a different `CENTINELA_OUTPUT_DIR`, it will not appear.
 - Write-token authentication is a local hardening step, not a full production auth system.
 
 ## Current smoke-test result
@@ -128,7 +131,8 @@ On 2026-04-26, the first live analyst-workspace smoke test confirmed:
 - the source bundle smoke created one temporary case and source-record evidence link to source record `10117`; bundle creation was blocked before approval, approved public bundle wrote `bundle-index.json`, `README.md`, evidence JSON/Markdown, source manifest JSON/Markdown, copied `2` of `2` source-run assets, did not leak internal analyst interpretation, and cleanup returned smoke cases/artifacts to `0`
 - the source-document index smoke created one temporary case and source-record evidence link to source record `10117`; public bundle/index creation was blocked before approval, approved public bundle copied `2` source assets, automatic index files were written, a refreshed query for `Consultora Guarani` returned `2` searchable documents and `2` query matches, matched documents preserved source-record and evidence-link traceability, no internal analyst interpretation leaked, and cleanup returned smoke cases/artifacts to `0`
 - the case artifact API/console smoke created one temporary case and source-record evidence link to source record `10117`; public bundle creation was blocked before approval, approved public POST artifact routes wrote evidence artifacts, source manifests, and a source bundle, the bundle copied `2` source assets, both immediate and refreshed source-index queries returned `2` matches, `/console` exposed the artifact controls, and cleanup removed the temporary case/artifacts
+- the artifact registry smoke created one temporary case and source-record evidence link to source record `10117`; `GET /api/analyst-cases/:id/artifacts` returned `3` artifact summaries, including evidence artifact, source manifest, and source bundle, preserved the latest bundle path, and showed `2` indexed documents plus `2` query matches; cleanup removed the temporary case/artifacts
 
 ## Next hardening step
 
-Persist a lightweight case artifact registry or recent-artifact reader so analysts can reopen existing bundle paths from the console instead of relying only on the response from the current generation run.
+Add a bounded artifact-detail reader for selected bundle/index files, or move to the next higher-value intelligence step: stronger external-candidate scoring and the final local RUC anchor gap.

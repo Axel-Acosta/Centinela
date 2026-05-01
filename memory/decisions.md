@@ -245,3 +245,9 @@
 - Decision: Expose case evidence artifacts, source manifests, source bundles, and source-document index refresh through token-protected local API/console controls before adding a persistent artifact registry or production case-management UI.
 - Why: The artifact pipeline already worked from CLI, but analysts should not have to copy filesystem paths manually to use case packets. The local console can make the workflow operational now while preserving the same public-safety gate and non-accusatory artifact semantics.
 - Consequence: `src/server/internalConsole.ts` now has POST routes and case-workbench controls for artifact generation and source-index refresh. Generated files remain local runtime outputs outside Git/OneDrive. The next hardening step is a recent-artifact registry or reader, not public publication.
+
+## 2026-05-01 - Filesystem artifact registry before database artifact table
+
+- Decision: Add a lightweight runtime-folder artifact registry reader before creating a PostgreSQL artifact table.
+- Why: Generated case packets already live under `CENTINELA_OUTPUT_DIR`, and the immediate analyst problem is rediscovery, not audit-grade artifact lifecycle management. A filesystem reader gives the console recent bundle/index summaries without adding schema complexity too early.
+- Consequence: `GET /api/analyst-cases/:id/artifacts` and the console's generated-artifact control summarize files that currently exist locally. This is enough for internal workflow now, but later production use may still need a durable artifact table, retention policy, and role-based access.

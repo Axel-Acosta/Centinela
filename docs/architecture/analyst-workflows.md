@@ -378,6 +378,25 @@
   - Integrity Watch
   - QuiénEsQuién/TodosLosContratos
 
+### 21. Case artifact registry
+
+- API
+  - `GET /api/analyst-cases/:id/artifacts`
+- Console
+  - case workbench button for loading generated artifacts
+- Purpose
+  - rediscover existing local case evidence artifacts, source manifests, source bundles, and source-document index summaries after generation
+  - show local runtime paths, relative paths, public-safety mode, artifact counts, copied-asset counts, indexed-document counts, and query-match counts without opening raw evidence content
+  - keep generated files outside Git and OneDrive while making them reachable from the analyst surface
+- Methodology note
+  - `docs/methodology/analyst-workspace.md`
+- Main reference pressure
+  - Aleph
+  - br/acc
+  - Sayari
+  - RUBLI
+  - QuiénEsQuién/TodosLosContratos
+
 ## Current workflow design principles
 
 - Start from explainable leads, not accusations
@@ -387,7 +406,7 @@
 
 ## Current limits
 
-- The first API and interactive console slice is local-only and operational. It now has token-protected saved notes/cases, evidence links, case timelines, source-record drilldowns, graph export, evidence exports, public-safety review states, local Markdown/JSON case export artifacts, source attachment manifests, local source bundles, local source-document indexes, and console/API controls to generate those case artifacts, but it still has no production authentication, role-based permissions, or public deployment posture.
+- The first API and interactive console slice is local-only and operational. It now has token-protected saved notes/cases, evidence links, case timelines, source-record drilldowns, graph export, evidence exports, public-safety review states, local Markdown/JSON case export artifacts, source attachment manifests, local source bundles, local source-document indexes, console/API controls to generate those case artifacts, and a lightweight artifact registry to reopen generated bundle/index summaries, but it still has no production authentication, role-based permissions, or public deployment posture.
 - The rule registry exists, but the DNCP crosswalk and public methodology layer are still incomplete
 - Entity briefs now include external enrichment, DNIT identity validation, and official DNCP supplier-anchor sections, and the company-level queue plus anchor-gap report now make local identity gaps and local administrative history visible; 1 procurement-linked supplier company still remains without a local identity anchor because the procurement-side RUC is missing a check digit
 - OpenSanctions candidate review is active. The current queue has one company-level external candidate lead and keeps weak representative/person overlaps visible as rejected diagnostics rather than treating them as accepted matches.
@@ -399,4 +418,4 @@
 
 ## Next workflow milestone
 
-- Add a lightweight recent-artifact registry or reader for existing case bundles, then eventually production-grade authentication if remote access becomes necessary.
+- Either add bounded artifact-detail reading for selected bundle/index files, or return to the higher-value intelligence backlog: stronger candidate scoring, the final RUC anchor gap, and the next lawful Paraguay cross-domain source.
