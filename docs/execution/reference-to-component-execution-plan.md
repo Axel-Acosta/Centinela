@@ -782,19 +782,42 @@ Concrete proof artifacts:
 - generated-artifact loader in `src/server/internalConsole.ts`
 - progress estimate in `docs/execution/progress-and-remaining-work.md`
 
+## 2026-05-01 OpenSanctions rerun-safety and candidate-evidence advancement
+
+- br/acc
+  - advanced because baseline external-source refreshes now preserve reviewed candidate rows and second-review audit trails instead of destroying source-linked institutional memory.
+- OpenSanctions
+  - advanced because the 2026-05-01 bulk rerun used index `20260501065427-hyu`, refreshed local evidence, preserved accepted candidate `59`, and added distinctive-token, generic-token, distinctive-overlap, and name-order evidence to candidate rows.
+- Sayari
+  - advanced because entity intelligence now distinguishes strong identity-context evidence from generic name noise, making dossiers and review queues more analyst-grade.
+- Aleph
+  - advanced because external-candidate reports now explain why a candidate was surfaced or downgraded, and closed second-review rows no longer show invalid first-review commands.
+- RUBLI
+  - advanced because matching limitations became more transparent and reproducible: generic business/sector overlap is explicitly downgraded rather than hidden or over-scored.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because company-accountability outputs now show which name evidence is locally meaningful before any public-facing company-contract narrative is built.
+
+Concrete proof artifacts:
+
+- `src/enrichment/opensanctions.ts`
+- `src/storage/analyst.ts`
+- `docs/methodology/opensanctions-screening.md`
+- `docs/methodology/external-candidate-review-workflow.md`
+- live rerun result recorded in `memory/run-log.md`
+
 ## Next extraction priority
 
 - highest priority
-  - return to intelligence value: stronger candidate scoring, the final RUC anchor gap, and the next lawful Paraguay cross-domain source
+  - move to the next lawful Paraguay cross-domain source, preferably company/officer/ownership-adjacent accountability data if access is lawful and practical
 - next after that
-  - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
+  - revisit the final RUC anchor gap only when a new lawful source can expose the missing check digit; DNIT bulk, DNCP OCDS JSON, DNCP supplier search, and locally parsed official PDFs did not resolve it
 - then
-  - improve the local external-candidate scoring model and stage ownership/offshore expansion influenced by OpenOwnership, ICIJ, OpenCorporates, and Sayari
+  - stage ownership/offshore expansion influenced by OpenOwnership, ICIJ, OpenCorporates, and Sayari on top of the safer candidate-evidence and review-preservation baseline
 
 ## Still pending deeper extraction
 
 - Integrity Watch: needs a real public-safe flag metadata model and later explorer/filter contract once the rule registry exists.
-- OpenSanctions / Open Ownership / OpenCorporates / ICIJ: the first live external connector, the first hosted API comparison run, the PostgreSQL-backed hosted comparison overview, the wide official Paraguay supplier anchor, the DNIT identity-validation layer, the representative/person screening lane, the candidate-review table, the manual review-state workflow, the official IDB row-level source check, the live second-review governance workflow, the accepted candidate `59` case, the analyst-workspace schema, the candidate review report, the anchor-gap review backlog, and the first company-level match-review queue now exist, but they still need better candidate scoring, ownership data, offshore traversal, source-record-to-case workflows, and either renewed hosted API quota or a longer-term Yente/paid-access decision.
+- OpenSanctions / Open Ownership / OpenCorporates / ICIJ: the first live external connector, the first hosted API comparison run, the PostgreSQL-backed hosted comparison overview, the wide official Paraguay supplier anchor, the DNIT identity-validation layer, the representative/person screening lane, the candidate-review table, the manual review-state workflow, the official IDB row-level source check, the live second-review governance workflow, the accepted candidate `59` case, the analyst-workspace schema, the candidate review report, the anchor-gap review backlog, the first company-level match-review queue, safer rerun preservation, and stronger candidate-name evidence now exist, but they still need ownership data, offshore traversal, deeper source-record-to-case workflows, and either renewed hosted API quota or a longer-term Yente/paid-access decision.
 - FUNES: needs relationship-aware rules that use political, financial, or oversight context beyond procurement alone.
 - Paraguay DNCP red flags work: needs a formal rule crosswalk instead of only language and framing influence.
 - RUBLI: needs the exact intended source confirmed, then direct methodology and limitations structure can be borrowed more concretely.

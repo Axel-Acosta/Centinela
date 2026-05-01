@@ -619,6 +619,8 @@ function formatReviewEvidenceHistory(value: unknown, limit = 3): string {
       const evidenceUrl = reviewEvidencePart(record.evidenceUrl);
       const evidenceNote = reviewEvidencePart(record.evidenceNote);
       const source = reviewEvidencePart(record.source);
+      const type = reviewEvidencePart(record.type);
+      const typedValue = reviewEvidencePart(record.value);
       const parts = [
         recordedAt ? `at ${recordedAt}` : undefined,
         status ? `status=${status}` : undefined,
@@ -627,6 +629,8 @@ function formatReviewEvidenceHistory(value: unknown, limit = 3): string {
         evidenceUrl ? `url=${evidenceUrl}` : undefined,
         evidenceNote ? `evidence=${evidenceNote}` : undefined,
         source ? `source=${source}` : undefined,
+        !recordedAt && !status && type ? `type=${type}` : undefined,
+        !recordedAt && !status && typedValue ? `value=${typedValue}` : undefined,
       ].filter((part): part is string => Boolean(part));
 
       return parts.length > 0 ? parts.join("; ") : JSON.stringify(record);
@@ -1477,15 +1481,25 @@ function renderExternalCandidateReviewReport(
       const countries = formatList(toStringArray(item.external_countries), 10);
       const externalIdentifiers = formatList(toStringArray(item.external_identifiers), 10);
       const sharedTokens = findEvidenceValueAsText(item.evidence, "shared_tokens") ?? "n/a";
+      const distinctiveSharedTokens = findEvidenceValueAsText(item.evidence, "distinctive_shared_tokens") ?? "n/a";
+      const genericSharedTokens = findEvidenceValueAsText(item.evidence, "generic_shared_tokens") ?? "n/a";
       const tokenSimilarity = findEvidenceValueAsText(item.evidence, "token_similarity") ?? "n/a";
+      const distinctiveTokenOverlap = findEvidenceValueAsText(item.evidence, "distinctive_token_overlap") ?? "n/a";
+      const nameOrderScore = findEvidenceValueAsText(item.evidence, "name_order_score") ?? "n/a";
       const localSearchName = findEvidenceValueAsText(item.evidence, "local_search_name") ?? "n/a";
       const linkedCompanies = findEvidenceValueAsText(item.evidence, "linked_company_names") ?? "n/a";
+      const reviewCommandStatuses = new Set(["needs_evidence", "promotable", "monitor", "rejected", "unreviewed"]);
       const commandStatus =
-        item.suggested_review_status && item.suggested_review_status !== "unreviewed"
+        item.suggested_review_status &&
+        item.suggested_review_status !== "unreviewed" &&
+        reviewCommandStatuses.has(item.suggested_review_status)
           ? item.suggested_review_status
           : item.candidate_status === "rejected_diagnostic"
             ? "rejected"
             : "needs_evidence";
+      const shouldShowReviewCommand =
+        !["accepted_match", "rejected_match"].includes(item.second_review_decision ?? "") &&
+        reviewCommandStatuses.has(commandStatus);
 
       lines.push(`### ${item.entity_name} -> ${item.external_name}`);
       lines.push(`- Candidate ID: ${item.id}`);
@@ -1503,7 +1517,7 @@ function renderExternalCandidateReviewReport(
       lines.push(`- Second-reviewed by / at: ${item.second_reviewed_by ?? "n/a"} / ${item.second_reviewed_at ?? "n/a"}`);
       lines.push(`- Second-review rationale: ${item.second_review_rationale ?? "n/a"}`);
       lines.push(`- Second-review limitations: ${item.second_review_limitations ?? "n/a"}`);
-      lines.push(`- Second-review evidence: ${formatReviewEvidenceHistory(item.second_review_evidence)}`);
+      lines.push(`- Second-review evidence: ${formatReviewEvidenceHistory(item.second_review_evidence, 5)}`);
       lines.push(`- Accepted match ID: ${item.accepted_match_id ?? "n/a"}`);
       lines.push(`- Local identifiers: ${formatList(item.local_identifiers, 12)}`);
       lines.push(`- Local RUC identifiers: ${formatList(item.local_ruc_identifiers, 8)}`);
@@ -1522,13 +1536,21 @@ function renderExternalCandidateReviewReport(
       lines.push(`- External identifiers: ${externalIdentifiers}`);
       lines.push(`- Local search name: ${localSearchName}`);
       lines.push(`- Shared tokens: ${sharedTokens}`);
+      lines.push(`- Distinctive shared tokens: ${distinctiveSharedTokens}`);
+      lines.push(`- Generic shared tokens: ${genericSharedTokens}`);
       lines.push(`- Token similarity: ${tokenSimilarity}`);
+      lines.push(`- Distinctive token overlap: ${distinctiveTokenOverlap}`);
+      lines.push(`- Name order score: ${nameOrderScore}`);
       lines.push(`- Linked local companies: ${linkedCompanies}`);
       lines.push(`- Rationale: ${item.rationale}`);
       lines.push(`- Review next step: ${item.review_next_step ?? "n/a"}`);
-      lines.push(
-        `- Review command: npm run database:review-external-candidate -- --candidate-id ${item.id} --status ${commandStatus} --reviewer "<name>" --notes "<short rationale>"`,
-      );
+      if (shouldShowReviewCommand) {
+        lines.push(
+          `- Review command: npm run database:review-external-candidate -- --candidate-id ${item.id} --status ${commandStatus} --reviewer "<name>" --notes "<short rationale>"`,
+        );
+      } else {
+        lines.push("- Review command: n/a - this row has a closed second-review decision; use the accepted-match and limitation fields instead.");
+      }
       if (item.review_status === "promotable" && item.second_review_decision !== "accepted_match") {
         lines.push(
           `- Second-review command: npm run database:second-review-external-candidate -- --candidate-id ${item.id} --decision accepted_match --reviewer "<second reviewer>" --rationale "<why the identity match is acceptable>" --limitations "<what this match does not prove>"`,

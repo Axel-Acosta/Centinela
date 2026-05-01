@@ -53,7 +53,7 @@ npm run database:review-external-candidate -- --candidate-id 59 --status needs_e
 ## Current live state
 
 - Total review overview rows: `58`
-- High-priority company review candidates: `1`
+- High-priority active company review candidates: `0`
 - Rejected diagnostics: `57`
 - Current reviewer state:
   - `accepted_match` second-review case: `1`
@@ -72,6 +72,13 @@ npm run database:review-external-candidate -- --candidate-id 59 --status needs_e
 - Strongest representative diagnostics:
   - exact representative-name diagnostics with hosted same-candidate evidence but no Paraguay support were marked `monitor`
   - partial representative-name overlaps were marked `rejected`
+
+## Current rerun and scoring state
+
+- OpenSanctions bulk reruns now preserve reviewed candidate rows and second-review audit trails instead of deleting reviewed history during refresh.
+- Candidate evidence now includes distinctive shared tokens, generic shared tokens, distinctive-token overlap, and name-order score.
+- Generic business/sector name overlaps without Paraguay support are downgraded into `company_generic_name_overlap_without_paraguay_support` diagnostics with lower confidence.
+- Closed second-review rows no longer show first-review commands in the external-candidate report; analysts should use the accepted-match ID, rationale, limitations, and source evidence instead.
 
 ## Safety rules
 

@@ -44,7 +44,7 @@ It is intentionally conservative.
 
 ### Review-only candidates now
 
-- company-to-company high token-overlap candidates only when the OpenSanctions row has Paraguay country or dataset support
+- company-to-company high token-overlap candidates only when the OpenSanctions row has Paraguay country or dataset support and the overlap includes enough distinctive, ordered name evidence
 - DNCP legal-representative person exact-name candidates only when the OpenSanctions row is a person and has Paraguay support
 - DNCP legal-representative person token-overlap candidates only when there is stronger multi-token support; weak two-token overlaps are not review candidates
 - candidate records are stored in `entity_enrichment_candidates`, not accepted match tables
@@ -54,6 +54,7 @@ It is intentionally conservative.
 ### Rejected diagnostics now
 
 - company core-name candidates with high token overlap but no Paraguay support
+- company-name overlaps that are mostly generic business or sector terms, such as medical/supply-style overlap without Paraguay support
 - DNCP legal-representative person exact-name hits with no Paraguay support
 - DNCP legal-representative person partial-name overlaps with Paraguay support but too little identity evidence for review escalation
 - diagnostics are kept for auditability and explanation, but they do not create queue escalation or risk signals
@@ -99,26 +100,33 @@ It is intentionally conservative.
 - The current connector still prioritizes company screening, and now adds a separate legal-representative person lane; it does not yet screen beneficial owners.
 - Legal-representative screening is now active, but it is intentionally review-only and does not create external risk signals from name-only person matches.
 - Source-specific local registry codes such as DNCP supplier codes and DNIT equivalence codes are intentionally excluded from identifier-exact matching because they are not known to be comparable with OpenSanctions identifiers.
+- Candidate scoring is still lexical evidence, not identity proof. Distinctive-token and name-order evidence improve triage, but source documents and local identifiers remain necessary before acceptance.
 - Offshore and ownership expansion still depend on stronger local company identity and lawful ownership sources.
 - Absence of a match here is not proof that no relevant external context exists.
 
 ## Current rerun result
 
-- Rerun date: `2026-04-19`
-- OpenSanctions index version: `20260419125302-lsx`
+- Rerun date: `2026-05-01`
+- OpenSanctions index version: `20260501065427-hyu`
 - Local supplier companies screened: 2,534
 - DNCP legal representatives screened: 3,165
-- OpenSanctions target rows scanned: 1,249,894
+- OpenSanctions target rows scanned: 1,263,600
 - Stored company matches: 0
 - Stored accepted representative matches: 0
 - Stored review-only candidate records: 1
 - Stored rejected diagnostics: 57
-- Supplier companies with review-only external candidates: 1
+- Supplier companies with active review-only external candidates: 0
 - Stored external risk signals: 0
 
-This means the local identity layer is no longer the main blocker for this connector, and the external layer now has a safer middle state between "accepted match" and "invisible no-match." The current candidate layer is intentionally conservative and review-only. After the tighter candidate-quality pass, it surfaced one company-level review lead and kept weak person/company overlaps as diagnostics. The bulk rerun itself produced zero accepted matches and zero external risk signals.
+This means the local identity layer is no longer the main blocker for this connector, and the external layer now has a safer middle state between "accepted match" and "invisible no-match." The current candidate layer is intentionally conservative and review-only. The bulk rerun surfaced the same single company-level candidate, preserved it through the accepted second-review audit trail, kept weak person overlaps as diagnostics, and downgraded generic business/sector company overlaps into a lower-confidence diagnostic lane. The bulk rerun itself produced zero accepted bulk matches and zero external risk signals.
 
 After later hosted comparison, IDB row-level source checking, and second review, candidate `59` was accepted as enrichment identity context only. That later accepted match does not change the conservative bulk-screening result and did not create an external risk signal.
+
+## Rerun governance
+
+- OpenSanctions baseline refreshes preserve reviewed candidate rows and second-review audit trails.
+- Reviewed candidates can receive refreshed candidate evidence, but manual review status, reviewer notes, and second-review decisions remain the governance layer.
+- The first accepted second-review case, candidate `59`, survived the 2026-05-01 rerun with accepted match ID `11`.
 
 ## Current analyst surfaces
 
@@ -133,7 +141,7 @@ After later hosted comparison, IDB row-level source checking, and second review,
 
 - Keep this conservative baseline.
 - Use the stored hosted OpenSanctions comparison evidence while the trial key is rate-limited; use fresh hosted calls sparingly for new high-value candidates.
-- Use the manual review-status workflow, row-level source-document checks, and second-review workflow for `entity_enrichment_candidates`, then improve local candidate scoring with stronger name-order, identifier, document, and representative evidence before accepting any new candidate.
+- Use the manual review-status workflow, row-level source-document checks, and second-review workflow for `entity_enrichment_candidates`; any future accepted match should show source evidence, local identifiers, distinctive-name evidence, explicit limitations, and second-review rationale together.
 - Expose bulk, hosted, source-check, review-state, and second-review evidence together through the local internal API/console.
 - Add separate ownership/person screening only when lawful owner or representative evidence supports the person link.
 - Then revisit ownership edges and offshore traversal on top of the stronger local company layer.

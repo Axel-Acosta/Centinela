@@ -122,6 +122,17 @@ interface MatchCandidate {
 
 type EnrichmentCandidateStatus = "review_candidate" | "rejected_diagnostic";
 
+interface TokenOverlapEvidence {
+  score: number;
+  sharedTokens: string[];
+  sharedDistinctiveTokens: string[];
+  sharedGenericTokens: string[];
+  distinctiveTokenOverlap: number;
+  nameOrderScore: number;
+  localTokenCount: number;
+  externalTokenCount: number;
+}
+
 interface ReviewOnlyCandidate {
   entityId: number;
   externalId: string;
@@ -133,6 +144,7 @@ interface ReviewOnlyCandidate {
   matchMethod:
     | "company_name_token_overlap_py_supported"
     | "company_core_name_without_paraguay_support"
+    | "company_generic_name_overlap_without_paraguay_support"
     | "representative_name_exact_py_supported"
     | "representative_name_token_overlap_py_supported"
     | "representative_partial_name_overlap_py_supported"
@@ -258,6 +270,36 @@ const CANDIDATE_STOP_TOKENS = new Set([
   "para",
 ]);
 
+const CANDIDATE_GENERIC_CONTEXT_TOKENS = new Set([
+  "business",
+  "company",
+  "consultora",
+  "consultores",
+  "construction",
+  "construcciones",
+  "engineering",
+  "global",
+  "grupo",
+  "group",
+  "industrial",
+  "ingenieria",
+  "ingenieros",
+  "international",
+  "logistica",
+  "logistics",
+  "medical",
+  "medica",
+  "medicas",
+  "medico",
+  "medicos",
+  "supply",
+  "suministro",
+  "suministros",
+  "tech",
+  "technology",
+  "technologies",
+]);
+
 function candidateNameTokens(value: string): string[] {
   return unique(
     normalizeEntityName(value)
@@ -266,21 +308,65 @@ function candidateNameTokens(value: string): string[] {
   );
 }
 
-function tokenSimilarity(leftTokens: string[], rightTokens: string[]): { score: number; sharedTokens: string[] } {
+function nameOrderScore(leftTokens: string[], rightTokens: string[], sharedTokens: string[]): number {
+  if (sharedTokens.length === 0) {
+    return 0;
+  }
+
+  let orderedShared = 0;
+  let lastRightIndex = -1;
+  const shared = new Set(sharedTokens);
+
+  for (const token of leftTokens) {
+    if (!shared.has(token)) {
+      continue;
+    }
+
+    const rightIndex = rightTokens.findIndex((rightToken, index) => index > lastRightIndex && rightToken === token);
+    if (rightIndex >= 0) {
+      orderedShared += 1;
+      lastRightIndex = rightIndex;
+    }
+  }
+
+  return orderedShared / sharedTokens.length;
+}
+
+function tokenSimilarity(leftTokens: string[], rightTokens: string[]): TokenOverlapEvidence {
   if (leftTokens.length === 0 || rightTokens.length === 0) {
-    return { score: 0, sharedTokens: [] };
+    return {
+      score: 0,
+      sharedTokens: [],
+      sharedDistinctiveTokens: [],
+      sharedGenericTokens: [],
+      distinctiveTokenOverlap: 0,
+      nameOrderScore: 0,
+      localTokenCount: leftTokens.length,
+      externalTokenCount: rightTokens.length,
+    };
   }
 
   const left = new Set(leftTokens);
   const right = new Set(rightTokens);
   const sharedTokens = [...left].filter((token) => right.has(token));
+  const sharedDistinctiveTokens = sharedTokens.filter((token) => !CANDIDATE_GENERIC_CONTEXT_TOKENS.has(token));
+  const sharedGenericTokens = sharedTokens.filter((token) => CANDIDATE_GENERIC_CONTEXT_TOKENS.has(token));
+  const leftDistinctive = [...left].filter((token) => !CANDIDATE_GENERIC_CONTEXT_TOKENS.has(token));
+  const rightDistinctive = [...right].filter((token) => !CANDIDATE_GENERIC_CONTEXT_TOKENS.has(token));
   const union = new Set([...left, ...right]);
   const jaccard = sharedTokens.length / union.size;
   const containment = Math.max(sharedTokens.length / left.size, sharedTokens.length / right.size);
+  const distinctiveDenominator = Math.max(1, Math.min(leftDistinctive.length, rightDistinctive.length));
 
   return {
     score: Math.max(jaccard, containment * 0.92),
     sharedTokens,
+    sharedDistinctiveTokens,
+    sharedGenericTokens,
+    distinctiveTokenOverlap: sharedDistinctiveTokens.length / distinctiveDenominator,
+    nameOrderScore: nameOrderScore(leftTokens, rightTokens, sharedTokens),
+    localTokenCount: leftTokens.length,
+    externalTokenCount: rightTokens.length,
   };
 }
 
@@ -1032,6 +1118,7 @@ function buildReviewOnlyCandidates(
             screeningName,
             score: similarity.score,
             sharedTokens: similarity.sharedTokens,
+            overlap: similarity,
           };
         })
         .sort((left, right) => right.score - left.score)[0];
@@ -1046,7 +1133,13 @@ function buildReviewOnlyCandidates(
         { type: "local_search_name", value: bestLocal.localName },
         { type: "external_name", value: externalName },
         { type: "shared_tokens", value: bestLocal.sharedTokens },
+        { type: "distinctive_shared_tokens", value: bestLocal.overlap.sharedDistinctiveTokens },
+        { type: "generic_shared_tokens", value: bestLocal.overlap.sharedGenericTokens },
         { type: "token_similarity", value: Number(bestLocal.score.toFixed(4)) },
+        { type: "distinctive_token_overlap", value: Number(bestLocal.overlap.distinctiveTokenOverlap.toFixed(4)) },
+        { type: "name_order_score", value: Number(bestLocal.overlap.nameOrderScore.toFixed(4)) },
+        { type: "local_token_count", value: bestLocal.overlap.localTokenCount },
+        { type: "external_token_count", value: bestLocal.overlap.externalTokenCount },
         { type: "paraguay_support", value: hasParaguayCountryOrDataset },
         { type: "datasets", value: datasets },
         { type: "countries", value: countries },
@@ -1058,7 +1151,10 @@ function buildReviewOnlyCandidates(
         externalEntityType === "company" &&
         hasParaguayCountryOrDataset &&
         bestLocal.score >= 0.82 &&
-        bestLocal.sharedTokens.length >= 2
+        bestLocal.sharedTokens.length >= 2 &&
+        bestLocal.overlap.sharedDistinctiveTokens.length >= 2 &&
+        bestLocal.overlap.distinctiveTokenOverlap >= 0.67 &&
+        bestLocal.overlap.nameOrderScore >= 0.67
       ) {
         registerReviewOnlyCandidate(candidates, {
           entityId: entity.entityId,
@@ -1095,7 +1191,8 @@ function buildReviewOnlyCandidates(
         externalEntityType === "company" &&
         !hasParaguayCountryOrDataset &&
         bestLocal.score >= 0.94 &&
-        bestLocal.sharedTokens.length >= 2
+        bestLocal.sharedTokens.length >= 2 &&
+        bestLocal.overlap.sharedDistinctiveTokens.length >= 2
       ) {
         registerReviewOnlyCandidate(candidates, {
           entityId: entity.entityId,
@@ -1111,6 +1208,43 @@ function buildReviewOnlyCandidates(
           reviewStatus: "unreviewed",
           rejectionReason: "missing_paraguay_support",
           rationale: `Rejected diagnostic: company-name token overlap is high, but the OpenSanctions row lacks Paraguay country or dataset support. Kept for auditability, not review escalation.`,
+          matchedName: externalName,
+          localSearchName: bestLocal.localName,
+          localScreeningName: bestLocal.screeningName,
+          tokenSimilarity: bestLocal.score,
+          sharedTokens: bestLocal.sharedTokens,
+          localIdentitySourceKeys: entity.localProfileSourceKeys,
+          localSearchNames: entity.searchNames,
+          linkedCompanyIds: entity.linkedCompanyIds,
+          linkedCompanyNames: entity.linkedCompanyNames,
+          datasets,
+          countries,
+          evidence,
+          externalPayload: externalPayload(row),
+        });
+        continue;
+      }
+
+      if (
+        externalEntityType === "company" &&
+        !hasParaguayCountryOrDataset &&
+        bestLocal.score >= 0.94 &&
+        bestLocal.sharedTokens.length >= 2
+      ) {
+        registerReviewOnlyCandidate(candidates, {
+          entityId: entity.entityId,
+          externalId: row.id,
+          externalName: row.name,
+          externalSchema: row.schema,
+          externalEntityType,
+          localScreeningRole: entity.localScreeningRole,
+          candidateStatus: "rejected_diagnostic",
+          matchMethod: "company_generic_name_overlap_without_paraguay_support",
+          matchConfidence: 0.32,
+          matchQuality: "diagnostic",
+          reviewStatus: "unreviewed",
+          rejectionReason: "generic_name_overlap_missing_paraguay_support",
+          rationale: `Rejected diagnostic: company-name overlap is mostly generic business or sector language, and the OpenSanctions row lacks Paraguay country or dataset support. Kept for auditability, not review escalation.`,
           matchedName: externalName,
           localSearchName: bestLocal.localName,
           localScreeningName: bestLocal.screeningName,
@@ -1416,7 +1550,17 @@ async function upsertSourceAssets(
 }
 
 async function clearExistingOpenSanctionsState(client: Client, schema: string): Promise<void> {
-  await client.query(`delete from ${schema}.entity_enrichment_candidates where source_key = $1`, [OPEN_SANCTIONS_SOURCE_KEY]);
+  await client.query(
+    `delete from ${schema}.entity_enrichment_candidates as candidates
+     where candidates.source_key = $1
+       and candidates.review_status = 'unreviewed'
+       and not exists (
+         select 1
+         from ${schema}.entity_enrichment_second_reviews as reviews
+         where reviews.candidate_id = candidates.id
+       )`,
+    [OPEN_SANCTIONS_SOURCE_KEY],
+  );
   await client.query(`delete from ${schema}.entity_external_risk_signals where source_key = $1`, [OPEN_SANCTIONS_SOURCE_KEY]);
   await client.query(`delete from ${schema}.entity_enrichment_matches where source_key = $1`, [OPEN_SANCTIONS_SOURCE_KEY]);
   await client.query(
@@ -1881,7 +2025,11 @@ async function insertEnrichmentCandidates(
          candidate_status = excluded.candidate_status,
          match_confidence = excluded.match_confidence,
          match_quality = excluded.match_quality,
-         review_status = excluded.review_status,
+         review_status = case
+           when entity_enrichment_candidates.review_status = 'unreviewed'
+             then excluded.review_status
+           else entity_enrichment_candidates.review_status
+         end,
          rejection_reason = excluded.rejection_reason,
          rationale = excluded.rationale,
          evidence = excluded.evidence,

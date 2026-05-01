@@ -15,14 +15,14 @@ This is a working estimate, not a promise of exact dates. Centinela is being bui
 - DNCP/Postgres procurement foundation with 2025 and 2026 loaded.
 - Rule registry, review queue, methodology outputs, and non-accusatory language discipline.
 - DNCP plus DNIT local company identity anchor, with only one known local anchor gap remaining.
-- OpenSanctions bulk and hosted comparison workflows, candidate review, source-backed second review, and the first accepted external identity-context match.
+- OpenSanctions bulk and hosted comparison workflows, candidate review, source-backed second review, safer rerun preservation for reviewed candidates, stronger candidate-name evidence, and the first accepted external identity-context match.
 - Local internal console/API with entity dossiers, graph-ready networks, queues, source-record drilldowns, saved cases, notes, evidence links, timelines, public-safety gates, artifact generation, source bundles, source-document indexes, and artifact rediscovery.
 - Runtime storage kept outside OneDrive/Git by default.
 
 ## What is still missing for the internal Paraguay MVP
 
-- Resolve the final RUC/check-digit anchor gap.
-- Improve external-candidate scoring with better name-order logic, generic-term handling, source-document evidence, and identifier comparisons where available.
+- Resolve the final RUC/check-digit anchor gap if a new lawful source exposes it; current DNIT, DNCP OCDS, DNCP supplier search, and text-extractable official-document checks did not recover it.
+- Continue improving external-candidate scoring with source-document evidence and identifier comparisons where available; name-order, generic-term handling, and distinctive-token evidence are now live.
 - Add at least one more lawful Paraguay cross-domain source beyond procurement/taxpayer identity, preferably ownership/officer/accountability data if accessible.
 - Expand entity relationship types enough to support ownership-ready and foreign/offshore-ready graph paths.
 - Add bounded artifact-detail reading only if analysts need to inspect selected bundle/index summaries directly in the console.
