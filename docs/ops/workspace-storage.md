@@ -9,6 +9,7 @@ Centinela separates source code from generated investigation artifacts.
 - Case evidence export artifacts are generated reports, so they also live outside the workspace by default.
 - Case source attachment manifests are generated reports, so they also live outside the workspace by default.
 - Case source bundles are generated report folders, so they also live outside the workspace by default.
+- Case source-document indexes are generated reports, so they also live outside the workspace by default.
 - PostgreSQL on the VPS remains the canonical query store for operational data.
 
 ## Default local runtime location
@@ -83,11 +84,14 @@ Use:
 npm run database:case-evidence-export -- --case-id <id> --public-only false
 npm run database:case-source-manifest -- --case-id <id> --public-only false
 npm run database:case-source-bundle -- --case-id <id> --public-only false --copy-assets true
+npm run database:case-source-index -- --bundle-path "<bundle-path>" --query "search terms"
 ```
 
 The source manifest command writes an attachment checklist beside the case evidence artifacts. It lists linked source records, source-run assets, source URLs, SHA-256 hashes, local path availability, and payload previews; it does not copy source files into a bundle yet.
 
 The source bundle command writes a local review folder beside the case artifacts. It includes `bundle-index.json`, `README.md`, evidence JSON/Markdown, source manifest JSON/Markdown, and copied source-run assets when local paths resolve. It also maps old absolute repo `data/` paths to the current runtime folder when possible, because older source records were created before generated artifacts moved out of the workspace.
+
+The source index command writes or refreshes `source-document-index.json`, `source-document-index.md`, and `source-document-index.jsonl` inside a source bundle. It extracts bounded text from copied text-like source files and keeps source-record/evidence-link traceability for local analyst search.
 
 `database:load-bundle` still accepts old-style paths like:
 

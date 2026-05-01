@@ -37,6 +37,7 @@ import {
   buildCaseEvidenceExportArtifacts,
   buildCaseSourceAttachmentManifestArtifacts,
   buildCaseSourceBundleArtifacts,
+  buildCaseSourceDocumentIndexArtifacts,
 } from "./storage/caseEvidenceExport";
 
 interface FirstSliceOptions {
@@ -681,6 +682,32 @@ async function runDatabaseCaseSourceBundle(args: string[]): Promise<void> {
   console.log("Reminder: source bundles are local review packets, not proof of wrongdoing or public-ready publication packages.");
 }
 
+async function runDatabaseCaseSourceIndex(args: string[]): Promise<void> {
+  const bundlePath = readArg(args, "--bundle-path");
+  const query = readArg(args, "--query");
+  const maxTextBytes = readNumberArg(args, "--max-text-bytes", 250000);
+
+  if (!bundlePath) {
+    throw new Error("Missing required --bundle-path argument for case source index.");
+  }
+
+  const result = await buildCaseSourceDocumentIndexArtifacts({
+    bundlePath,
+    ...(query ? { query } : {}),
+    maxTextBytes,
+  });
+
+  console.log(`Generated case source document index for bundle: ${result.bundlePath}`);
+  console.log(`Documents: ${result.documentCount}`);
+  console.log(`Searchable documents: ${result.searchableDocumentCount}`);
+  console.log(`Query: ${result.query ?? "n/a"}`);
+  console.log(`Query matches: ${result.queryMatchCount}`);
+  console.log(`Index: ${result.indexPath}`);
+  console.log(`Markdown: ${result.markdownPath}`);
+  console.log(`JSONL: ${result.jsonlPath}`);
+  console.log("Reminder: source document indexes are local search aids, not proof of wrongdoing.");
+}
+
 async function runServeInternalConsole(args: string[]): Promise<void> {
   const host = readArg(args, "--host") ?? "127.0.0.1";
   const port = readNumberArg(args, "--port", 8787);
@@ -760,6 +787,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (domain === "database" && command === "case-source-index") {
+    await runDatabaseCaseSourceIndex(args);
+    return;
+  }
+
   if (domain === "database" && command === "entity-anchor-gaps") {
     await runDatabaseEntityAnchorGapReport(args);
     return;
@@ -822,6 +854,7 @@ async function main(): Promise<void> {
 - tsx src/cli.ts database case-evidence-export --case-id 1 --public-only false
 - tsx src/cli.ts database case-source-manifest --case-id 1 --public-only false
 - tsx src/cli.ts database case-source-bundle --case-id 1 --public-only false --copy-assets true
+- tsx src/cli.ts database case-source-index --bundle-path "C:\\path\\to\\bundle" --query "search terms"
 - tsx src/cli.ts database entity-anchor-gaps --limit 50
 - tsx src/cli.ts database rulebook --source-key py-dncp-bulk-2026
 - tsx src/cli.ts serve internal-console --host 127.0.0.1 --port 8787`,

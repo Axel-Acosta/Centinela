@@ -208,3 +208,10 @@
 - Added `npm run database:case-source-bundle -- --case-id <id> --public-only false --copy-assets true`, a local case bundle writer that creates `bundle-index.json`, `README.md`, case evidence JSON/Markdown, source manifest JSON/Markdown, and an `attachments/` folder for copied source-run assets.
 - Added compatibility resolution for source assets that still point at the old repo `data/` path, so the bundle writer can copy matching files from the current local runtime data folder.
 - Smoke-tested the source bundle writer against the live VPS-backed database with a temporary case and source record `10117`: public bundle creation was blocked before approval, approved public bundle wrote all expected files, copied `2` of `2` source-run assets, did not leak internal analyst interpretation, and cleanup returned smoke cases/artifacts to `0`.
+
+## 2026-05-01
+
+- Extended source bundles so they automatically write `source-document-index.json`, `source-document-index.md`, and `source-document-index.jsonl` beside the evidence files, source manifest, and attachments.
+- Added `npm run database:case-source-index -- --bundle-path <bundle-path> --query <text>`, a standalone refresh/search command for existing case source bundles.
+- The source-document index extracts bounded text from copied text-like source files, stores searchable text, query snippets, source-record IDs, evidence-link IDs, asset metadata, hashes, and non-accusatory use limits.
+- Smoke-tested the source-document index against the live VPS-backed database with a temporary case and source record `10117`: public bundle/index creation was blocked before approval, approved public bundle copied `2` source assets, automatic index files were written, a refreshed query for `Consultora Guarani` returned `2` searchable documents and `2` query matches, matched documents preserved source-record and evidence-link traceability, no internal analyst interpretation leaked, and cleanup returned smoke cases/artifacts to `0`.

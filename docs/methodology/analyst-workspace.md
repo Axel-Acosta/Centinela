@@ -61,6 +61,10 @@ Artifact command:
   - writes a local case bundle folder with `bundle-index.json`, `README.md`, evidence JSON/Markdown, source manifest JSON/Markdown, and copied source-run assets when local paths resolve
   - resolves legacy absolute repo `data/` paths into the current local runtime folder when possible
   - with `--public-only true`, reuses the same `approved_public` gate, but copied raw source files still need review before any public reuse
+- `npm run database:case-source-index -- --bundle-path <bundle-path> --query "search terms"`
+  - refreshes `source-document-index.json`, `source-document-index.md`, and `source-document-index.jsonl` for an existing source bundle
+  - extracts bounded text from copied text-like files and links documents back to source records, evidence links, source assets, URLs, hashes, and query snippets
+  - supports local analyst search only; it is not a full document search engine or public document product
 
 Write endpoints:
 
@@ -91,6 +95,7 @@ If `CENTINELA_WRITE_TOKEN` is not set, write endpoints are disabled.
 - Case evidence artifacts are runtime outputs, not committed source files. They belong under `CENTINELA_OUTPUT_DIR`, which defaults to `C:\Users\Axeld\AppData\Local\Centinela\data` on this machine.
 - Source attachment manifests are attachment checklists, not findings. `exists` means a local file path was present when the manifest was generated; verify paths again before evidence packaging or publication.
 - Source bundles are local review packets. Even in public-approved mode, copied raw source files are not automatically public-ready; they still need source, privacy, methodology, and UX review.
+- Source-document indexes are local navigation aids. Snippets and searchable text must be checked against the original source file before any public reuse.
 - Write-token authentication is a local hardening step, not a full production auth system.
 
 ## Current smoke-test result
@@ -114,7 +119,8 @@ On 2026-04-26, the first live analyst-workspace smoke test confirmed:
 - the case evidence artifact smoke created one temporary case and source-record evidence link to source record `10117`; artifact export was blocked before approval, approved public export wrote Markdown and JSON runtime artifacts, the source index contained `1` source record, no internal analyst interpretation leaked, and cleanup returned smoke cases/artifacts to `0`
 - the source attachment manifest smoke created one temporary case and source-record evidence link to source record `10117`; manifest creation was blocked before approval, approved public manifest wrote Markdown and JSON runtime artifacts, the manifest contained `1` linked source record and `2` source-run assets, no internal analyst interpretation leaked, and cleanup returned smoke cases/artifacts to `0`
 - the source bundle smoke created one temporary case and source-record evidence link to source record `10117`; bundle creation was blocked before approval, approved public bundle wrote `bundle-index.json`, `README.md`, evidence JSON/Markdown, source manifest JSON/Markdown, copied `2` of `2` source-run assets, did not leak internal analyst interpretation, and cleanup returned smoke cases/artifacts to `0`
+- the source-document index smoke created one temporary case and source-record evidence link to source record `10117`; public bundle/index creation was blocked before approval, approved public bundle copied `2` source assets, automatic index files were written, a refreshed query for `Consultora Guarani` returned `2` searchable documents and `2` query matches, matched documents preserved source-record and evidence-link traceability, no internal analyst interpretation leaked, and cleanup returned smoke cases/artifacts to `0`
 
 ## Next hardening step
 
-Add a lightweight document/source index so analysts can search bundled source files and see which case/evidence row uses each file.
+Expose case artifact, source bundle, and source-document index generation through the local console/API so analysts can use the workflow without manually copying filesystem paths.

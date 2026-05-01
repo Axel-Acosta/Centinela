@@ -16,6 +16,13 @@ export interface BuildCaseSourceBundleOptions extends BuildCaseEvidenceExportOpt
   copyAssets?: boolean;
 }
 
+export interface BuildCaseSourceIndexOptions {
+  bundlePath: string;
+  query?: string;
+  maxTextBytes?: number;
+  maxTextPreviewChars?: number;
+}
+
 interface CaseEvidenceArtifactResult {
   caseId: string;
   caseKey: string;
@@ -65,6 +72,17 @@ interface CaseSourceBundleResult {
   bundlePath: string;
   indexPath: string;
   readmePath: string;
+}
+
+interface CaseSourceIndexResult {
+  bundlePath: string;
+  documentCount: number;
+  searchableDocumentCount: number;
+  query: string | null;
+  queryMatchCount: number;
+  indexPath: string;
+  markdownPath: string;
+  jsonlPath: string;
 }
 
 function text(value: unknown): string {
@@ -189,6 +207,25 @@ function resolveLocalAssetPath(assetPath: string | null): string | null {
   ];
 
   return candidates.find((candidate) => fs.existsSync(candidate)) ?? null;
+}
+
+function resolveBundlePath(inputPath: string): string {
+  if (path.isAbsolute(inputPath)) {
+    return inputPath;
+  }
+
+  const projectCandidate = path.resolve(projectRoot, inputPath);
+  if (fs.existsSync(projectCandidate)) {
+    return projectCandidate;
+  }
+
+  const outputRelativePath = inputPath.replace(/^data[\\/]/, "");
+  const outputCandidate = path.resolve(outputRoot, outputRelativePath);
+  if (fs.existsSync(outputCandidate)) {
+    return outputCandidate;
+  }
+
+  return projectCandidate;
 }
 
 function localPathStatus(assetPath: string | null): string {
@@ -754,6 +791,9 @@ function renderBundleReadme(bundleIndex: Record<string, unknown>): string {
   lines.push(`- Case evidence Markdown: ${text(files.caseEvidenceMarkdown)}`);
   lines.push(`- Source manifest JSON: ${text(files.sourceManifestJson)}`);
   lines.push(`- Source manifest Markdown: ${text(files.sourceManifestMarkdown)}`);
+  lines.push(`- Source document index JSON: ${text(files.sourceDocumentIndexJson)}`);
+  lines.push(`- Source document index Markdown: ${text(files.sourceDocumentIndexMarkdown)}`);
+  lines.push(`- Source document index JSONL: ${text(files.sourceDocumentIndexJsonl)}`);
   lines.push(`- Attachments folder: ${text(files.attachmentsFolder)}`);
   lines.push("");
   lines.push("## Use limits");
@@ -765,6 +805,279 @@ function renderBundleReadme(bundleIndex: Record<string, unknown>): string {
   lines.push("");
 
   return `${lines.join("\n")}\n`;
+}
+
+function readLimitedUtf8(filePath: string, maxBytes: number): { text: string; truncated: boolean } {
+  const stats = fs.statSync(filePath);
+  const byteLimit = Math.max(1, Math.min(maxBytes, stats.size));
+  const file = fs.openSync(filePath, "r");
+
+  try {
+    const buffer = Buffer.alloc(byteLimit);
+    const bytesRead = fs.readSync(file, buffer, 0, byteLimit, 0);
+    return {
+      text: buffer.subarray(0, bytesRead).toString("utf8"),
+      truncated: stats.size > bytesRead,
+    };
+  } finally {
+    fs.closeSync(file);
+  }
+}
+
+function extractTextForIndex(filePath: string, maxTextBytes: number): { text: string; status: string; truncated: boolean } {
+  if (!fs.existsSync(filePath)) {
+    return { text: "", status: "missing", truncated: false };
+  }
+
+  const stats = fs.statSync(filePath);
+  if (!stats.isFile()) {
+    return { text: "", status: "not_file", truncated: false };
+  }
+
+  const extension = path.extname(filePath).toLowerCase();
+  const textExtensions = new Set([
+    ".csv",
+    ".html",
+    ".htm",
+    ".json",
+    ".jsonl",
+    ".log",
+    ".md",
+    ".txt",
+    ".tsv",
+    ".xml",
+    ".yaml",
+    ".yml",
+  ]);
+
+  if (!textExtensions.has(extension)) {
+    return { text: "", status: "unsupported_binary_or_unknown", truncated: false };
+  }
+
+  const extracted = readLimitedUtf8(filePath, maxTextBytes);
+  if (extracted.text.includes("\u0000")) {
+    return { text: "", status: "binary_like_content", truncated: extracted.truncated };
+  }
+
+  return {
+    text: extracted.text.replace(/\r\n/g, "\n"),
+    status: "indexed_text",
+    truncated: extracted.truncated,
+  };
+}
+
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function textPreview(value: string, maxChars: number): string {
+  const compact = value.replace(/\s+/g, " ").trim();
+  return compact.length > maxChars ? `${compact.slice(0, Math.max(0, maxChars - 3))}...` : compact;
+}
+
+function querySnippet(searchableText: string, query: string, maxChars: number): string | null {
+  const normalizedText = normalizeSearchText(searchableText);
+  const normalizedQuery = normalizeSearchText(query.trim());
+
+  if (!normalizedQuery) {
+    return null;
+  }
+
+  const index = normalizedText.indexOf(normalizedQuery);
+  if (index === -1) {
+    return null;
+  }
+
+  const start = Math.max(0, index - Math.floor(maxChars / 3));
+  return textPreview(searchableText.slice(start, start + maxChars), maxChars);
+}
+
+function sourceRecordIdsFromBundleIndex(bundleIndex: Record<string, unknown>, attachment: Record<string, unknown>): string[] {
+  const directIds = Array.isArray(attachment.sourceRecordIds) ? attachment.sourceRecordIds.map(text) : [];
+  if (directIds.length > 0) {
+    return directIds;
+  }
+
+  const records = rows(record(bundleIndex.sourceManifest).sourceRecords);
+  return records.map((sourceRecord) => text(sourceRecord.sourceRecordId)).filter((value) => value !== "n/a");
+}
+
+function evidenceRowsForSourceRecords(bundleIndex: Record<string, unknown>, sourceRecordIds: string[]): Array<Record<string, unknown>> {
+  const evidence = rows(record(record(bundleIndex.caseEvidence).export).evidence);
+  const idSet = new Set(sourceRecordIds);
+  return evidence.filter((row) => idSet.has(text(row.source_record_id)));
+}
+
+function buildSourceDocumentIndex(
+  bundleRoot: string,
+  bundleIndex: Record<string, unknown>,
+  options: { query?: string | undefined; maxTextBytes: number; maxTextPreviewChars: number },
+): Record<string, unknown> {
+  const attachments = rows(bundleIndex.attachments);
+  const query = options.query?.trim() || null;
+  const documents = attachments.map((attachment, index) => {
+    const bundleRelativePath = typeof attachment.bundleRelativePath === "string" ? attachment.bundleRelativePath : null;
+    const filePath = bundleRelativePath ? path.join(bundleRoot, bundleRelativePath) : null;
+    const extracted = filePath
+      ? extractTextForIndex(filePath, options.maxTextBytes)
+      : { text: "", status: "not_copied", truncated: false };
+    const sourceRecordIds = sourceRecordIdsFromBundleIndex(bundleIndex, attachment);
+    const evidenceRows = evidenceRowsForSourceRecords(bundleIndex, sourceRecordIds);
+    const searchableText = [
+      extracted.text,
+      text(attachment.assetKind),
+      text(attachment.sourceUrl),
+      sourceRecordIds.join(" "),
+      evidenceRows.map((row) => `${text(row.field_path)} ${text(row.field_value)} ${text(row.evidence_summary)}`).join(" "),
+    ].join("\n");
+    const matchedSnippet = query ? querySnippet(searchableText, query, options.maxTextPreviewChars) : null;
+
+    return {
+      documentId: `doc-${String(index + 1).padStart(3, "0")}`,
+      status: extracted.status,
+      copiedStatus: attachment.status ?? null,
+      bundleRelativePath,
+      fileName: bundleRelativePath ? path.basename(bundleRelativePath) : null,
+      bytes: attachment.bytes ?? null,
+      copiedSha256: attachment.copiedSha256 ?? null,
+      expectedSha256: attachment.expectedSha256 ?? null,
+      assetKind: attachment.assetKind ?? null,
+      sourceAssetId: attachment.sourceAssetId ?? null,
+      sourceRecordIds,
+      sourceKeys: attachment.sourceKeys ?? [],
+      externalIds: attachment.externalIds ?? [],
+      sourceUrl: attachment.sourceUrl ?? null,
+      evidenceLinkIds: evidenceRows.map((row) => row.evidence_link_id ?? null).filter((value) => value !== null),
+      evidenceRoles: [...new Set(evidenceRows.map((row) => text(row.evidence_role)).filter((value) => value !== "n/a"))],
+      targetLabels: [...new Set(evidenceRows.map((row) => text(row.target_label)).filter((value) => value !== "n/a"))],
+      indexedTextPreview: extracted.text ? textPreview(extracted.text, options.maxTextPreviewChars) : null,
+      indexedTextTruncated: extracted.truncated,
+      searchableText: normalizeSearchText(searchableText),
+      queryMatched: matchedSnippet !== null,
+      querySnippet: matchedSnippet,
+      useLimit: "Indexed source text is for analyst search and traceability. Verify original files before public reuse.",
+    };
+  });
+
+  return {
+    generatedAt: new Date().toISOString(),
+    disclaimer:
+      "Source document indexes support local analyst search and traceability. They are not proof of wrongdoing or public findings.",
+    bundle: {
+      bundlePath: bundleRoot,
+      mode: bundleIndex.mode ?? null,
+      case: bundleIndex.case ?? null,
+      publicSafety: bundleIndex.publicSafety ?? null,
+    },
+    query,
+    counts: {
+      documentCount: documents.length,
+      searchableDocumentCount: documents.filter((document) => document.status === "indexed_text").length,
+      queryMatchCount: query ? documents.filter((document) => document.queryMatched === true).length : 0,
+    },
+    documents,
+    useLimits: [
+      "Use this index for local search and evidence navigation, not as a legal conclusion.",
+      "Verify original source files, source URLs, and case limitations before publication.",
+      "Public-only bundles still require privacy, methodology, and UX review before public release.",
+    ],
+  };
+}
+
+function renderSourceDocumentIndexMarkdown(index: Record<string, unknown>): string {
+  const bundle = record(index.bundle);
+  const caseRow = record(bundle.case);
+  const counts = record(index.counts);
+  const documents = rows(index.documents);
+  const query = text(index.query);
+  const lines: string[] = [];
+
+  lines.push(`# Centinela source document index: ${text(caseRow.title)}`);
+  lines.push("");
+  lines.push("This index supports local analyst search and traceability. It is not proof of wrongdoing or a public finding.");
+  lines.push("");
+  lines.push("## Index metadata");
+  lines.push("");
+  lines.push(`- Generated at: ${text(index.generatedAt)}`);
+  lines.push(`- Bundle mode: ${text(bundle.mode)}`);
+  lines.push(`- Query: ${query}`);
+  lines.push(`- Documents: ${text(counts.documentCount)}`);
+  lines.push(`- Searchable documents: ${text(counts.searchableDocumentCount)}`);
+  lines.push(`- Query matches: ${text(counts.queryMatchCount)}`);
+  lines.push("");
+  lines.push("## Documents");
+  lines.push("");
+
+  if (documents.length === 0) {
+    lines.push("No bundled source documents were indexed.");
+    lines.push("");
+  }
+
+  documents.forEach((document) => {
+    lines.push(`### ${text(document.documentId)}: ${text(document.fileName)}`);
+    lines.push("");
+    lines.push(`- Status: ${text(document.status)}`);
+    lines.push(`- Bundle path: ${text(document.bundleRelativePath)}`);
+    lines.push(`- Asset kind: ${text(document.assetKind)}`);
+    lines.push(`- Source asset ID: ${text(document.sourceAssetId)}`);
+    lines.push(`- Source record IDs: ${Array.isArray(document.sourceRecordIds) ? document.sourceRecordIds.map(text).join(", ") : "n/a"}`);
+    lines.push(`- Evidence link IDs: ${Array.isArray(document.evidenceLinkIds) ? document.evidenceLinkIds.map(text).join(", ") : "n/a"}`);
+    lines.push(`- Source URL: ${text(document.sourceUrl)}`);
+    lines.push(`- SHA-256: ${text(document.copiedSha256)}`);
+    lines.push(`- Query matched: ${document.queryMatched === true ? "yes" : "no"}`);
+    lines.push(`- Query snippet: ${text(document.querySnippet)}`);
+    lines.push(`- Text preview: ${text(document.indexedTextPreview)}`);
+    lines.push("");
+  });
+
+  lines.push("## Use limits");
+  lines.push("");
+  lines.push("- This index is an analyst navigation aid, not a legal conclusion.");
+  lines.push("- Verify original source files and source URLs before public reuse.");
+  lines.push("- Do not publish raw copied source files without separate privacy, methodology, and UX review.");
+  lines.push("");
+
+  return `${lines.join("\n")}\n`;
+}
+
+function readJsonFileIfPresent(filePath: string): Record<string, unknown> | null {
+  if (!fs.existsSync(filePath)) {
+    return null;
+  }
+
+  return record(JSON.parse(fs.readFileSync(filePath, "utf8")));
+}
+
+function hydrateBundleIndex(bundleRoot: string, bundleIndex: Record<string, unknown>): Record<string, unknown> {
+  const files = record(bundleIndex.files);
+  const caseEvidencePath = path.join(bundleRoot, text(files.caseEvidenceJson));
+  const sourceManifestPath = path.join(bundleRoot, text(files.sourceManifestJson));
+
+  return {
+    ...bundleIndex,
+    caseEvidence: bundleIndex.caseEvidence ?? readJsonFileIfPresent(caseEvidencePath) ?? null,
+    sourceManifest: bundleIndex.sourceManifest ?? readJsonFileIfPresent(sourceManifestPath) ?? null,
+  };
+}
+
+function writeSourceDocumentIndexFiles(bundleRoot: string, index: Record<string, unknown>): {
+  indexPath: string;
+  markdownPath: string;
+  jsonlPath: string;
+} {
+  const indexPath = path.join(bundleRoot, "source-document-index.json");
+  const markdownPath = path.join(bundleRoot, "source-document-index.md");
+  const jsonlPath = path.join(bundleRoot, "source-document-index.jsonl");
+  const documents = rows(index.documents);
+
+  fs.writeFileSync(indexPath, `${JSON.stringify(index, null, 2)}\n`, "utf8");
+  fs.writeFileSync(markdownPath, renderSourceDocumentIndexMarkdown(index), "utf8");
+  fs.writeFileSync(jsonlPath, documents.map((document) => JSON.stringify(document)).join("\n") + "\n", "utf8");
+
+  return { indexPath, markdownPath, jsonlPath };
 }
 
 export async function buildCaseEvidenceExportArtifacts(
@@ -849,6 +1162,9 @@ export async function buildCaseSourceBundleArtifacts(
     caseEvidenceMarkdown: "case-evidence.md",
     sourceManifestJson: "source-manifest.json",
     sourceManifestMarkdown: "source-manifest.md",
+    sourceDocumentIndexJson: "source-document-index.json",
+    sourceDocumentIndexMarkdown: "source-document-index.md",
+    sourceDocumentIndexJsonl: "source-document-index.jsonl",
     attachmentsFolder: "attachments/",
   };
   const bundleIndex = {
@@ -887,6 +1203,21 @@ export async function buildCaseSourceBundleArtifacts(
   fs.writeFileSync(evidenceMarkdownPath, renderMarkdown(evidenceBuild.artifact), "utf8");
   fs.writeFileSync(manifestJsonPath, `${JSON.stringify(manifestBuild.artifact, null, 2)}\n`, "utf8");
   fs.writeFileSync(manifestMarkdownPath, renderSourceAttachmentManifestMarkdown(manifestBuild.artifact), "utf8");
+  writeSourceDocumentIndexFiles(
+    bundleRoot,
+    buildSourceDocumentIndex(
+      bundleRoot,
+      {
+        ...bundleIndex,
+        caseEvidence: evidenceBuild.artifact,
+        sourceManifest: manifestBuild.artifact,
+      },
+      {
+        maxTextBytes: 250000,
+        maxTextPreviewChars: 600,
+      },
+    ),
+  );
 
   return {
     caseId: evidenceBuild.caseId,
@@ -899,5 +1230,36 @@ export async function buildCaseSourceBundleArtifacts(
     bundlePath: bundleRoot,
     indexPath,
     readmePath,
+  };
+}
+
+export async function buildCaseSourceDocumentIndexArtifacts(
+  options: BuildCaseSourceIndexOptions,
+): Promise<CaseSourceIndexResult> {
+  const bundleRoot = resolveBundlePath(options.bundlePath);
+  const bundleIndexPath = path.join(bundleRoot, "bundle-index.json");
+
+  if (!fs.existsSync(bundleIndexPath)) {
+    throw new Error(`Bundle index was not found at ${bundleIndexPath}.`);
+  }
+
+  const bundleIndex = hydrateBundleIndex(bundleRoot, record(JSON.parse(fs.readFileSync(bundleIndexPath, "utf8"))));
+  const index = buildSourceDocumentIndex(bundleRoot, bundleIndex, {
+    query: options.query,
+    maxTextBytes: options.maxTextBytes ?? 250000,
+    maxTextPreviewChars: options.maxTextPreviewChars ?? 600,
+  });
+  const paths = writeSourceDocumentIndexFiles(bundleRoot, index);
+  const counts = record(index.counts);
+
+  return {
+    bundlePath: bundleRoot,
+    documentCount: Number(counts.documentCount ?? 0),
+    searchableDocumentCount: Number(counts.searchableDocumentCount ?? 0),
+    query: options.query?.trim() || null,
+    queryMatchCount: Number(counts.queryMatchCount ?? 0),
+    indexPath: paths.indexPath,
+    markdownPath: paths.markdownPath,
+    jsonlPath: paths.jsonlPath,
   };
 }

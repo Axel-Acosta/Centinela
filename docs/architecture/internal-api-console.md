@@ -24,6 +24,7 @@ The surface is designed to expose:
 - case evidence exports with public-safety review gates
 - local case source attachment manifests with source-run asset paths, hashes, and availability checks
 - local case source bundles that copy resolvable source-run assets beside evidence and manifest files
+- local source-document indexes that search bundled text-like source files and trace matches back to evidence/source records
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -85,6 +86,8 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
   - writes Markdown and JSON source attachment manifests to the local runtime folder, including source-run asset paths, source URLs, hashes, and local path availability
 - `npm run database:case-source-bundle -- --case-id <id> --public-only false --copy-assets true`
   - writes a local review bundle with evidence files, source manifest files, `bundle-index.json`, `README.md`, and copied source-run assets when local paths resolve
+- `npm run database:case-source-index -- --bundle-path <bundle-path> --query "search terms"`
+  - refreshes a local source-document index for an existing source bundle and records query matches, source-record IDs, evidence-link IDs, snippets, and asset metadata
 - `POST /api/analyst-cases`
   - create a case; requires local write token
 - `POST /api/analyst-cases/:id/links`
@@ -190,6 +193,15 @@ On the source bundle smoke test, the CLI path also confirmed:
 - public-only bundle metadata did not expose `internal_analyst_interpretation`
 - cleanup returned smoke cases and artifacts to `0`
 
+On the source-document index smoke test, the CLI path also confirmed:
+
+- a temporary case and evidence link using source record `10117` could not write a public bundle/index before `approved_public`
+- after public-safety approval, the source bundle copied `2` source assets and wrote automatic source-document index files
+- refreshing the index with query `Consultora Guarani` returned `2` searchable documents and `2` query matches
+- matched documents preserved source-record and evidence-link traceability
+- public-only index files did not expose `internal_analyst_interpretation`
+- cleanup returned smoke cases and artifacts to `0`
+
 ## Limits
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
@@ -199,6 +211,7 @@ On the source bundle smoke test, the CLI path also confirmed:
 - Case evidence artifacts are generated runtime outputs and should stay out of Git.
 - Source attachment manifests are generated runtime outputs and should stay out of Git. They point to source-run assets; they do not yet copy source files into a portable bundle.
 - Source bundles are generated runtime outputs and should stay out of Git. They copy raw source artifacts for local review only; public reuse still requires source, privacy, methodology, and UX review.
+- Source-document indexes are generated runtime outputs and should stay out of Git. They are local navigation aids, not a substitute for source verification or full public-product review.
 - The console renders source-derived item text as text content rather than HTML, because source records can contain public-source strings.
 - No full-text document index yet.
 - Network output is graph-ready JSON, not a graph database.

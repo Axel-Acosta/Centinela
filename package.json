@@ -26,6 +26,7 @@
     "database:case-evidence-export": "tsx src/cli.ts database case-evidence-export",
     "database:case-source-manifest": "tsx src/cli.ts database case-source-manifest",
     "database:case-source-bundle": "tsx src/cli.ts database case-source-bundle",
+    "database:case-source-index": "tsx src/cli.ts database case-source-index",
     "database:entity-anchor-gaps": "tsx src/cli.ts database entity-anchor-gaps",
     "database:rulebook": "tsx src/cli.ts database rulebook",
     "serve:internal-console": "tsx src/cli.ts serve internal-console"

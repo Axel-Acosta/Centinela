@@ -233,3 +233,9 @@
 - Decision: Add a local case source bundle command before building full-text document indexing, OCR, or public document downloads.
 - Why: The manifest made source-run assets visible, but analysts need a portable folder that keeps evidence exports, source manifests, copied available source files, hashes, and use limits together. This gives Aleph-style case packaging without introducing search infrastructure or publication risk too early.
 - Consequence: `npm run database:case-source-bundle` writes a local runtime bundle with `bundle-index.json`, `README.md`, case evidence files, source manifest files, and copied attachments when paths resolve. Public-only bundles still require `approved_public`, but copied raw files remain review material and are not automatically public-ready.
+
+## 2026-05-01 - Lightweight source-document index before search infrastructure
+
+- Decision: Add a bounded local source-document index over case source bundles before introducing a full search engine, OCR service, or database-backed document index.
+- Why: The source bundle already has copied text-like artifacts and evidence/source traceability. A local JSON/Markdown/JSONL index gives immediate analyst search and provenance navigation without new infrastructure or public-surface risk.
+- Consequence: Source bundles now include `source-document-index.*`, and `npm run database:case-source-index` can refresh an existing bundle with a query. Index records keep source-record IDs, evidence-link IDs, source asset metadata, snippets, and use limits; they remain local review aids, not findings.

@@ -717,10 +717,31 @@ Concrete proof artifacts:
 - `npm run database:case-source-bundle`
 - local runtime source bundles under `CENTINELA_OUTPUT_DIR/reports/cases/<case-key>/<timestamp>-<mode>-source-bundle/`
 
+## 2026-05-01 source-document index advancement
+
+- br/acc
+  - advanced because bundled source files can now be indexed with source-record IDs, evidence-link IDs, source asset metadata, hashes, and source URLs preserved.
+- Aleph
+  - advanced because case bundles now support local document search and snippets, moving Centinela closer to investigator document-intelligence workflows without adding a heavy search engine yet.
+- Sayari
+  - advanced through analyst-grade traceability from a document hit back to source records, evidence links, entities/targets, and asset provenance.
+- Integrity Watch
+  - advanced because indexed snippets remain behind public-safety gates and keep use-limit warnings before any public-facing display.
+- RUBLI
+  - advanced through reproducible JSON/Markdown/JSONL indexes and explicit limitations around source verification and public reuse.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because future company-contract accountability pages can be backed by searchable, source-linked case bundles rather than unstructured local files.
+
+Concrete proof artifacts:
+
+- `buildCaseSourceDocumentIndexArtifacts` in `src/storage/caseEvidenceExport.ts`
+- `npm run database:case-source-index`
+- `source-document-index.json`, `source-document-index.md`, and `source-document-index.jsonl` inside local runtime source bundles
+
 ## Next extraction priority
 
 - highest priority
-  - add a lightweight document/source index on top of the source bundles
+  - expose case artifact, source bundle, and source-document index operations through the local console/API
 - next after that
   - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
 - then
