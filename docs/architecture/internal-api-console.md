@@ -80,6 +80,14 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
   - saved case detail with linked targets, notes, evidence links, public-review history, and chronological timeline events
 - `GET /api/analyst-cases/:id/evidence-export?public_only=true&limit=25`
   - source-backed case evidence export; `public_only=true` is blocked unless the latest public-safety status is `approved_public`
+- `POST /api/analyst-cases/:id/evidence-artifacts`
+  - writes local Markdown/JSON evidence artifacts through the API; requires local write token and reuses the `approved_public` gate when `publicOnly=true`
+- `POST /api/analyst-cases/:id/source-manifests`
+  - writes local Markdown/JSON source attachment manifests through the API; requires local write token and reuses the `approved_public` gate when `publicOnly=true`
+- `POST /api/analyst-cases/:id/source-bundles`
+  - writes a local source bundle through the API, optionally copies source-run assets, and can immediately refresh a query-aware source-document index; requires local write token and reuses the `approved_public` gate when `publicOnly=true`
+- `POST /api/source-document-indexes`
+  - refreshes a source-document index for an existing local source bundle; requires local write token and returns document/query match counts plus output paths
 - `npm run database:case-evidence-export -- --case-id <id> --public-only false`
   - writes Markdown and JSON evidence artifacts to the local runtime folder, including a source-record index
 - `npm run database:case-source-manifest -- --case-id <id> --public-only false`
@@ -202,6 +210,14 @@ On the source-document index smoke test, the CLI path also confirmed:
 - public-only index files did not expose `internal_analyst_interpretation`
 - cleanup returned smoke cases and artifacts to `0`
 
+On the case artifact API/console smoke test, the local API path also confirmed:
+
+- a temporary case and evidence link using source record `10117` could not write a public source bundle before `approved_public`
+- after public-safety approval, `POST /api/analyst-cases/:id/evidence-artifacts`, `/source-manifests`, and `/source-bundles` wrote public-approved local artifacts
+- the bundle copied `2` source assets, the immediate bundle query index returned `2` matches, and `POST /api/source-document-indexes` refreshed the same bundle with `2` query matches
+- `/console` included the new artifact/source-bundle/source-index controls
+- cleanup removed the temporary case and smoke artifacts
+
 ## Limits
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
@@ -212,6 +228,7 @@ On the source-document index smoke test, the CLI path also confirmed:
 - Source attachment manifests are generated runtime outputs and should stay out of Git. They point to source-run assets; they do not yet copy source files into a portable bundle.
 - Source bundles are generated runtime outputs and should stay out of Git. They copy raw source artifacts for local review only; public reuse still requires source, privacy, methodology, and UX review.
 - Source-document indexes are generated runtime outputs and should stay out of Git. They are local navigation aids, not a substitute for source verification or full public-product review.
+- Artifact and bundle POST endpoints generate local files, so they require the local write token even though they do not mutate PostgreSQL case evidence.
 - The console renders source-derived item text as text content rather than HTML, because source records can contain public-source strings.
 - No full-text document index yet.
 - Network output is graph-ready JSON, not a graph database.

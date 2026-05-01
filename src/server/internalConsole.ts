@@ -27,6 +27,12 @@ import {
   getSourceRecord,
   reviewAnalystCasePublicSafety,
 } from "../storage/analystWorkspace";
+import {
+  buildCaseEvidenceExportArtifacts,
+  buildCaseSourceAttachmentManifestArtifacts,
+  buildCaseSourceBundleArtifacts,
+  buildCaseSourceDocumentIndexArtifacts,
+} from "../storage/caseEvidenceExport";
 
 export interface InternalConsoleOptions {
   host?: string;
@@ -128,6 +134,36 @@ function parseCaseEvidenceRoute(pathname: string): number | undefined {
 
 function parseCaseEvidenceExportRoute(pathname: string): number | undefined {
   const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/evidence-export$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const caseId = Number(match[1]);
+  return Number.isInteger(caseId) && caseId > 0 ? caseId : undefined;
+}
+
+function parseCaseEvidenceArtifactRoute(pathname: string): number | undefined {
+  const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/evidence-artifacts$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const caseId = Number(match[1]);
+  return Number.isInteger(caseId) && caseId > 0 ? caseId : undefined;
+}
+
+function parseCaseSourceManifestRoute(pathname: string): number | undefined {
+  const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/source-manifests$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const caseId = Number(match[1]);
+  return Number.isInteger(caseId) && caseId > 0 ? caseId : undefined;
+}
+
+function parseCaseSourceBundleRoute(pathname: string): number | undefined {
+  const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/source-bundles$/);
   if (!match) {
     return undefined;
   }
@@ -364,7 +400,21 @@ function stringField(body: Record<string, unknown>, name: string): string | unde
 
 function numberField(body: Record<string, unknown>, name: string): number | undefined {
   const value = body[name];
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+
+  return undefined;
 }
 
 function recordField(body: Record<string, unknown>, name: string): Record<string, unknown> | undefined {
@@ -374,6 +424,25 @@ function recordField(body: Record<string, unknown>, name: string): Record<string
     : undefined;
 }
 
+function booleanField(body: Record<string, unknown>, name: string): boolean | undefined {
+  const value = body[name];
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "1", "yes"].includes(normalized)) {
+      return true;
+    }
+    if (["false", "0", "no"].includes(normalized)) {
+      return false;
+    }
+  }
+
+  return undefined;
+}
+
 function booleanParam(url: URL, name: string): boolean | undefined {
   const value = textParam(url, name);
   if (value === undefined) {
@@ -381,6 +450,25 @@ function booleanParam(url: URL, name: string): boolean | undefined {
   }
 
   return value === "true" || value === "1";
+}
+
+function artifactBuildOptions(
+  caseId: number,
+  body: Record<string, unknown>,
+): { caseId: number; publicOnly?: boolean; limit?: number } {
+  const options: { caseId: number; publicOnly?: boolean; limit?: number } = { caseId };
+  const publicOnly = booleanField(body, "publicOnly") ?? booleanField(body, "public_only");
+  const limit = numberField(body, "limit");
+
+  if (publicOnly !== undefined) {
+    options.publicOnly = publicOnly;
+  }
+
+  if (limit !== undefined) {
+    options.limit = limit;
+  }
+
+  return options;
 }
 
 function getWriteToken(request: http.IncomingMessage): string | undefined {
@@ -569,6 +657,19 @@ function consoleHtml(): string {
       margin-bottom: 12px;
     }
 
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .checkbox-row input {
+      flex: 0 0 auto;
+      width: auto;
+    }
+
     button {
       border: 0;
       border-radius: 999px;
@@ -734,6 +835,17 @@ function consoleHtml(): string {
               <button id="save-public-review" type="button" class="secondary">Save public-safety review</button>
               <button id="load-evidence-export" type="button" class="secondary">Load internal evidence export</button>
               <button id="load-public-export" type="button" class="secondary">Load public-approved export</button>
+              <label class="checkbox-row">
+                <input id="artifact-public-only" type="checkbox" />
+                Public-only artifact mode; requires approved public review.
+              </label>
+              <input id="artifact-limit" value="50" aria-label="Artifact evidence limit" />
+              <input id="source-index-query" value="Consultora Guarani" aria-label="Source-document index query" />
+              <input id="source-bundle-path" placeholder="Source bundle path for index refresh" aria-label="Source bundle path" />
+              <button id="write-evidence-artifact" type="button" class="secondary">Write evidence artifact</button>
+              <button id="write-source-manifest" type="button" class="secondary">Write source manifest</button>
+              <button id="write-source-bundle" type="button" class="secondary">Write source bundle + index</button>
+              <button id="refresh-source-index" type="button" class="secondary">Refresh bundle source index</button>
             </div>
             <div id="cases" class="list"></div>
             <div id="case-source-record-results" class="list"></div>
@@ -742,6 +854,7 @@ function consoleHtml(): string {
           <div class="span-7">
             <pre id="case-detail">Create or open a case to see the timeline.</pre>
             <pre id="case-export">Evidence export appears here after public-safety review.</pre>
+            <pre id="case-artifacts">Artifact, bundle, and source index paths appear here.</pre>
           </div>
         </div>
       </article>
@@ -768,6 +881,7 @@ function consoleHtml(): string {
     let currentCaseId = null;
     let currentSourceRecordId = null;
     let currentNoteId = null;
+    let currentBundlePath = null;
 
     async function getJson(path) {
       const response = await fetch(path);
@@ -1189,6 +1303,99 @@ function consoleHtml(): string {
       document.getElementById('case-export').textContent = JSON.stringify(payload.data, null, 2);
     }
 
+    function artifactLimit() {
+      const parsed = Number(document.getElementById('artifact-limit').value);
+      return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : undefined;
+    }
+
+    function artifactRequestBody(extra) {
+      const body = Object.assign({
+        publicOnly: document.getElementById('artifact-public-only').checked,
+        limit: artifactLimit(),
+        provenance: {
+          source: 'internal_console',
+          nonAccusatoryUse: true,
+          localArtifactOnly: true
+        }
+      }, extra || {});
+      return body;
+    }
+
+    async function writeEvidenceArtifact() {
+      if (!currentCaseId) {
+        document.getElementById('case-artifacts').textContent = 'Open a case before writing artifacts.';
+        return;
+      }
+
+      const token = document.getElementById('write-token').value;
+      const payload = await postJson(
+        '/api/analyst-cases/' + currentCaseId + '/evidence-artifacts',
+        artifactRequestBody(),
+        token
+      );
+      document.getElementById('case-artifacts').textContent = JSON.stringify(payload.data, null, 2);
+    }
+
+    async function writeSourceManifest() {
+      if (!currentCaseId) {
+        document.getElementById('case-artifacts').textContent = 'Open a case before writing artifacts.';
+        return;
+      }
+
+      const token = document.getElementById('write-token').value;
+      const payload = await postJson(
+        '/api/analyst-cases/' + currentCaseId + '/source-manifests',
+        artifactRequestBody(),
+        token
+      );
+      document.getElementById('case-artifacts').textContent = JSON.stringify(payload.data, null, 2);
+    }
+
+    async function writeSourceBundle() {
+      if (!currentCaseId) {
+        document.getElementById('case-artifacts').textContent = 'Open a case before writing artifacts.';
+        return;
+      }
+
+      const token = document.getElementById('write-token').value;
+      const query = document.getElementById('source-index-query').value;
+      const payload = await postJson(
+        '/api/analyst-cases/' + currentCaseId + '/source-bundles',
+        artifactRequestBody({
+          copyAssets: true,
+          query
+        }),
+        token
+      );
+      const bundle = payload.data.bundle || payload.data;
+      if (bundle.bundlePath) {
+        currentBundlePath = bundle.bundlePath;
+        document.getElementById('source-bundle-path').value = currentBundlePath;
+      }
+      document.getElementById('case-artifacts').textContent = JSON.stringify(payload.data, null, 2);
+    }
+
+    async function refreshSourceIndex() {
+      const bundlePath = document.getElementById('source-bundle-path').value || currentBundlePath;
+      if (!bundlePath) {
+        document.getElementById('case-artifacts').textContent = 'Write a source bundle first, or paste a bundle path.';
+        return;
+      }
+
+      const token = document.getElementById('write-token').value;
+      const query = document.getElementById('source-index-query').value;
+      const payload = await postJson('/api/source-document-indexes', {
+        bundlePath,
+        query,
+        provenance: {
+          source: 'internal_console',
+          nonAccusatoryUse: true,
+          localArtifactOnly: true
+        }
+      }, token);
+      document.getElementById('case-artifacts').textContent = JSON.stringify(payload.data, null, 2);
+    }
+
     async function loadQueues() {
       const [queue, candidates] = await Promise.all([
         getJson('/api/queue/entities?limit=5'),
@@ -1253,6 +1460,26 @@ function consoleHtml(): string {
     document.getElementById('load-public-export').addEventListener('click', () => {
       loadCaseEvidenceExport(true).catch((error) => {
         document.getElementById('case-export').textContent = error.message;
+      });
+    });
+    document.getElementById('write-evidence-artifact').addEventListener('click', () => {
+      writeEvidenceArtifact().catch((error) => {
+        document.getElementById('case-artifacts').textContent = error.message;
+      });
+    });
+    document.getElementById('write-source-manifest').addEventListener('click', () => {
+      writeSourceManifest().catch((error) => {
+        document.getElementById('case-artifacts').textContent = error.message;
+      });
+    });
+    document.getElementById('write-source-bundle').addEventListener('click', () => {
+      writeSourceBundle().catch((error) => {
+        document.getElementById('case-artifacts').textContent = error.message;
+      });
+    });
+    document.getElementById('refresh-source-index').addEventListener('click', () => {
+      refreshSourceIndex().catch((error) => {
+        document.getElementById('case-artifacts').textContent = error.message;
       });
     });
     loadOverview().then(loadAccepted).then(loadQueues).then(loadCases).then(() => searchEntities()).catch((error) => {
@@ -1330,6 +1557,79 @@ async function handleApiRequest(url: URL, request: http.IncomingMessage): Promis
         metadata: recordField(body, "metadata"),
         dryRun,
       });
+    }
+
+    const evidenceArtifactCaseId = parseCaseEvidenceArtifactRoute(url.pathname);
+    if (evidenceArtifactCaseId !== undefined) {
+      return buildCaseEvidenceExportArtifacts(artifactBuildOptions(evidenceArtifactCaseId, body));
+    }
+
+    const sourceManifestCaseId = parseCaseSourceManifestRoute(url.pathname);
+    if (sourceManifestCaseId !== undefined) {
+      return buildCaseSourceAttachmentManifestArtifacts(artifactBuildOptions(sourceManifestCaseId, body));
+    }
+
+    const sourceBundleCaseId = parseCaseSourceBundleRoute(url.pathname);
+    if (sourceBundleCaseId !== undefined) {
+      const bundleOptions: {
+        caseId: number;
+        publicOnly?: boolean;
+        limit?: number;
+        copyAssets?: boolean;
+      } = artifactBuildOptions(sourceBundleCaseId, body);
+      const copyAssets = booleanField(body, "copyAssets") ?? booleanField(body, "copy_assets");
+      if (copyAssets !== undefined) {
+        bundleOptions.copyAssets = copyAssets;
+      }
+
+      const bundle = await buildCaseSourceBundleArtifacts(bundleOptions);
+      const query = stringField(body, "query")?.trim();
+      const sourceIndex =
+        query && query.length > 0
+          ? await buildCaseSourceDocumentIndexArtifacts({
+              bundlePath: bundle.bundlePath,
+              query,
+            })
+          : null;
+
+      return {
+        bundle,
+        sourceIndex,
+        disclaimer:
+          "Generated case source bundles and indexes are local review artifacts. They are not proof of wrongdoing or public findings.",
+      };
+    }
+
+    if (url.pathname === "/api/source-document-indexes") {
+      const bundlePath = stringField(body, "bundlePath") ?? stringField(body, "bundle_path");
+      if (!bundlePath?.trim()) {
+        throw new Error("bundlePath is required to refresh a source-document index.");
+      }
+
+      const sourceIndexOptions: {
+        bundlePath: string;
+        query?: string;
+        maxTextBytes?: number;
+        maxTextPreviewChars?: number;
+      } = { bundlePath: bundlePath.trim() };
+      const query = stringField(body, "query")?.trim();
+      const maxTextBytes = numberField(body, "maxTextBytes") ?? numberField(body, "max_text_bytes");
+      const maxTextPreviewChars =
+        numberField(body, "maxTextPreviewChars") ?? numberField(body, "max_text_preview_chars");
+
+      if (query) {
+        sourceIndexOptions.query = query;
+      }
+
+      if (maxTextBytes !== undefined) {
+        sourceIndexOptions.maxTextBytes = maxTextBytes;
+      }
+
+      if (maxTextPreviewChars !== undefined) {
+        sourceIndexOptions.maxTextPreviewChars = maxTextPreviewChars;
+      }
+
+      return buildCaseSourceDocumentIndexArtifacts(sourceIndexOptions);
     }
 
     const caseId = parseCaseLinkRoute(url.pathname);

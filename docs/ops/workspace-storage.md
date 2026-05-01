@@ -87,6 +87,17 @@ npm run database:case-source-bundle -- --case-id <id> --public-only false --copy
 npm run database:case-source-index -- --bundle-path "<bundle-path>" --query "search terms"
 ```
 
+The same artifact workflow is also exposed through the local internal console/API:
+
+```text
+POST /api/analyst-cases/:id/evidence-artifacts
+POST /api/analyst-cases/:id/source-manifests
+POST /api/analyst-cases/:id/source-bundles
+POST /api/source-document-indexes
+```
+
+Those endpoints still write under `CENTINELA_OUTPUT_DIR` and require the local write token. They do not move generated artifacts into Git or OneDrive.
+
 The source manifest command writes an attachment checklist beside the case evidence artifacts. It lists linked source records, source-run assets, source URLs, SHA-256 hashes, local path availability, and payload previews; it does not copy source files into a bundle yet.
 
 The source bundle command writes a local review folder beside the case artifacts. It includes `bundle-index.json`, `README.md`, evidence JSON/Markdown, source manifest JSON/Markdown, and copied source-run assets when local paths resolve. It also maps old absolute repo `data/` paths to the current runtime folder when possible, because older source records were created before generated artifacts moved out of the workspace.

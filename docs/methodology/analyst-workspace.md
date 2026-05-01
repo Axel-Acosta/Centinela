@@ -72,6 +72,10 @@ Write endpoints:
 - `POST /api/analyst-cases/:id/links`
 - `POST /api/analyst-cases/:id/evidence-links`
 - `POST /api/analyst-cases/:id/public-review`
+- `POST /api/analyst-cases/:id/evidence-artifacts`
+- `POST /api/analyst-cases/:id/source-manifests`
+- `POST /api/analyst-cases/:id/source-bundles`
+- `POST /api/source-document-indexes`
 - `POST /api/analyst-notes`
 
 Write endpoints require `CENTINELA_WRITE_TOKEN` and either:
@@ -80,6 +84,8 @@ Write endpoints require `CENTINELA_WRITE_TOKEN` and either:
 - `Authorization: Bearer <token>`
 
 If `CENTINELA_WRITE_TOKEN` is not set, write endpoints are disabled.
+
+The artifact and bundle POST endpoints write local runtime files rather than database evidence. They still require the write token because they create review artifacts on disk and can include internal-only material unless `publicOnly=true` is explicitly gated by `approved_public`.
 
 ## Safety rules
 
@@ -96,6 +102,7 @@ If `CENTINELA_WRITE_TOKEN` is not set, write endpoints are disabled.
 - Source attachment manifests are attachment checklists, not findings. `exists` means a local file path was present when the manifest was generated; verify paths again before evidence packaging or publication.
 - Source bundles are local review packets. Even in public-approved mode, copied raw source files are not automatically public-ready; they still need source, privacy, methodology, and UX review.
 - Source-document indexes are local navigation aids. Snippets and searchable text must be checked against the original source file before any public reuse.
+- Console/API artifact controls make bundle generation easier, but they do not change the review meaning: a generated artifact is a review packet, not a finding.
 - Write-token authentication is a local hardening step, not a full production auth system.
 
 ## Current smoke-test result
@@ -120,7 +127,8 @@ On 2026-04-26, the first live analyst-workspace smoke test confirmed:
 - the source attachment manifest smoke created one temporary case and source-record evidence link to source record `10117`; manifest creation was blocked before approval, approved public manifest wrote Markdown and JSON runtime artifacts, the manifest contained `1` linked source record and `2` source-run assets, no internal analyst interpretation leaked, and cleanup returned smoke cases/artifacts to `0`
 - the source bundle smoke created one temporary case and source-record evidence link to source record `10117`; bundle creation was blocked before approval, approved public bundle wrote `bundle-index.json`, `README.md`, evidence JSON/Markdown, source manifest JSON/Markdown, copied `2` of `2` source-run assets, did not leak internal analyst interpretation, and cleanup returned smoke cases/artifacts to `0`
 - the source-document index smoke created one temporary case and source-record evidence link to source record `10117`; public bundle/index creation was blocked before approval, approved public bundle copied `2` source assets, automatic index files were written, a refreshed query for `Consultora Guarani` returned `2` searchable documents and `2` query matches, matched documents preserved source-record and evidence-link traceability, no internal analyst interpretation leaked, and cleanup returned smoke cases/artifacts to `0`
+- the case artifact API/console smoke created one temporary case and source-record evidence link to source record `10117`; public bundle creation was blocked before approval, approved public POST artifact routes wrote evidence artifacts, source manifests, and a source bundle, the bundle copied `2` source assets, both immediate and refreshed source-index queries returned `2` matches, `/console` exposed the artifact controls, and cleanup removed the temporary case/artifacts
 
 ## Next hardening step
 
-Expose case artifact, source bundle, and source-document index generation through the local console/API so analysts can use the workflow without manually copying filesystem paths.
+Persist a lightweight case artifact registry or recent-artifact reader so analysts can reopen existing bundle paths from the console instead of relying only on the response from the current generation run.

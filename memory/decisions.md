@@ -239,3 +239,9 @@
 - Decision: Add a bounded local source-document index over case source bundles before introducing a full search engine, OCR service, or database-backed document index.
 - Why: The source bundle already has copied text-like artifacts and evidence/source traceability. A local JSON/Markdown/JSONL index gives immediate analyst search and provenance navigation without new infrastructure or public-surface risk.
 - Consequence: Source bundles now include `source-document-index.*`, and `npm run database:case-source-index` can refresh an existing bundle with a query. Index records keep source-record IDs, evidence-link IDs, source asset metadata, snippets, and use limits; they remain local review aids, not findings.
+
+## 2026-05-01 - Console/API artifact controls before artifact registry
+
+- Decision: Expose case evidence artifacts, source manifests, source bundles, and source-document index refresh through token-protected local API/console controls before adding a persistent artifact registry or production case-management UI.
+- Why: The artifact pipeline already worked from CLI, but analysts should not have to copy filesystem paths manually to use case packets. The local console can make the workflow operational now while preserving the same public-safety gate and non-accusatory artifact semantics.
+- Consequence: `src/server/internalConsole.ts` now has POST routes and case-workbench controls for artifact generation and source-index refresh. Generated files remain local runtime outputs outside Git/OneDrive. The next hardening step is a recent-artifact registry or reader, not public publication.

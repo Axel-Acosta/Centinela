@@ -20,12 +20,14 @@
    `npm run database:case-source-bundle -- --case-id <id> --public-only false --copy-assets true` writes a local runtime bundle with evidence JSON/Markdown, source manifest JSON/Markdown, `bundle-index.json`, `README.md`, and copied source-run assets where local paths can be resolved.
 10. Use the case source index command as the first searchable bundle layer:
    `npm run database:case-source-index -- --bundle-path <bundle-path> --query "Consultora Guarani"` refreshes `source-document-index.json`, `source-document-index.md`, and `source-document-index.jsonl` for an existing source bundle and shows document/query matches with source-record and evidence-link traceability.
-11. Add the next analyst-console/API surface for source bundles and indexes:
-   expose case artifact generation, source bundle paths, document index summaries, and source-index query results from the local console/API so analysts do not have to copy filesystem paths manually.
-12. Improve OpenSanctions candidate scoring before any broader matching:
+11. Use the local console/API artifact controls:
+   `POST /api/analyst-cases/:id/evidence-artifacts`, `/source-manifests`, `/source-bundles`, and `POST /api/source-document-indexes` are live behind the local write token; the case workbench now has buttons to write evidence artifacts, source manifests, source bundles, and query-aware source indexes without manually running CLI commands.
+12. Add the next analyst-console hardening layer:
+   persist a lightweight artifact registry or recent-artifact reader so analysts can reopen existing bundle paths, index summaries, and generated files from the console after the initial API response is gone.
+13. Improve OpenSanctions candidate scoring before any broader matching:
    add stronger name-order scoring, source-document evidence scoring, local identifier comparison where external identifiers exist, and explicit handling for generic business terms.
-13. Resolve the last remaining local identity anchor gap:
+14. Resolve the last remaining local identity anchor gap:
    `MENDEZ GONZALEZ FLORIANA *` has `PY-RUC-4070792` without a check digit, so recover the complete RUC from DNCP source records, official documents, or another lawful Paraguay identity source before rerunning DNIT validation.
-14. Keep the DNCP legal-representative/person screening lane active, but preserve weak person-name overlaps as rejected diagnostics unless exact person-name agreement, stronger multi-token evidence, hosted matcher evidence, or source documents justify review escalation.
-15. Ask OpenSanctions about higher trial limits or longer-term access if another hosted rerun is needed before the monthly quota resets; otherwise continue using the already-stored hosted comparison evidence.
-16. Refine the DNCP-to-Centinela crosswalk with the best available local public red-flag descriptions and terminology.
+15. Keep the DNCP legal-representative/person screening lane active, but preserve weak person-name overlaps as rejected diagnostics unless exact person-name agreement, stronger multi-token evidence, hosted matcher evidence, or source documents justify review escalation.
+16. Ask OpenSanctions about higher trial limits or longer-term access if another hosted rerun is needed before the monthly quota resets; otherwise continue using the already-stored hosted comparison evidence.
+17. Refine the DNCP-to-Centinela crosswalk with the best available local public red-flag descriptions and terminology.

@@ -738,10 +738,34 @@ Concrete proof artifacts:
 - `npm run database:case-source-index`
 - `source-document-index.json`, `source-document-index.md`, and `source-document-index.jsonl` inside local runtime source bundles
 
+## 2026-05-01 case artifact API/console advancement
+
+- br/acc
+  - advanced because source-linked case packets, source manifests, and source-document indexes are now generated through stable local API routes without weakening source-registry provenance.
+- Aleph
+  - advanced because document/case packet workflows moved from CLI-only commands into the investigator console, closer to entity-centric casework and source navigation.
+- Sayari
+  - advanced because analysts can create and refresh source-backed case packets from one case workbench while preserving counts, paths, copied-asset status, and query-match evidence.
+- Integrity Watch
+  - advanced because public-only artifact generation remains gated by `approved_public` and visible limitations before any public-facing display.
+- RUBLI
+  - advanced through reproducible API-generated artifacts, explicit local-output boundaries, write-token protection, public-gate enforcement, and non-accusatory disclaimers.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because future company-contract accountability pages can now draw from console-generated case packets rather than ad hoc local files.
+
+Concrete proof artifacts:
+
+- `POST /api/analyst-cases/:id/evidence-artifacts`
+- `POST /api/analyst-cases/:id/source-manifests`
+- `POST /api/analyst-cases/:id/source-bundles`
+- `POST /api/source-document-indexes`
+- case artifact controls in `src/server/internalConsole.ts`
+- live smoke result recorded in `memory/run-log.md`
+
 ## Next extraction priority
 
 - highest priority
-  - expose case artifact, source bundle, and source-document index operations through the local console/API
+  - add a lightweight artifact registry or recent-artifact reader for generated source bundles and source-document indexes
 - next after that
   - recover the missing RUC check digit for the final Paraguay anchor gap and rerun DNIT validation, influenced by DNCP, QQW, Sayari, OpenOwnership, and OpenCorporates
 - then
