@@ -57,6 +57,8 @@
   - hosted comparison evidence is now persisted into PostgreSQL and reused by the queue, candidate-review report, and entity dossiers
   - manual external-candidate review workflow achieved through `sql/postgres/014_external_candidate_review_workflow.sql`, `centinela.entity_enrichment_candidate_review_overview`, `src/storage/candidateReview.ts`, and `npm run database:review-external-candidate`
   - official IDB Open Data row-level source checking achieved for IADB/OpenSanctions candidates through `src/enrichment/idbSanctions.ts` and `npm run enrichment:idb-sanctions-candidate`
+  - official DNCP release/document source-record checking achieved through `src/enrichment/dncpReleaseSourceCheck.ts` and `npm run enrichment:dncp-release-source-check`
+  - current `py-dncp-release-source-check` state: 4 official release package source records and 567 official document metadata records across two high-priority entities
   - repo-side second-review accepted-match workflow achieved through `sql/postgres/015_external_candidate_second_review.sql`, `src/storage/secondReview.ts`, `npm run database:second-review-external-candidate`, and the second-review methodology note
   - live second-review accepted-match case achieved for candidate `59`, with accepted enrichment match ID `11` and zero external risk signals created by the second-review workflow
   - current blocker: the trial key hit a monthly `429` rate limit after the first live comparison pass
@@ -70,6 +72,7 @@
   - external candidate review workflow
   - hosted matcher comparison workflow
   - row-level source-document evidence workflow for selected external candidates
+  - official DNCP release/document metadata source-record workflow for selected entity dossiers
   - ownership-ready relationship model
 - Main references
   - OpenSanctions
@@ -137,13 +140,14 @@
 
 ## Immediate next best step
 
-- Move back from casework plumbing to intelligence value: improve external-candidate scoring/evidence and resolve the final local RUC anchor gap, unless analysts first need bounded artifact-detail reading for selected bundle/index files.
+- Move back from casework plumbing to intelligence value: widen official DNCP release/document source checks over high-priority companies and candidate-review entities, then add selected document-content extraction/OCR for source records that analysts actually need.
 - Reason
-  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, a live case timeline view, source-record evidence links, in-case source-record search, source field helpers, gated case evidence export, source-indexed Markdown/JSON case artifacts, source attachment manifests, source bundles that copy resolvable source-run assets, source-document indexes that search bundled files with evidence/source traceability, console/API controls to generate those artifacts, and a local artifact registry to rediscover them. The casework layer is now strong enough to return attention to entity intelligence.
+  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, official DNCP release/document source records, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, a live case timeline view, source-record evidence links, in-case source-record search, source field helpers, gated case evidence export, source-indexed Markdown/JSON case artifacts, source attachment manifests, source bundles that copy resolvable source-run assets, source-document indexes that search bundled files with evidence/source traceability, console/API controls to generate those artifacts, and a local artifact registry to rediscover them. The casework layer is now strong enough to return attention to entity intelligence.
 - Expected carry-over
   - local API endpoints and console views that expose candidate records with durable human-review status, notes, source-backed promotion/rejection history, second-review state, source-record links, explanation bundles, evidence-export posture, and recent generated artifact paths
   - tighter use of hosted same-candidate confirmation versus different-result ambiguity inside analyst workflows
-  - one fully explained or resolved remaining local identity gap
+  - one fully explained or resolved remaining local identity gap if a lawful source exposes the missing check digit
+  - selected official DNCP document contents brought into source bundles/indexes only where casework needs them
   - stronger OpenSanctions candidate evidence display grounded in official Paraguay names, RUCs, representative links, rejection reasons, and review state
   - first ownership, sanctions, or company-accountability pivot from the company-level queue with a better local anchor
   - stronger Sayari, OpenSanctions, Open Ownership, OpenCorporates, ICIJ, QQW, and DNCP supplier-registry protagonism

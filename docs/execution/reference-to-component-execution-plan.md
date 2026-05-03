@@ -75,6 +75,7 @@ For each major precedent, it states:
   - `sql/postgres/014_external_candidate_review_workflow.sql`
   - `src/storage/candidateReview.ts`
   - `src/enrichment/dncpSupplierAnchor.ts`
+  - `src/enrichment/dncpReleaseSourceCheck.ts`
 - Data inputs
   - all source metadata
   - entity identifiers
@@ -89,6 +90,7 @@ For each major precedent, it states:
   - keep every entity and process tied to source lineage
   - extend source registry and provenance per entity/source
   - store matched external rows in `source_records`
+  - store official DNCP release packages and document metadata as source records for entity-linked casework
 - Later stage
   - graph exports and public cross-reference explorer
 - Interaction with current foundation
@@ -105,6 +107,8 @@ For each major precedent, it states:
   - `docs/architecture/analyst-workflows.md`
   - `src/storage/analyst.ts`
   - entity brief report outputs
+  - `docs/methodology/dncp-release-source-check.md`
+  - `src/enrichment/dncpReleaseSourceCheck.ts`
 - Data inputs
   - normalized entities
   - processes, contracts, transactions, documents later
@@ -117,6 +121,7 @@ For each major precedent, it states:
   - entity briefs
   - search-friendly views
   - later API contracts shaped around entity answers
+  - source-record/document metadata capture for official DNCP release packages tied to selected entities
 - Later stage
   - document search, timelines, network explorer, saved cases
 - Interaction with current foundation
@@ -457,7 +462,7 @@ For each major precedent, it states:
 - QuiénEsQuién/TodosLosContratos
   - created company-centric procurement dossiers plus a company-level queue that separates supplier accountability review from process-only red-flag triage
 - DNCP
-  - now directly shapes a live official supplier and sanctions connector that covers 2,521 of 2,534 procurement-linked supplier companies, not only the procurement backbone
+  - now directly shapes a live official supplier and sanctions connector that covers 2,521 of 2,534 procurement-linked supplier companies, plus an official release/document source-record lane for high-priority entity casework, not only the procurement backbone
 - DNIT
   - now contributes a live taxpayer identity-validation connector covering 2,518 procurement-linked supplier companies and resolving 12 of the 13 previous local anchor gaps without automating human-oriented profile flows
 - Rosie
@@ -805,11 +810,36 @@ Concrete proof artifacts:
 - `docs/methodology/external-candidate-review-workflow.md`
 - live rerun result recorded in `memory/run-log.md`
 
+## 2026-05-03 DNCP release source-record advancement
+
+- br/acc
+  - advanced because official DNCP release packages and document metadata now become first-class `source_records` linked back to local entities, source URLs, process IDs, and field paths.
+- Aleph
+  - advanced because entity dossiers now expose official source-record/document metadata that can be linked into cases and source bundles.
+- Sayari
+  - advanced because high-priority company dossiers now carry source-backed document-navigation evidence instead of relying only on summary procurement rows.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because company-contract accountability can now cite official process-document metadata and release packages for selected companies.
+- DNCP local precedent / OCDS / Cardinal
+  - advanced because the connector uses official DNCP OCDS release packages as the document/source spine rather than a detached scrape.
+- Integrity Watch / RUBLI
+  - advanced because the methodology explicitly separates source evidence from findings, preserves field paths/source URLs, and states limitations around missing RUC check digits and public reuse.
+
+Concrete proof artifacts:
+
+- `src/enrichment/dncpReleaseSourceCheck.ts`
+- `npm run enrichment:dncp-release-source-check`
+- `docs/methodology/dncp-release-source-check.md`
+- entity brief `Official source records and documents` section
+- live source key `py-dncp-release-source-check`
+- current live state: 4 official release package records and 567 official document metadata records across `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`
+
 ## Next extraction priority
 
 - highest priority
   - move to the next lawful Paraguay cross-domain source, preferably company/officer/ownership-adjacent accountability data if access is lawful and practical
 - next after that
+  - widen DNCP release/document source-record checks across the highest-priority companies/candidates and add selected document-content extraction/OCR for source records that analysts actually need
   - revisit the final RUC anchor gap only when a new lawful source can expose the missing check digit; DNIT bulk, DNCP OCDS JSON, DNCP supplier search, and locally parsed official PDFs did not resolve it
 - then
   - stage ownership/offshore expansion influenced by OpenOwnership, ICIJ, OpenCorporates, and Sayari on top of the safer candidate-evidence and review-preservation baseline

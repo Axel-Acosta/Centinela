@@ -106,6 +106,19 @@ interface EntityProcessRow {
   source_url: string | null;
 }
 
+interface EntitySourceRecordRow {
+  id: string;
+  source_key: string;
+  external_id: string;
+  record_kind: string;
+  source_url: string | null;
+  retrieved_at: string;
+  record_title: string | null;
+  process_title: string | null;
+  document_type: string | null;
+  field_path: string | null;
+}
+
 interface EntityEnrichmentRow {
   matched_entity_name: string;
   matched_entity_type: string;
@@ -754,6 +767,7 @@ function renderEntityBrief(
   representativeExternalMatches: RepresentativeExternalMatchRow[],
   representativeExternalCandidates: RepresentativeExternalCandidateRow[],
   representativeHostedComparisons: RepresentativeHostedComparisonRow[],
+  sourceRecords: EntitySourceRecordRow[],
   edges: EntityEdgeRow[],
   processes: EntityProcessRow[],
 ): string {
@@ -792,6 +806,33 @@ function renderEntityBrief(
             .join(", ")
     }`,
   );
+  lines.push("");
+
+  lines.push("## Official source records and documents");
+  lines.push("");
+  if (sourceRecords.length === 0) {
+    lines.push(
+      "- No entity-linked source records have been persisted for this entity yet. Use the DNCP release source-check connector when official release/document evidence is needed for casework.",
+    );
+  } else {
+    lines.push(
+      "- These rows are source-navigation and case-evidence aids. They are not findings, accusations, or automatic validation of any risk signal.",
+    );
+    lines.push("");
+    for (const record of sourceRecords) {
+      lines.push(`### Source record ${record.id} - ${record.record_kind}`);
+      lines.push(`- Source key: ${record.source_key}`);
+      lines.push(`- External ID: ${record.external_id}`);
+      lines.push(`- Title: ${record.record_title ?? "n/a"}`);
+      lines.push(`- Related process: ${record.process_title ?? "n/a"}`);
+      lines.push(`- Document type: ${record.document_type ?? "n/a"}`);
+      lines.push(`- Field path: ${record.field_path ?? "n/a"}`);
+      lines.push(`- Retrieved at: ${record.retrieved_at}`);
+      lines.push(`- Source URL: ${record.source_url ?? "n/a"}`);
+      lines.push("");
+    }
+  }
+
   lines.push("");
   lines.push("## Entity intelligence triage");
   lines.push("");
@@ -2163,6 +2204,36 @@ export async function buildEntityBrief(
       [entity.entity_id],
     );
 
+    const sourceRecordResult = await client.query<EntitySourceRecordRow>(
+      `select
+         records.id::text,
+         records.source_key,
+         records.external_id,
+         records.record_kind,
+         records.source_url,
+         records.retrieved_at::text,
+         coalesce(
+           records.payload #>> '{document,title}',
+           records.payload #>> '{release,releaseId}',
+           records.payload #>> '{process,title}',
+           records.external_id
+         ) as record_title,
+         records.payload #>> '{process,title}' as process_title,
+         coalesce(
+           records.payload #>> '{document,documentTypeDetails}',
+           records.payload #>> '{document,documentType}'
+         ) as document_type,
+         records.payload #>> '{fieldPath}' as field_path
+       from ${schema}.source_records as records
+       where coalesce(records.payload #>> '{centinelaTarget,entityId}', records.payload #>> '{centinelaTarget,entity_id}') = $1
+       order by
+         case records.record_kind when 'ocds_release_package' then 0 else 1 end,
+         records.retrieved_at desc,
+         records.id desc
+       limit 12`,
+      [entity.entity_id],
+    );
+
     const edgesResult = await client.query<EntityEdgeRow>(
       `select
          case when buyer_entity_id::text = $1 then 'buyer' else 'supplier' end as entity_role,
@@ -2250,6 +2321,7 @@ export async function buildEntityBrief(
       representativeExternalMatchResult.rows,
       representativeExternalCandidateResult.rows,
       representativeHostedComparisonResult.rows,
+      sourceRecordResult.rows,
       edgesResult.rows,
       processResult.rows,
     );

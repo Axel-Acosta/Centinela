@@ -14,6 +14,7 @@
     "enrichment:dncp-supplier-anchor": "tsx src/cli.ts enrichment dncp-supplier-anchor",
     "enrichment:dnit-ruc-equivalence": "tsx src/cli.ts enrichment dnit-ruc-equivalence",
     "enrichment:idb-sanctions-candidate": "tsx src/cli.ts enrichment idb-sanctions-candidate",
+    "enrichment:dncp-release-source-check": "tsx src/cli.ts enrichment dncp-release-source-check",
     "database:apply-sql": "tsx src/cli.ts database apply-sql",
     "database:load-bundle": "tsx src/cli.ts database load-bundle",
     "database:analyst-brief": "tsx src/cli.ts database analyst-brief",

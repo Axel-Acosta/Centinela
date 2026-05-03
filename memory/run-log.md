@@ -229,3 +229,14 @@
 - Reran OpenSanctions bulk against index `20260501065427-hyu`: 2,534 supplier companies and 3,165 DNCP legal representatives screened against 1,263,600 target rows; zero accepted bulk matches, one review candidate, 57 rejected diagnostics, and zero external risk signals.
 - Verified candidate `59` survived the rerun with second-review decision `accepted_match`, accepted match ID `11`, and enriched evidence showing distinctive tokens `guarani, civiles`, generic tokens `consultora, ingenieros`, distinctive overlap `1`, and name-order score `1`.
 - Regenerated `external-enrichment-candidate-review.md`, `all-entities-intelligence-queue.md`, and entity briefs for `CONSULTORA GUARANI SA INGENIEROS CIVILES` and `MENDEZ GONZALEZ FLORIANA *` under the local runtime data folder.
+
+## 2026-05-03
+
+- Re-read the current Centinela memory/docs and confirmed the next bottleneck remains lawful Paraguay cross-domain/company accountability source depth, with DNCP release/document source-record ingestion as the strongest practical fallback while ownership/officer registry access remains unclear.
+- Added `src/enrichment/dncpReleaseSourceCheck.ts` and `npm run enrichment:dncp-release-source-check`, a connector that starts from an existing local entity, fetches official DNCP OCDS release packages for linked procurement processes, extracts matching party records and document metadata, and persists `ocds_release_package` plus `ocds_document_metadata` source records.
+- Added bounded per-release fetch timeouts so slow DNCP release URLs produce recorded fetch errors instead of freezing the run.
+- Upgraded entity briefs with an `Official source records and documents` section showing entity-linked source-record IDs, record kinds, titles, related process, document type, field path, retrieval time, and source URLs.
+- Ran the connector for `MENDEZ GONZALEZ FLORIANA *`, the remaining local identity anchor gap: 1 process checked, 1 official release fetched, 1 release package source record persisted, and 18 document metadata records persisted. The official release still shows only base RUC `4070792`, so the missing check digit remains unresolved.
+- Ran the connector for `CONSULTORA GUARANI SA INGENIEROS CIVILES`, the accepted second-review external identity-context entity: source records are now available for official DNCP process-document navigation around this company.
+- Confirmed the live `py-dncp-release-source-check` state: 4 official release package source records and 567 official document metadata source records across `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`.
+- Added `docs/methodology/dncp-release-source-check.md` and refreshed source status, source plan, progress estimate, data model, reference execution plan, and next steps so future runs inherit this source-record/document-intelligence lane.

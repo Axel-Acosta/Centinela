@@ -32,11 +32,30 @@
   - `npm run database:entity-brief -- --name "EUROQUIMICA S.A."`
 - Purpose
   - answer the investigator question "what do we know about this entity in the currently loaded procurement graph?"
+  - show official source records and document metadata when a DNCP release source check has been run for the entity
 - Main reference pressure
   - Aleph
   - Sayari
   - br/acc
   - QQW/TodosLosContratos
+
+### 3a. DNCP release source check
+
+- Command
+  - `npm run enrichment:dncp-release-source-check -- --entity-name "Entity Name" --limit 5`
+- Purpose
+  - fetch official DNCP OCDS release packages for already-linked entity/process records
+  - persist official release packages and document metadata into `source_records`
+  - make official source-record/document metadata visible inside entity briefs and available for case evidence links
+- Methodology note
+  - `docs/methodology/dncp-release-source-check.md`
+- Main reference pressure
+  - br/acc
+  - Aleph
+  - Sayari
+  - DNCP/OCDS
+  - QuiénEsQuién/TodosLosContratos
+  - RUBLI
 
 ### 4. Rulebook
 
@@ -409,6 +428,7 @@
 - The first API and interactive console slice is local-only and operational. It now has token-protected saved notes/cases, evidence links, case timelines, source-record drilldowns, graph export, evidence exports, public-safety review states, local Markdown/JSON case export artifacts, source attachment manifests, local source bundles, local source-document indexes, console/API controls to generate those case artifacts, and a lightweight artifact registry to reopen generated bundle/index summaries, but it still has no production authentication, role-based permissions, or public deployment posture.
 - The rule registry exists, but the DNCP crosswalk and public methodology layer are still incomplete
 - Entity briefs now include external enrichment, DNIT identity validation, and official DNCP supplier-anchor sections, and the company-level queue plus anchor-gap report now make local identity gaps and local administrative history visible; 1 procurement-linked supplier company still remains without a local identity anchor because the procurement-side RUC is missing a check digit
+- DNCP release source checks are now operational for selected entities. Current live `py-dncp-release-source-check` coverage is 4 official release package records and 567 official document metadata records across `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`.
 - OpenSanctions candidate review is active. The current queue has one company-level external candidate lead and keeps weak representative/person overlaps visible as rejected diagnostics rather than treating them as accepted matches.
 - Hosted OpenSanctions API comparison is live, persisted into PostgreSQL, and now visible inside the company queue, external-candidate review report, and selected entity dossiers.
 - Manual external-candidate review is now operational through `sql/postgres/014_external_candidate_review_workflow.sql`, `centinela.entity_enrichment_candidate_review_overview`, and `npm run database:review-external-candidate`. Candidate `59` has moved through second review into accepted identity context; 5 rows are `monitor`, 4 are `rejected`, and 48 remain `unreviewed` diagnostics.
@@ -418,4 +438,4 @@
 
 ## Next workflow milestone
 
-- Either add bounded artifact-detail reading for selected bundle/index files, or return to the higher-value intelligence backlog: stronger candidate scoring, the final RUC anchor gap, and the next lawful Paraguay cross-domain source.
+- Widen DNCP release/document source checks across the highest-priority companies and external-candidate cases, then add selected document-content extraction/OCR for source records that analysts actually need.

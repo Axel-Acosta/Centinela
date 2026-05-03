@@ -68,3 +68,5 @@
   - source-backed evidence export surface with internal/public gate metadata
 - internal API/console endpoints
   - expose these views as JSON for entity search, entity dossiers, graph-ready one-hop networks, graph export, source-record drilldowns, review queues, external candidates, accepted matches, saved notes, cases, evidence links, case timelines, public-safety reviews, and gated evidence export without introducing a separate public database or graph store yet
+- entity brief source-record section
+  - shows entity-linked official source records such as DNCP OCDS release packages and document metadata, preserving source record IDs, field paths, source URLs, retrieval time, and non-accusatory use limits

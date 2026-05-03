@@ -7,10 +7,11 @@
 - Status: active bulk-backed procurement backbone
 - Access mode: official public API v3 and bulk annual OCDS ZIPs
 - Why it matters: strongest available Paraguay-first procurement backbone
-- Current implementation: live API sampling, annual bulk ZIP ingestion, normalization of processes/contracts/transactions, PostgreSQL loading, entity-source provenance, formal rule registry sync, review-queue generation, entity-level analyst briefs, and rulebook methodology outputs
+- Current implementation: live API sampling, annual bulk ZIP ingestion, normalization of processes/contracts/transactions, PostgreSQL loading, entity-source provenance, formal rule registry sync, review-queue generation, entity-level analyst briefs, rulebook methodology outputs, and official release/document source-record checks for entity casework
 - Current loaded state: `py-dncp-bulk-2025` and `py-dncp-bulk-2026` are loaded in PostgreSQL
 - Current observed scale after the rule-registry reload: 13,529 processes total, 41,009 contracts in 2025 alone, 9,964 matched signals across all active rules, and 7,351 flagged processes in the review queue
-- Next expansion: supplier histories enriched with non-DNCP sources, formal DNCP crosswalk refinement, and deepening the local analyst workspace into saved case timelines for multi-year entity intelligence
+- Current release-source-check result: `py-dncp-release-source-check` persists official DNCP OCDS release packages and document metadata as source records for entity casework. Current live state is 4 release package records and 567 document metadata records across `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`.
+- Next expansion: supplier histories enriched with non-DNCP sources, broader high-priority DNCP release/document source checks, document-content extraction/OCR where lawful and useful, formal DNCP crosswalk refinement, and deepening the local analyst workspace into saved case timelines for multi-year entity intelligence
 
 ### DNCP red flags
 
@@ -34,7 +35,7 @@
 
 - Status: mapped, first external connector and first local company/taxpayer identity anchors live
 - Candidates: payroll and officials rosters, sanctions/disqualifications, company records, political finance, asset declarations, court and oversight records, external enrichment layers
-- Next step: use the stronger DNCP plus DNIT local identity base to rerun external screening, then add ownership-ready or company-accountability sources where lawful access is clear
+- Next step: add ownership-ready or company-accountability sources where lawful access is clear. Until that access is clear, use official DNCP release/document source records as the strongest immediate document-linked accountability layer.
 
 ### DNIT / SET taxpayer-profile public services and RUC equivalence bulk
 

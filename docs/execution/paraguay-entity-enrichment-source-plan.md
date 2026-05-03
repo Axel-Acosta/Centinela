@@ -15,12 +15,13 @@ It records which company, sanctions, ownership, offshore, and accountability sou
   - DNCP supplier anchor through official `proveedores.csv`, supplier detail pages, and `sanciones.csv`
   - DNIT RUC equivalence bulk identity validation through official `ruc0.zip` through `ruc9.zip` resources
   - IDB Open Data sanctioned firms and individuals dataset as a row-level source check for IADB/OpenSanctions candidates
+  - DNCP official OCDS release packages and document metadata as entity-linked source records through `py-dncp-release-source-check`
 - Why
   - publicly reachable in bulk without waiting for credentials
   - DNCP's supplier and sanctions surfaces are the strongest available local Paraguay company/disqualification anchor from the current repo state
   - DNIT's RUC equivalence bulk files provide the strongest lawful taxpayer identity-validation layer found so far beyond supplier registration
-  - together they advance OpenSanctions, DNCP, br/acc, Sayari, QQW, OpenCorporates, OpenOwnership, and ICIJ roles through a live local-plus-external spine
-  - they provide external-risk screening, official supplier/disqualification context, official taxpayer identity validation, and first primary-source external candidate evidence now
+  - together they advance OpenSanctions, DNCP, br/acc, Aleph, Sayari, QQW, OpenCorporates, OpenOwnership, and ICIJ roles through a live local-plus-external spine
+  - they provide external-risk screening, official supplier/disqualification context, official taxpayer identity validation, first primary-source external candidate evidence, and official source-document navigation now
 - Important access reality observed on 2026-04-18
   - the hosted OpenSanctions matching API currently returns `401 Unauthorized` without an API key
   - the public bulk index and exports remain reachable, so Centinela currently uses the bulk route instead of the hosted API
@@ -114,6 +115,33 @@ It records which company, sanctions, ownership, offshore, and accountability sou
   - high
 - Use timing
   - now, implemented for the current top-risk supplier slice through official provider search CSV and supplier detail pages
+
+### 3a. DNCP OCDS release packages and document metadata
+
+- Contains
+  - official DNCP release packages for procurement processes, including parties, identifiers, awards, contracts, implementation milestones, and document metadata/URLs
+- Access
+  - public official DNCP OCDS release package URLs already stored in loaded procurement processes
+- Key fields
+  - release ID, OCID, buyer, target party, party identifier, party roles, legal-entity detail, document title, document type/detail, document URL, and source field path
+- Maps to
+  - `source_records`
+  - `analyst_evidence_links`
+  - entity briefs
+  - future case bundles and source-document indexes
+- Legal and ethical cautions
+  - source packages and document metadata are evidence-navigation aids, not conclusions
+  - contact fields may exist in source payloads but should not be reprinted in broad reports unless exact field-level citation is needed
+  - do not infer missing RUC check digits or identity facts beyond what DNCP publishes
+- Immediate value
+  - high when company/officer/ownership registry access is blocked or unclear
+- Use timing
+  - now, implemented as `npm run enrichment:dncp-release-source-check -- --entity-name "Entity Name" --limit 5`
+- Current implementation on 2026-05-03
+  - live source key `py-dncp-release-source-check`
+  - 4 official release package source records
+  - 567 official document metadata source records
+  - current target entities: `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`
 
 ### 4. DNIT / SET RUC and taxpayer-status sources
 
@@ -233,9 +261,11 @@ It records which company, sanctions, ownership, offshore, and accountability sou
   - DNIT RUC equivalence bulk validation for procurement-linked supplier companies
   - bounded fallback matching for residual supplier identities and a dedicated `entity_anchor_gap_review` backlog
   - company-level entity-intelligence review queue for local anchor gaps, local administrative history, representative density, and external-risk state
+  - DNCP release source-check records for official process documents around high-priority entities
 - Queue next
-  - recover the missing RUC check digit for the last unresolved anchor gap in `database:entity-anchor-gaps`
-  - rerun OpenSanctions/external screening with DNIT-validated names and identifiers
+  - widen DNCP release/document checks over high-priority company dossiers and candidate-review entities
+  - recover the missing RUC check digit for the last unresolved anchor gap only if a new lawful source exposes it
+  - add selected official document-content extraction/OCR once the source-record metadata layer identifies which documents matter
 - Stage after that
   - OpenCorporates foreign-company expansion
   - Open Ownership BODS and ICIJ offshore layers

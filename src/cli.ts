@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import { runDnitRucEquivalence } from "./enrichment/dnitRucEquivalence";
+import { runDncpReleaseSourceCheck } from "./enrichment/dncpReleaseSourceCheck";
 import { runDncpSupplierAnchor } from "./enrichment/dncpSupplierAnchor";
 import { runIadbSanctionsCandidateCheck } from "./enrichment/idbSanctions";
 import { runOpenSanctionsHostedMatchComparison } from "./enrichment/opensanctionsHostedMatch";
@@ -498,6 +499,34 @@ async function runEnrichmentIadbSanctionsCandidate(args: string[]): Promise<void
   console.log(`Report: ${result.reportPath}`);
 }
 
+async function runEnrichmentDncpReleaseSourceCheck(args: string[]): Promise<void> {
+  const entityName = readArg(args, "--entity-name");
+  const entityId = readNumberArg(args, "--entity-id", 0);
+  const limit = readNumberArg(args, "--limit", 5);
+  const dryRun = readBooleanArg(args, "--dry-run", false);
+
+  if (!entityName && !entityId) {
+    throw new Error("Missing required --entity-name or --entity-id argument for DNCP release source check.");
+  }
+
+  const result = await runDncpReleaseSourceCheck({
+    ...(entityName ? { entityName } : {}),
+    ...(entityId ? { entityId } : {}),
+    limit,
+    dryRun,
+  });
+
+  console.log("DNCP release source check completed.");
+  console.log(`Entity: ${result.entityName} (#${result.entityId})`);
+  console.log(`Processes checked: ${result.checkedProcesses}`);
+  console.log(`Release packages fetched: ${result.fetchedProcesses}`);
+  console.log(`Release source records persisted: ${result.releaseRecordsPersisted}`);
+  console.log(`Document metadata records persisted: ${result.documentRecordsPersisted}`);
+  console.log(`Raw source evidence: ${result.rawPath}`);
+  console.log(`Report: ${result.reportPath}`);
+  console.log("Reminder: DNCP source records are review material, not proof of wrongdoing.");
+}
+
 async function runDatabaseEntityIntelligenceQueue(args: string[]): Promise<void> {
   const limit = readNumberArg(args, "--limit", 25);
   const { reportPath } = await buildEntityIntelligenceQueueReport(limit);
@@ -827,6 +856,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (domain === "enrichment" && command === "dncp-release-source-check") {
+    await runEnrichmentDncpReleaseSourceCheck(args);
+    return;
+  }
+
   if (domain === "serve" && command === "internal-console") {
     await runServeInternalConsole(args);
     return;
@@ -841,6 +875,7 @@ async function main(): Promise<void> {
 - tsx src/cli.ts enrichment dncp-supplier-anchor --limit 200 --only-unanchored true --offset 0 --concurrency 4
 - tsx src/cli.ts enrichment dnit-ruc-equivalence --limit 10000 --only-anchor-gaps false
 - tsx src/cli.ts enrichment idb-sanctions-candidate --candidate-id 59 --update-review true
+- tsx src/cli.ts enrichment dncp-release-source-check --entity-name "Entity Name" --limit 5
 - tsx src/cli.ts database apply-sql --file sql/postgres/015_external_candidate_second_review.sql
 - tsx src/cli.ts database apply-sql --file sql/postgres/019_case_evidence_exports.sql
 - tsx src/cli.ts database load-bundle --file data/normalized/paraguay/dncp-2026-bulk-processes.json

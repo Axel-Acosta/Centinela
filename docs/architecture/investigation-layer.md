@@ -6,7 +6,7 @@ Centinela now has a first internal investigation layer built on top of PostgreSQ
 
 - normalized bundles can be loaded into the VPS database
 - SQL views summarize process-level risk, entity activity, buyer-supplier pairings, and review lanes
-- CLI commands generate markdown analyst briefs, entity briefs, review queues, external screening reports, official DNCP supplier-anchor reports, and DNIT RUC equivalence identity-validation reports from those views and enrichment tables
+- CLI commands generate markdown analyst briefs, entity briefs, review queues, external screening reports, official DNCP supplier-anchor reports, DNIT RUC equivalence identity-validation reports, and DNCP release/document source-check reports from those views and enrichment tables
 - a local-only internal API and console now expose the live investigation layer through entity search, JSON dossiers, graph-ready neighborhoods, review queues, external candidates, and accepted matches
 - the first analyst-workspace hardening slice adds token-protected saved cases/notes, source-record drilldowns, source-record field suggestions, source-record evidence bundles, graph exports, a case timeline workbench, and gated evidence export with public-safety review states
 
@@ -51,6 +51,8 @@ This is still internal, but it is now an operational investigation surface rathe
   - analyst-readable view of second-review decisions, rationale, limitations, and accepted-match IDs
 - `npm run serve:internal-console -- --host 127.0.0.1 --port 8787`
   - serves a local analyst console and JSON API for entity search, dossiers, graph-ready networks, graph export, source records, queues, candidates, accepted matches, saved notes, and cases
+- `npm run enrichment:dncp-release-source-check -- --entity-name "Entity Name" --limit 5`
+  - fetches official DNCP OCDS release packages for linked entity/process records and persists release packages plus document metadata as source records
 - `sql/postgres/016_analyst_workspace.sql`
   - creates saved analyst cases, case links, notes, and overview views for internal casework
 - `sql/postgres/017_analyst_case_timeline.sql`
@@ -115,6 +117,7 @@ This is still internal, but it is now an operational investigation surface rathe
 
 - The formal registry exists, but the DNCP public red-flag crosswalk is still incomplete
 - The local identity layer now covers 2,533 of 2,534 procurement-linked supplier companies; the remaining gap is a missing-check-digit RUC data-quality issue, not a generic no-source condition
+- Official DNCP release/document source records now exist for selected high-priority entities. They improve source navigation and case evidence, but they do not yet include downloaded/OCRed document contents.
 - The first interactive API/console slice is local-only. It now supports token-protected notes/cases, evidence links, case timelines, source-record drilldowns, field suggestions, graph export, evidence export, and public-safety review states, but not production authentication, role-based permissions, or public deployment posture yet.
 - Payment analysis is only as complete as the currently loaded DNCP transaction data
 - Entity-linked monetary context is still process-linked context, not clean attributed supplier value in all multi-supplier procedures
@@ -122,4 +125,4 @@ This is still internal, but it is now an operational investigation surface rathe
 
 ## Next step
 
-The next investigation-layer milestone should add document/source evidence ergonomics or downloadable export artifacts on top of the public-safety gate, then eventually production-grade authentication before any public deployment.
+The next investigation-layer milestone should widen DNCP release/document source checks across high-priority entities and add selected document-content extraction/OCR for source records that analysts actually need. Production-grade authentication still comes before any public deployment.
