@@ -7,11 +7,12 @@
 - Status: active bulk-backed procurement backbone
 - Access mode: official public API v3 and bulk annual OCDS ZIPs
 - Why it matters: strongest available Paraguay-first procurement backbone
-- Current implementation: live API sampling, annual bulk ZIP ingestion, normalization of processes/contracts/transactions, PostgreSQL loading, entity-source provenance, formal rule registry sync, review-queue generation, entity-level analyst briefs, rulebook methodology outputs, and official release/document source-record checks for entity casework
+- Current implementation: live API sampling, annual bulk ZIP ingestion, normalization of processes/contracts/transactions, PostgreSQL loading, entity-source provenance, formal rule registry sync, review-queue generation, entity-level analyst briefs, rulebook methodology outputs, official release/document source-record checks for entity casework, and selected official document capture/text-extraction attempts
 - Current loaded state: `py-dncp-bulk-2025` and `py-dncp-bulk-2026` are loaded in PostgreSQL
 - Current observed scale after the rule-registry reload: 13,529 processes total, 41,009 contracts in 2025 alone, 9,964 matched signals across all active rules, and 7,351 flagged processes in the review queue
 - Current release-source-check result: `py-dncp-release-source-check` persists official DNCP OCDS release packages and document metadata as source records for entity casework. Current live state is 4 release package records and 567 document metadata records across `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`.
-- Next expansion: supplier histories enriched with non-DNCP sources, broader high-priority DNCP release/document source checks, document-content extraction/OCR where lawful and useful, formal DNCP crosswalk refinement, and deepening the local analyst workspace into saved case timelines for multi-year entity intelligence
+- Current document-content result: `py-dncp-document-content` persists captured official DNCP documents and bounded extraction attempts as source records. Current live state is 2 captured official DNCP contract PDFs across `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`; both downloaded and hashed successfully, and both are `no_extractable_text` with the current local parser.
+- Next expansion: supplier histories enriched with non-DNCP sources, broader high-priority DNCP release/document source checks, selective document-content capture/OCR where lawful and useful, formal DNCP crosswalk refinement, and deepening the local analyst workspace into saved case timelines for multi-year entity intelligence
 
 ### DNCP red flags
 

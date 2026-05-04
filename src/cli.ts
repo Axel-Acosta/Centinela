@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import { runDnitRucEquivalence } from "./enrichment/dnitRucEquivalence";
+import { runDncpDocumentContentExtraction } from "./enrichment/dncpDocumentContent";
 import { runDncpReleaseSourceCheck } from "./enrichment/dncpReleaseSourceCheck";
 import { runDncpSupplierAnchor } from "./enrichment/dncpSupplierAnchor";
 import { runIadbSanctionsCandidateCheck } from "./enrichment/idbSanctions";
@@ -527,6 +528,47 @@ async function runEnrichmentDncpReleaseSourceCheck(args: string[]): Promise<void
   console.log("Reminder: DNCP source records are review material, not proof of wrongdoing.");
 }
 
+async function runEnrichmentDncpDocumentContent(args: string[]): Promise<void> {
+  const entityName = readArg(args, "--entity-name");
+  const entityId = readNumberArg(args, "--entity-id", 0);
+  const sourceRecordId = readNumberArg(args, "--source-record-id", 0);
+  const query = readArg(args, "--query");
+  const limit = readNumberArg(args, "--limit", 5);
+  const dryRun = readBooleanArg(args, "--dry-run", false);
+  const maxBytes = readNumberArg(args, "--max-bytes", 25_000_000);
+  const timeoutMs = readNumberArg(args, "--timeout-ms", 30000);
+  const maxPdfPages = readNumberArg(args, "--max-pdf-pages", 20);
+  const maxTextChars = readNumberArg(args, "--max-chars", 120000);
+
+  if (!entityName && !entityId && !sourceRecordId && !query) {
+    throw new Error(
+      "Missing filter for DNCP document content extraction. Use --entity-name, --entity-id, --source-record-id, or --query.",
+    );
+  }
+
+  const result = await runDncpDocumentContentExtraction({
+    ...(entityName ? { entityName } : {}),
+    ...(entityId ? { entityId } : {}),
+    ...(sourceRecordId ? { sourceRecordId } : {}),
+    ...(query ? { query } : {}),
+    limit,
+    dryRun,
+    maxBytes,
+    timeoutMs,
+    maxPdfPages,
+    maxTextChars,
+  });
+
+  console.log("DNCP document content extraction completed.");
+  console.log(`Documents checked: ${result.checkedDocuments}`);
+  console.log(`Documents downloaded: ${result.downloadedDocuments}`);
+  console.log(`Documents extracted: ${result.extractedDocuments}`);
+  console.log(`Content source records persisted: ${result.persistedRecords}`);
+  console.log(`Raw source evidence: ${result.rawPath}`);
+  console.log(`Report: ${result.reportPath}`);
+  console.log("Reminder: extracted document text is a navigation aid, not proof of wrongdoing.");
+}
+
 async function runDatabaseEntityIntelligenceQueue(args: string[]): Promise<void> {
   const limit = readNumberArg(args, "--limit", 25);
   const { reportPath } = await buildEntityIntelligenceQueueReport(limit);
@@ -861,6 +903,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (domain === "enrichment" && command === "dncp-document-content") {
+    await runEnrichmentDncpDocumentContent(args);
+    return;
+  }
+
   if (domain === "serve" && command === "internal-console") {
     await runServeInternalConsole(args);
     return;
@@ -876,6 +923,7 @@ async function main(): Promise<void> {
 - tsx src/cli.ts enrichment dnit-ruc-equivalence --limit 10000 --only-anchor-gaps false
 - tsx src/cli.ts enrichment idb-sanctions-candidate --candidate-id 59 --update-review true
 - tsx src/cli.ts enrichment dncp-release-source-check --entity-name "Entity Name" --limit 5
+- tsx src/cli.ts enrichment dncp-document-content --entity-name "Entity Name" --query "contrato" --limit 2
 - tsx src/cli.ts database apply-sql --file sql/postgres/015_external_candidate_second_review.sql
 - tsx src/cli.ts database apply-sql --file sql/postgres/019_case_evidence_exports.sql
 - tsx src/cli.ts database load-bundle --file data/normalized/paraguay/dncp-2026-bulk-processes.json

@@ -76,6 +76,7 @@ For each major precedent, it states:
   - `src/storage/candidateReview.ts`
   - `src/enrichment/dncpSupplierAnchor.ts`
   - `src/enrichment/dncpReleaseSourceCheck.ts`
+  - `src/enrichment/dncpDocumentContent.ts`
 - Data inputs
   - all source metadata
   - entity identifiers
@@ -91,6 +92,7 @@ For each major precedent, it states:
   - extend source registry and provenance per entity/source
   - store matched external rows in `source_records`
   - store official DNCP release packages and document metadata as source records for entity-linked casework
+  - store selected official DNCP document captures, hashes, and extraction status as entity-linked source records
 - Later stage
   - graph exports and public cross-reference explorer
 - Interaction with current foundation
@@ -109,6 +111,8 @@ For each major precedent, it states:
   - entity brief report outputs
   - `docs/methodology/dncp-release-source-check.md`
   - `src/enrichment/dncpReleaseSourceCheck.ts`
+  - `docs/methodology/dncp-document-content-extraction.md`
+  - `src/enrichment/dncpDocumentContent.ts`
 - Data inputs
   - normalized entities
   - processes, contracts, transactions, documents later
@@ -122,6 +126,7 @@ For each major precedent, it states:
   - search-friendly views
   - later API contracts shaped around entity answers
   - source-record/document metadata capture for official DNCP release packages tied to selected entities
+  - selected official DNCP document capture and bounded text-extraction attempts tied to entity dossiers
 - Later stage
   - document search, timelines, network explorer, saved cases
 - Interaction with current foundation
@@ -364,6 +369,7 @@ For each major precedent, it states:
   - no public contract-company UI
 - Implement now
   - company-centric procurement dossiers with identifiers, official supplier anchors, DNIT identity-validation profiles, representative links, and external-enrichment sections
+  - captured official contract documents and hashes for selected company dossiers
 - Later stage
   - public accountability explorer linking contracts, companies, owners, and institutions
 - Interaction with current foundation
@@ -834,12 +840,38 @@ Concrete proof artifacts:
 - live source key `py-dncp-release-source-check`
 - current live state: 4 official release package records and 567 official document metadata records across `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`
 
+## 2026-05-04 DNCP document content-capture advancement
+
+- br/acc
+  - advanced because selected official DNCP documents are now captured as source assets with source URLs, hashes, parent source-record IDs, local entity links, and `document_content_extract` records.
+- Aleph
+  - advanced because entity dossiers now move from document metadata to captured official files that can feed case bundles and later document search/OCR.
+- Sayari
+  - advanced because analyst-grade entity briefs now show source-document capture state, hash evidence, extraction status, and limitations in one place.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because company-contract accountability can now cite captured official contract PDFs, not only procurement summaries or metadata rows.
+- DNCP local precedent / OCDS / Cardinal
+  - advanced because the connector starts from official DNCP OCDS document metadata and preserves field paths back to the source release.
+- Integrity Watch / RUBLI
+  - advanced because `no_extractable_text` is exposed as a parser/OCR limitation, not hidden or treated as absence of evidence, and the output repeats non-accusatory use limits.
+
+Concrete proof artifacts:
+
+- `src/enrichment/dncpDocumentContent.ts`
+- `scripts/extract_pdf_text.py`
+- `npm run enrichment:dncp-document-content`
+- `docs/methodology/dncp-document-content-extraction.md`
+- entity brief source-record capture fields
+- live source key `py-dncp-document-content`
+- current live state: 2 captured official contract PDFs across `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`; both downloaded and hashed, both `no_extractable_text` with the current parser
+
 ## Next extraction priority
 
 - highest priority
   - move to the next lawful Paraguay cross-domain source, preferably company/officer/ownership-adjacent accountability data if access is lawful and practical
 - next after that
-  - widen DNCP release/document source-record checks across the highest-priority companies/candidates and add selected document-content extraction/OCR for source records that analysts actually need
+  - widen DNCP release/document source-record checks across the highest-priority companies/candidates and use `py-dncp-document-content` for source records that need captured official files
+  - add OCR only for case-priority scanned PDFs after weighing dependency cost, privacy/source-review burden, and concrete analyst value
   - revisit the final RUC anchor gap only when a new lawful source can expose the missing check digit; DNIT bulk, DNCP OCDS JSON, DNCP supplier search, and locally parsed official PDFs did not resolve it
 - then
   - stage ownership/offshore expansion influenced by OpenOwnership, ICIJ, OpenCorporates, and Sayari on top of the safer candidate-evidence and review-preservation baseline

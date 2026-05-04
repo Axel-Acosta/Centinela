@@ -57,6 +57,26 @@
   - QuiénEsQuién/TodosLosContratos
   - RUBLI
 
+### 3b. DNCP document content extraction
+
+- Command
+  - `npm run enrichment:dncp-document-content -- --entity-name "Entity Name" --query "contrato" --limit 2`
+- Purpose
+  - start from already persisted official DNCP document metadata
+  - download selected official DNCP document files into the local non-sync runtime folder
+  - store SHA-256 hashes and source assets for source-bundle use
+  - attempt bounded local text extraction and keep `no_extractable_text` visible when PDFs are scanned or image-only
+  - persist `document_content_extract` source records so entity briefs and case evidence can cite captured official files, not only metadata
+- Methodology note
+  - `docs/methodology/dncp-document-content-extraction.md`
+- Main reference pressure
+  - Aleph
+  - br/acc
+  - Sayari
+  - DNCP/OCDS
+  - QuiénEsQuién/TodosLosContratos
+  - RUBLI
+
 ### 4. Rulebook
 
 - Command
@@ -429,6 +449,7 @@
 - The rule registry exists, but the DNCP crosswalk and public methodology layer are still incomplete
 - Entity briefs now include external enrichment, DNIT identity validation, and official DNCP supplier-anchor sections, and the company-level queue plus anchor-gap report now make local identity gaps and local administrative history visible; 1 procurement-linked supplier company still remains without a local identity anchor because the procurement-side RUC is missing a check digit
 - DNCP release source checks are now operational for selected entities. Current live `py-dncp-release-source-check` coverage is 4 official release package records and 567 official document metadata records across `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`.
+- DNCP document content capture is now operational for selected official documents. Current live `py-dncp-document-content` coverage is 2 captured official contract PDFs across the same two entities; both are hashed and visible in dossiers, and both currently show `no_extractable_text` with the installed parser.
 - OpenSanctions candidate review is active. The current queue has one company-level external candidate lead and keeps weak representative/person overlaps visible as rejected diagnostics rather than treating them as accepted matches.
 - Hosted OpenSanctions API comparison is live, persisted into PostgreSQL, and now visible inside the company queue, external-candidate review report, and selected entity dossiers.
 - Manual external-candidate review is now operational through `sql/postgres/014_external_candidate_review_workflow.sql`, `centinela.entity_enrichment_candidate_review_overview`, and `npm run database:review-external-candidate`. Candidate `59` has moved through second review into accepted identity context; 5 rows are `monitor`, 4 are `rejected`, and 48 remain `unreviewed` diagnostics.
@@ -438,4 +459,4 @@
 
 ## Next workflow milestone
 
-- Widen DNCP release/document source checks across the highest-priority companies and external-candidate cases, then add selected document-content extraction/OCR for source records that analysts actually need.
+- Widen DNCP release/document source checks across the highest-priority companies and external-candidate cases, capture selected official documents into source records, and add OCR only where a specific case justifies it.

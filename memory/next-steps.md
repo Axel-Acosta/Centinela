@@ -41,3 +41,7 @@
 21. Refine the DNCP-to-Centinela crosswalk with the best available local public red-flag descriptions and terminology.
 22. Use the current progress estimate as the planning baseline:
    `docs/execution/progress-and-remaining-work.md` estimates the current analyst/casework phase needs about 1-2 more focused runs, the first serious Paraguay internal MVP needs about 6-10 more focused implementation runs, and the public pilot remains a later phase after methodology, privacy, UX, auth, and deployment work.
+23. Use the DNCP document-content capture lane for selected official documents:
+   `npm run enrichment:dncp-document-content -- --entity-name "Entity Name" --query "contrato" --limit 2` starts from persisted DNCP document metadata, downloads official document files, stores SHA-256 hashes and source assets, attempts bounded text extraction, and persists `document_content_extract` source records. Current live state is 2 captured official DNCP contract PDFs, both `no_extractable_text` with the current parser, now visible in the relevant entity briefs.
+24. Next best source-document move:
+   add OCR only for case-priority scanned DNCP PDFs, or first widen content capture to other high-priority source records where the value is source-bundle completeness rather than text search.

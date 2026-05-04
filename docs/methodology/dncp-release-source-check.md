@@ -73,9 +73,15 @@ Analysts can use these records to:
 - build source bundles and source-document indexes from saved cases
 - review official process documents before escalating candidate or risk-signal interpretation
 
+When document content itself is needed, use the companion content-capture command:
+
+```bash
+npm run enrichment:dncp-document-content -- --entity-name "Entity Name" --query "contrato" --limit 2
+```
+
 ## Limits
 
-- The connector extracts document metadata. It does not download or OCR document contents yet.
+- The connector extracts document metadata. It does not download or OCR document contents itself; use `py-dncp-document-content` for selected document capture and bounded text extraction attempts.
 - Some DNCP release URLs can be slow or temporarily unavailable; the connector bounds each fetch with a timeout and records failed fetches in the local report.
 - Contact fields may exist inside official payloads, but generated reports avoid reprinting them unless a later analyst workflow explicitly needs a field-level citation.
 - Source records are internal review material. Public use still requires case public-safety review, methodology review, privacy review, and source-license review.

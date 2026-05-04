@@ -117,6 +117,11 @@ interface EntitySourceRecordRow {
   process_title: string | null;
   document_type: string | null;
   field_path: string | null;
+  extraction_status: string | null;
+  extracted_char_count: string | null;
+  sha256: string | null;
+  local_document_path: string | null;
+  extracted_text_path: string | null;
 }
 
 interface EntityEnrichmentRow {
@@ -827,6 +832,19 @@ function renderEntityBrief(
       lines.push(`- Related process: ${record.process_title ?? "n/a"}`);
       lines.push(`- Document type: ${record.document_type ?? "n/a"}`);
       lines.push(`- Field path: ${record.field_path ?? "n/a"}`);
+      if (
+        record.extraction_status ||
+        record.extracted_char_count ||
+        record.sha256 ||
+        record.local_document_path ||
+        record.extracted_text_path
+      ) {
+        lines.push(`- Extraction status: ${record.extraction_status ?? "n/a"}`);
+        lines.push(`- Extracted characters: ${record.extracted_char_count ?? "n/a"}`);
+        lines.push(`- SHA-256: ${record.sha256 ?? "n/a"}`);
+        lines.push(`- Local document path: ${record.local_document_path ?? "n/a"}`);
+        lines.push(`- Extracted text path: ${record.extracted_text_path ?? "n/a"}`);
+      }
       lines.push(`- Retrieved at: ${record.retrieved_at}`);
       lines.push(`- Source URL: ${record.source_url ?? "n/a"}`);
       lines.push("");
@@ -2223,7 +2241,12 @@ export async function buildEntityBrief(
            records.payload #>> '{document,documentTypeDetails}',
            records.payload #>> '{document,documentType}'
          ) as document_type,
-         records.payload #>> '{fieldPath}' as field_path
+         records.payload #>> '{fieldPath}' as field_path,
+         records.payload #>> '{extractionStatus}' as extraction_status,
+         records.payload #>> '{extractedCharCount}' as extracted_char_count,
+         records.payload #>> '{sha256}' as sha256,
+         records.payload #>> '{localDocumentPath}' as local_document_path,
+         records.payload #>> '{extractedTextPath}' as extracted_text_path
        from ${schema}.source_records as records
        where coalesce(records.payload #>> '{centinelaTarget,entityId}', records.payload #>> '{centinelaTarget,entity_id}') = $1
        order by

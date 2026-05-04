@@ -240,3 +240,14 @@
 - Ran the connector for `CONSULTORA GUARANI SA INGENIEROS CIVILES`, the accepted second-review external identity-context entity: source records are now available for official DNCP process-document navigation around this company.
 - Confirmed the live `py-dncp-release-source-check` state: 4 official release package source records and 567 official document metadata source records across `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`.
 - Added `docs/methodology/dncp-release-source-check.md` and refreshed source status, source plan, progress estimate, data model, reference execution plan, and next steps so future runs inherit this source-record/document-intelligence lane.
+
+## 2026-05-04
+
+- Continued from the live DNCP/Postgres/entity-intelligence foundation and chose selected official DNCP document content capture as the next highest-leverage slice.
+- Added `scripts/extract_pdf_text.py`, a bounded local PDF text-extraction helper using the bundled Python runtime and `pypdf`.
+- Added `src/enrichment/dncpDocumentContent.ts` and `npm run enrichment:dncp-document-content`, a connector that starts from persisted `py-dncp-release-source-check` document metadata, downloads selected official DNCP documents, stores local source assets and SHA-256 hashes, attempts bounded text extraction, and persists `document_content_extract` source records under `py-dncp-document-content`.
+- Upgraded entity briefs so `document_content_extract` records show extraction status, extracted character count, SHA-256 hash, local captured document path, and extracted text path inside `Official source records and documents`.
+- Ran dry-run checks against official DNCP contract PDFs for `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`; both downloaded successfully and both returned `no_extractable_text` with the current local parser.
+- Persisted the two selected official DNCP contract captures live: source record `10785` for Mendez parent metadata record `10178`, and source record `10786` for Consultora Guarani parent metadata record `10226`.
+- Regenerated the two entity briefs so the captured official PDFs, hashes, extraction status, and local file paths are visible to analysts.
+- Added `docs/methodology/dncp-document-content-extraction.md` and refreshed source status, roadmap, analyst workflow docs, release-source methodology, reference execution tracking, and next steps around the new document-capture lane.
