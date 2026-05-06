@@ -440,6 +440,10 @@
 
 - Command
   - `npm run database:entity-source-pack -- --entity-name "Entity Name" --source-record-limit 10 --source-index-query "search terms"`
+- API
+  - `POST /api/entities/:id/source-packs`
+- Console
+  - case workbench buttons for previewing and writing an entity source pack from the currently open entity
 - Purpose
   - start from an entity and its linked source records
   - create or reuse a case centered on that entity

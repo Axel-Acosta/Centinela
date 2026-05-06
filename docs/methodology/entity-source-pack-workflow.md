@@ -12,6 +12,14 @@ It is designed for companies or people that already have source records from DNC
 npm run database:entity-source-pack -- --entity-name "Entity Name" --source-record-limit 10 --source-index-query "search terms"
 ```
 
+The same workflow is also available through the local internal console/API:
+
+```text
+POST /api/entities/:id/source-packs
+```
+
+The API route requires `CENTINELA_WRITE_TOKEN`. The console exposes both preview and write buttons in the case workbench after an entity is open.
+
 Useful options:
 
 - `--entity-id <id>` selects an entity by database ID instead of name.
@@ -68,6 +76,5 @@ Evidence links are intentionally conservative:
 ## Next Improvements
 
 - Add OCR only for case-priority scanned PDFs.
-- Add source-pack buttons in the local console once the CLI workflow proves stable.
 - Extend source selection to external candidate and accepted-match source records when they are linked to the same entity.
 - Add a durable artifact registry entry for entity source packs if analysts start using them as a recurring workflow.

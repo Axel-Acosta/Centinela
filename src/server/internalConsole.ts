@@ -34,6 +34,7 @@ import {
   buildCaseSourceDocumentIndexArtifacts,
 } from "../storage/caseEvidenceExport";
 import { listCaseArtifacts } from "../storage/caseArtifacts";
+import { buildEntitySourcePackArtifacts } from "../storage/entitySourcePack";
 
 export interface InternalConsoleOptions {
   host?: string;
@@ -101,6 +102,16 @@ function parseEntityRoute(pathname: string): { entityId: number; network: boolea
     network: Boolean(match[2]),
     exportNetwork: false,
   };
+}
+
+function parseEntitySourcePackRoute(pathname: string): number | undefined {
+  const match = pathname.match(/^\/api\/entities\/(\d+)\/source-packs$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const entityId = Number(match[1]);
+  return Number.isInteger(entityId) && entityId > 0 ? entityId : undefined;
 }
 
 function parseSourceRecordRoute(pathname: string): number | undefined {
@@ -449,6 +460,27 @@ function booleanField(body: Record<string, unknown>, name: string): boolean | un
     if (["false", "0", "no"].includes(normalized)) {
       return false;
     }
+  }
+
+  return undefined;
+}
+
+function stringListField(body: Record<string, unknown>, name: string): string[] | undefined {
+  const value = body[name];
+  if (Array.isArray(value)) {
+    const items = value
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    return items.length > 0 ? items : undefined;
+  }
+
+  if (typeof value === "string") {
+    const items = value
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+    return items.length > 0 ? items : undefined;
   }
 
   return undefined;
@@ -853,10 +885,16 @@ function consoleHtml(): string {
               <input id="artifact-limit" value="50" aria-label="Artifact evidence limit" />
               <input id="source-index-query" value="Consultora Guarani" aria-label="Source-document index query" />
               <input id="source-bundle-path" placeholder="Source bundle path for index refresh" aria-label="Source bundle path" />
+              <input id="source-pack-limit" value="10" aria-label="Entity source-pack source-record limit" />
+              <input id="source-pack-query" placeholder="Optional source-pack source-record filter" aria-label="Entity source-pack query" />
+              <input id="source-pack-record-kinds" placeholder="Optional record kinds, comma-separated" aria-label="Entity source-pack record kinds" />
+              <input id="source-pack-case-key" placeholder="Optional case key; blank uses stable entity default" aria-label="Entity source-pack case key" />
               <button id="write-evidence-artifact" type="button" class="secondary">Write evidence artifact</button>
               <button id="write-source-manifest" type="button" class="secondary">Write source manifest</button>
               <button id="write-source-bundle" type="button" class="secondary">Write source bundle + index</button>
               <button id="refresh-source-index" type="button" class="secondary">Refresh bundle source index</button>
+              <button id="preview-entity-source-pack" type="button" class="secondary">Preview entity source pack</button>
+              <button id="write-entity-source-pack" type="button" class="secondary">Write entity source pack</button>
               <button id="load-case-artifacts" type="button" class="secondary">Load generated artifacts</button>
             </div>
             <div id="cases" class="list"></div>
@@ -1334,6 +1372,45 @@ function consoleHtml(): string {
       return body;
     }
 
+    function sourcePackLimit() {
+      const parsed = Number(document.getElementById('source-pack-limit').value);
+      return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : undefined;
+    }
+
+    function sourcePackRecordKinds() {
+      const raw = document.getElementById('source-pack-record-kinds').value;
+      const items = raw.split(',').map((item) => item.trim()).filter(Boolean);
+      return items.length ? items : undefined;
+    }
+
+    function sourcePackRequestBody(dryRun) {
+      const body = {
+        caseId: currentCaseId ? Number(currentCaseId) : undefined,
+        caseKey: document.getElementById('source-pack-case-key').value || undefined,
+        sourceRecordLimit: sourcePackLimit(),
+        recordKinds: sourcePackRecordKinds(),
+        query: document.getElementById('source-pack-query').value || undefined,
+        sourceIndexQuery: document.getElementById('source-index-query').value || undefined,
+        publicOnly: document.getElementById('artifact-public-only').checked,
+        copyAssets: true,
+        createdBy: document.getElementById('analyst-name').value || 'centinela-operator',
+        dryRun,
+        provenance: {
+          source: 'internal_console',
+          nonAccusatoryUse: true,
+          localArtifactOnly: true
+        }
+      };
+
+      Object.keys(body).forEach((key) => {
+        if (body[key] === undefined) {
+          delete body[key];
+        }
+      });
+
+      return body;
+    }
+
     async function fetchCaseArtifacts(updateOutput) {
       if (!currentCaseId) {
         if (updateOutput) {
@@ -1444,6 +1521,37 @@ function consoleHtml(): string {
       }, null, 2);
     }
 
+    async function runEntitySourcePack(dryRun) {
+      if (!currentEntityId) {
+        document.getElementById('case-artifacts').textContent = 'Open an entity before generating a source pack.';
+        return;
+      }
+
+      const token = document.getElementById('write-token').value;
+      const payload = await postJson(
+        '/api/entities/' + currentEntityId + '/source-packs',
+        sourcePackRequestBody(dryRun),
+        token
+      );
+
+      if (payload.data.caseId) {
+        currentCaseId = Number(payload.data.caseId);
+        await loadCases();
+        await openCase(currentCaseId);
+      }
+
+      if (payload.data.sourceBundlePath) {
+        currentBundlePath = payload.data.sourceBundlePath;
+        document.getElementById('source-bundle-path').value = currentBundlePath;
+      }
+
+      const registry = currentCaseId && !dryRun ? await fetchCaseArtifacts(false).catch(() => null) : null;
+      document.getElementById('case-artifacts').textContent = JSON.stringify({
+        sourcePack: payload.data,
+        registry: registry ? registry.data : null
+      }, null, 2);
+    }
+
     async function loadQueues() {
       const [queue, candidates] = await Promise.all([
         getJson('/api/queue/entities?limit=5'),
@@ -1530,6 +1638,16 @@ function consoleHtml(): string {
         document.getElementById('case-artifacts').textContent = error.message;
       });
     });
+    document.getElementById('preview-entity-source-pack').addEventListener('click', () => {
+      runEntitySourcePack(true).catch((error) => {
+        document.getElementById('case-artifacts').textContent = error.message;
+      });
+    });
+    document.getElementById('write-entity-source-pack').addEventListener('click', () => {
+      runEntitySourcePack(false).catch((error) => {
+        document.getElementById('case-artifacts').textContent = error.message;
+      });
+    });
     document.getElementById('load-case-artifacts').addEventListener('click', () => {
       fetchCaseArtifacts(true).catch((error) => {
         document.getElementById('case-artifacts').textContent = error.message;
@@ -1575,6 +1693,27 @@ async function handleApiRequest(url: URL, request: http.IncomingMessage): Promis
         createdBy: stringField(body, "createdBy") ?? stringField(body, "created_by"),
         metadata: recordField(body, "metadata"),
         dryRun,
+      });
+    }
+
+    const entitySourcePackId = parseEntitySourcePackRoute(url.pathname);
+    if (entitySourcePackId !== undefined) {
+      return buildEntitySourcePackArtifacts({
+        entityId: entitySourcePackId,
+        caseId: numberField(body, "caseId") ?? numberField(body, "case_id"),
+        caseKey: stringField(body, "caseKey") ?? stringField(body, "case_key"),
+        title: stringField(body, "title"),
+        sourceRecordLimit:
+          numberField(body, "sourceRecordLimit") ??
+          numberField(body, "source_record_limit") ??
+          numberField(body, "limit"),
+        recordKinds: stringListField(body, "recordKinds") ?? stringListField(body, "record_kinds"),
+        query: stringField(body, "query"),
+        sourceIndexQuery: stringField(body, "sourceIndexQuery") ?? stringField(body, "source_index_query"),
+        publicOnly: booleanField(body, "publicOnly") ?? booleanField(body, "public_only"),
+        copyAssets: booleanField(body, "copyAssets") ?? booleanField(body, "copy_assets"),
+        createdBy: stringField(body, "createdBy") ?? stringField(body, "created_by"),
+        dryRun: booleanField(body, "dryRun") ?? booleanField(body, "dry_run") ?? dryRun,
       });
     }
 

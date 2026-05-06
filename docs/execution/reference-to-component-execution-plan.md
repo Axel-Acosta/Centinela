@@ -890,6 +890,8 @@ Concrete proof artifacts:
 
 - `src/storage/entitySourcePack.ts`
 - `npm run database:entity-source-pack`
+- `POST /api/entities/:id/source-packs`
+- case workbench source-pack preview/write controls in `src/server/internalConsole.ts`
 - `docs/methodology/entity-source-pack-workflow.md`
 - local runtime reports under `reports/paraguay/entity-source-packs/`
 - live cases `19` and `20` for the first two DNCP-covered high-priority entities

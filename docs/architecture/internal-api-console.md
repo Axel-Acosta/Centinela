@@ -25,6 +25,7 @@ The surface is designed to expose:
 - local case source attachment manifests with source-run asset paths, hashes, and availability checks
 - local case source bundles that copy resolvable source-run assets beside evidence and manifest files
 - local source-document indexes that search bundled text-like source files and trace matches back to evidence/source records
+- entity source-pack generation from the case workbench, including preview mode and write mode
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -62,6 +63,8 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
   - one-hop graph-ready nodes and edges for procurement counterparties, legal representatives, accepted external matches, reviewable external candidates, and linked procurement processes
 - `GET /api/entities/:id/network/export?format=node-link|cytoscape|jsonl&limit=25`
   - graph export for relationship analysis tools and future graph UI work
+- `POST /api/entities/:id/source-packs`
+  - creates or previews an entity source pack from entity-linked source records; requires local write token and writes/reuses a case, evidence links, source bundle, and source-document index unless `dryRun=true`
 - `GET /api/queue/entities?lane=<lane>&priority=<priority>&limit=25`
   - company-level entity intelligence queue
 - `GET /api/queue/processes?lane=<lane>&priority=<priority>&limit=25`
@@ -98,6 +101,8 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
   - writes a local review bundle with evidence files, source manifest files, `bundle-index.json`, `README.md`, and copied source-run assets when local paths resolve
 - `npm run database:case-source-index -- --bundle-path <bundle-path> --query "search terms"`
   - refreshes a local source-document index for an existing source bundle and records query matches, source-record IDs, evidence-link IDs, snippets, and asset metadata
+- `npm run database:entity-source-pack -- --entity-name "Entity Name" --source-record-limit 10 --source-index-query "search terms"`
+  - creates the same entity source-pack case/evidence/bundle/index packet from the CLI
 - `POST /api/analyst-cases`
   - create a case; requires local write token
 - `POST /api/analyst-cases/:id/links`
@@ -228,6 +233,12 @@ On the case artifact registry smoke test, the local API path also confirmed:
 - `/console` included the generated-artifact loading control
 - cleanup removed the temporary case and smoke artifacts
 
+On the entity source-pack API/console smoke test, the local API path also confirmed:
+
+- `POST /api/entities/3940/source-packs` returned a dry-run source pack for `CONSULTORA GUARANI SA INGENIEROS CIVILES`
+- the dry-run selected `3` entity-linked source records and did not create a case
+- `/console` included the entity source-pack preview/write controls and the source-pack API route
+
 ## Limits
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
@@ -240,6 +251,7 @@ On the case artifact registry smoke test, the local API path also confirmed:
 - Source-document indexes are generated runtime outputs and should stay out of Git. They are local navigation aids, not a substitute for source verification or full public-product review.
 - Artifact and bundle POST endpoints generate local files, so they require the local write token even though they do not mutate PostgreSQL case evidence.
 - The artifact registry is a lightweight runtime-folder reader, not a durable database audit table. It summarizes local files that currently exist under `CENTINELA_OUTPUT_DIR`.
+- Entity source-pack generation writes local runtime artifacts and may create/reuse cases, links, and evidence links; use preview mode first when unsure.
 - The console renders source-derived item text as text content rather than HTML, because source records can contain public-source strings.
 - No full-text document index yet.
 - Network output is graph-ready JSON, not a graph database.

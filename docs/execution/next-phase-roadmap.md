@@ -93,7 +93,9 @@
   - case artifact and source-bundle controls now exposed through local API/console
   - generated case artifacts are now rediscoverable through a lightweight runtime-folder registry
   - entity source-pack CLI now bridges entity-linked source records into cases, evidence links, source bundles, and source-document indexes in one command
+  - entity source-pack API/console controls now expose the same workflow from the local case workbench
   - first live entity source packs created for `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`
+  - source-pack API/console dry-run smoke test passed for entity `3940`
   - first analyst-workspace hardening slice operational
   - first case timeline/workbench slice operational
   - first source-record evidence-link slice operational
@@ -118,6 +120,7 @@
   - token-protected console/API controls for writing evidence artifacts, source manifests, source bundles, and source-document indexes
   - read-only artifact registry endpoint for generated case packets and bundle/index summaries
   - entity source-pack command that starts from an entity and writes the case/evidence/source-bundle/index packet directly
+  - token-protected API/console controls for previewing and writing entity source packs from the current entity
   - richer saved investigation paths later
 - Main references
   - Aleph

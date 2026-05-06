@@ -43,7 +43,7 @@ This is a working estimate, not a promise of exact dates. Centinela is being bui
 
 ## Practical timeline estimate
 
-- Current analyst/casework phase: likely 0-1 more focused runs to feel complete enough for internal use; the remaining useful piece is console/API access for entity source-pack generation if CLI-only becomes annoying.
+- Current analyst/casework phase: likely 0-1 more focused runs to feel complete enough for internal use; entity source-pack generation now has console/API access, so the remaining useful work is selective OCR or bounded artifact-detail reading only where real analysis demands it.
 - First serious Paraguay internal MVP: likely 6-10 more focused implementation runs.
 - First public pilot: likely 10-16 more focused runs after the internal MVP, depending on source access and public-safety requirements.
 

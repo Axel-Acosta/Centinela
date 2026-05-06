@@ -29,7 +29,7 @@
 14. Use the lightweight case artifact registry:
    `GET /api/analyst-cases/:id/artifacts` is live and scans the local runtime case folder for evidence artifacts, source manifests, source bundles, and source-document index summaries; the case workbench can load generated artifacts after the initial creation response is gone.
 15. Use the entity source-pack workflow for high-priority dossiers:
-   `npm run database:entity-source-pack -- --entity-name "Entity Name" --source-record-limit 10 --source-index-query "search terms"` creates/reuses an analyst case, links entity source records, creates source-record evidence links, and writes evidence artifacts, source manifests, source bundles, and source-document indexes in one command.
+   `npm run database:entity-source-pack -- --entity-name "Entity Name" --source-record-limit 10 --source-index-query "search terms"` creates/reuses an analyst case, links entity source records, creates source-record evidence links, and writes evidence artifacts, source manifests, source bundles, and source-document indexes in one command. The same workflow is now available from the local API/console through `POST /api/entities/:id/source-packs` and the case workbench preview/write buttons.
 16. Treat the OpenSanctions bulk rerun path as governance-safe:
    reviewed candidates and second-review audit trails are now preserved across reruns; future reruns should verify candidate `59` still keeps accepted match ID `11`.
 17. Use the improved OpenSanctions candidate evidence:
