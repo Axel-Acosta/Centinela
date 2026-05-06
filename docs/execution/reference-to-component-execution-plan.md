@@ -41,6 +41,7 @@ For each major precedent, it states:
   - DNCP supplier-anchor report
   - entity anchor-gap report
   - OpenSanctions screening report
+  - entity source-pack workflow
 - Review and follow-up
   - `process_review_queue`
   - analyst brief generator
@@ -77,6 +78,7 @@ For each major precedent, it states:
   - `src/enrichment/dncpSupplierAnchor.ts`
   - `src/enrichment/dncpReleaseSourceCheck.ts`
   - `src/enrichment/dncpDocumentContent.ts`
+  - `src/storage/entitySourcePack.ts`
 - Data inputs
   - all source metadata
   - entity identifiers
@@ -93,6 +95,7 @@ For each major precedent, it states:
   - store matched external rows in `source_records`
   - store official DNCP release packages and document metadata as source records for entity-linked casework
   - store selected official DNCP document captures, hashes, and extraction status as entity-linked source records
+  - turn entity-linked source records into case evidence links, source bundles, and source-document indexes through one command
 - Later stage
   - graph exports and public cross-reference explorer
 - Interaction with current foundation
@@ -113,6 +116,8 @@ For each major precedent, it states:
   - `src/enrichment/dncpReleaseSourceCheck.ts`
   - `docs/methodology/dncp-document-content-extraction.md`
   - `src/enrichment/dncpDocumentContent.ts`
+  - `docs/methodology/entity-source-pack-workflow.md`
+  - `src/storage/entitySourcePack.ts`
 - Data inputs
   - normalized entities
   - processes, contracts, transactions, documents later
@@ -127,6 +132,7 @@ For each major precedent, it states:
   - later API contracts shaped around entity answers
   - source-record/document metadata capture for official DNCP release packages tied to selected entities
   - selected official DNCP document capture and bounded text-extraction attempts tied to entity dossiers
+  - entity source packs that create cases, evidence links, source bundles, and source-document indexes from entity-linked source records
 - Later stage
   - document search, timelines, network explorer, saved cases
 - Interaction with current foundation
@@ -864,6 +870,29 @@ Concrete proof artifacts:
 - entity brief source-record capture fields
 - live source key `py-dncp-document-content`
 - current live state: 2 captured official contract PDFs across `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`; both downloaded and hashed, both `no_extractable_text` with the current parser
+
+## 2026-05-06 entity source-pack advancement
+
+- br/acc
+  - advanced because entity-linked source records now become a reusable source-registry-driven case packet with source keys, record IDs, source URLs, record kinds, retrieval context, and generated evidence metadata preserved.
+- Aleph
+  - advanced because an analyst can start from an entity and produce a case, evidence links, source bundle, and document index without manually wiring each source record.
+- Sayari
+  - advanced because company/person dossiers can now move into analyst-grade source packets that preserve identity context, evidence roles, limitations, and source-document traceability.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because contracts-plus-company accountability can now be assembled from official DNCP release/document records and captured files at the entity level.
+- DNCP local precedent / OCDS / Cardinal
+  - advanced because the first live use case starts from official DNCP OCDS release packages, document metadata, and captured official documents.
+- Integrity Watch / RUBLI
+  - advanced because the workflow repeats public-safety gates, limitations, parser/OCR caveats, and non-accusatory wording while producing reproducible Markdown/JSON outputs.
+
+Concrete proof artifacts:
+
+- `src/storage/entitySourcePack.ts`
+- `npm run database:entity-source-pack`
+- `docs/methodology/entity-source-pack-workflow.md`
+- local runtime reports under `reports/paraguay/entity-source-packs/`
+- live cases `19` and `20` for the first two DNCP-covered high-priority entities
 
 ## Next extraction priority
 

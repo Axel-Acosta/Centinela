@@ -251,3 +251,12 @@
 - Persisted the two selected official DNCP contract captures live: source record `10785` for Mendez parent metadata record `10178`, and source record `10786` for Consultora Guarani parent metadata record `10226`.
 - Regenerated the two entity briefs so the captured official PDFs, hashes, extraction status, and local file paths are visible to analysts.
 - Added `docs/methodology/dncp-document-content-extraction.md` and refreshed source status, roadmap, analyst workflow docs, release-source methodology, reference execution tracking, and next steps around the new document-capture lane.
+
+## 2026-05-06
+
+- Continued from the live DNCP/Postgres/entity-intelligence foundation and chose entity source packs as the next larger self-contained slice.
+- Added `src/storage/entitySourcePack.ts`, a workflow that starts from an entity, selects entity-linked source records, creates/reuses an analyst case, links source records, creates non-accusatory evidence links, and writes evidence artifacts, source manifests, source bundles, and source-document indexes.
+- Added `npm run database:entity-source-pack`, with entity-name/entity-ID selection, stable case-key support, source-record kind filters, payload query filters, source-index query support, dry-run mode, public-only gating, and asset-copy controls.
+- Added `docs/methodology/entity-source-pack-workflow.md` and updated analyst workflow docs, source status, roadmap, reference execution tracking, and next steps so future runs treat source packs as the bridge from entity dossiers to casework.
+- Ran the workflow live for `MENDEZ GONZALEZ FLORIANA *`: created/reused case `19` with case key `entity-source-pack-mendez-gonzalez-floriana`, linked 8 source records, created 8 evidence links on the first run, verified rerun idempotency with 0 new evidence links and 8 skipped existing links, and wrote local evidence/source-bundle/index artifacts. The source-index query returned 0 matches, consistent with the known scanned/no-extractable-text limitation.
+- Ran the workflow live for `CONSULTORA GUARANI SA INGENIEROS CIVILES`: created/reused case `20` with case key `entity-source-pack-consultora-guarani`, linked 10 source records, created 10 evidence links, wrote local evidence/source-bundle/index artifacts, and produced 5 source-document index query matches for `Consultora Guarani`.

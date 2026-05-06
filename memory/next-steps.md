@@ -28,20 +28,22 @@
    `POST /api/analyst-cases/:id/evidence-artifacts`, `/source-manifests`, `/source-bundles`, and `POST /api/source-document-indexes` are live behind the local write token; the case workbench now has buttons to write evidence artifacts, source manifests, source bundles, and query-aware source indexes without manually running CLI commands.
 14. Use the lightweight case artifact registry:
    `GET /api/analyst-cases/:id/artifacts` is live and scans the local runtime case folder for evidence artifacts, source manifests, source bundles, and source-document index summaries; the case workbench can load generated artifacts after the initial creation response is gone.
-15. Treat the OpenSanctions bulk rerun path as governance-safe:
+15. Use the entity source-pack workflow for high-priority dossiers:
+   `npm run database:entity-source-pack -- --entity-name "Entity Name" --source-record-limit 10 --source-index-query "search terms"` creates/reuses an analyst case, links entity source records, creates source-record evidence links, and writes evidence artifacts, source manifests, source bundles, and source-document indexes in one command.
+16. Treat the OpenSanctions bulk rerun path as governance-safe:
    reviewed candidates and second-review audit trails are now preserved across reruns; future reruns should verify candidate `59` still keeps accepted match ID `11`.
-16. Use the improved OpenSanctions candidate evidence:
+17. Use the improved OpenSanctions candidate evidence:
    reports now expose distinctive shared tokens, generic shared tokens, distinctive-token overlap, and name-order score. Generic company overlaps without Paraguay support should remain low-confidence diagnostics, not review leads.
-17. Keep the last local identity anchor gap visible as a documented blocker:
+18. Keep the last local identity anchor gap visible as a documented blocker:
    `MENDEZ GONZALEZ FLORIANA *` has only `PY-RUC-4070792`; DNIT bulk, DNCP OCDS JSON, DNCP supplier CSV check-digit probes, and locally parsed official PDFs did not recover a complete RUC. Revisit only when a new lawful Paraguay identity source is available.
-18. Move to the next intelligence source:
+19. Move to the next intelligence source:
    add the next lawful Paraguay cross-domain company/accountability source, preferably ownership/officer/registry-adjacent data if accessible. If that remains blocked, widen `py-dncp-release-source-check` over the highest-priority companies/candidates and add document-content extraction for selected official PDFs.
-19. Keep the DNCP legal-representative/person screening lane active, but preserve weak person-name overlaps as rejected diagnostics unless exact person-name agreement, stronger multi-token evidence, hosted matcher evidence, or source documents justify review escalation.
-20. Ask OpenSanctions about higher trial limits or longer-term access if another hosted rerun is needed before the monthly quota resets; otherwise continue using the already-stored hosted comparison evidence.
-21. Refine the DNCP-to-Centinela crosswalk with the best available local public red-flag descriptions and terminology.
-22. Use the current progress estimate as the planning baseline:
+20. Keep the DNCP legal-representative/person screening lane active, but preserve weak person-name overlaps as rejected diagnostics unless exact person-name agreement, stronger multi-token evidence, hosted matcher evidence, or source documents justify review escalation.
+21. Ask OpenSanctions about higher trial limits or longer-term access if another hosted rerun is needed before the monthly quota resets; otherwise continue using the already-stored hosted comparison evidence.
+22. Refine the DNCP-to-Centinela crosswalk with the best available local public red-flag descriptions and terminology.
+23. Use the current progress estimate as the planning baseline:
    `docs/execution/progress-and-remaining-work.md` estimates the current analyst/casework phase needs about 1-2 more focused runs, the first serious Paraguay internal MVP needs about 6-10 more focused implementation runs, and the public pilot remains a later phase after methodology, privacy, UX, auth, and deployment work.
-23. Use the DNCP document-content capture lane for selected official documents:
+24. Use the DNCP document-content capture lane for selected official documents:
    `npm run enrichment:dncp-document-content -- --entity-name "Entity Name" --query "contrato" --limit 2` starts from persisted DNCP document metadata, downloads official document files, stores SHA-256 hashes and source assets, attempts bounded text extraction, and persists `document_content_extract` source records. Current live state is 2 captured official DNCP contract PDFs, both `no_extractable_text` with the current parser, now visible in the relevant entity briefs.
-24. Next best source-document move:
+25. Next best source-document move:
    add OCR only for case-priority scanned DNCP PDFs, or first widen content capture to other high-priority source records where the value is source-bundle completeness rather than text search.

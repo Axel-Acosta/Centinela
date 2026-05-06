@@ -436,6 +436,28 @@
   - RUBLI
   - QuiénEsQuién/TodosLosContratos
 
+### 22. Entity source pack
+
+- Command
+  - `npm run database:entity-source-pack -- --entity-name "Entity Name" --source-record-limit 10 --source-index-query "search terms"`
+- Purpose
+  - start from an entity and its linked source records
+  - create or reuse a case centered on that entity
+  - link selected source records into the case
+  - create non-accusatory source-record evidence links with field paths, source summaries, evidence roles, and limitations
+  - write evidence artifacts, source manifests, source bundles, and source-document indexes in one command
+  - make official DNCP release/document source records operational in casework without requiring manual source-record linking first
+- Methodology note
+  - `docs/methodology/entity-source-pack-workflow.md`
+- Main reference pressure
+  - br/acc
+  - Aleph
+  - Sayari
+  - QuiénEsQuién/TodosLosContratos
+  - DNCP/OCDS
+  - RUBLI
+  - Integrity Watch
+
 ## Current workflow design principles
 
 - Start from explainable leads, not accusations
@@ -450,6 +472,7 @@
 - Entity briefs now include external enrichment, DNIT identity validation, and official DNCP supplier-anchor sections, and the company-level queue plus anchor-gap report now make local identity gaps and local administrative history visible; 1 procurement-linked supplier company still remains without a local identity anchor because the procurement-side RUC is missing a check digit
 - DNCP release source checks are now operational for selected entities. Current live `py-dncp-release-source-check` coverage is 4 official release package records and 567 official document metadata records across `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`.
 - DNCP document content capture is now operational for selected official documents. Current live `py-dncp-document-content` coverage is 2 captured official contract PDFs across the same two entities; both are hashed and visible in dossiers, and both currently show `no_extractable_text` with the installed parser.
+- Entity source packs are now available as the first one-command bridge from entity-linked source records into analyst casework. They create/reuse cases, link source records, generate evidence links, and write local evidence/source bundle/index artifacts while preserving non-accusatory limitations.
 - OpenSanctions candidate review is active. The current queue has one company-level external candidate lead and keeps weak representative/person overlaps visible as rejected diagnostics rather than treating them as accepted matches.
 - Hosted OpenSanctions API comparison is live, persisted into PostgreSQL, and now visible inside the company queue, external-candidate review report, and selected entity dossiers.
 - Manual external-candidate review is now operational through `sql/postgres/014_external_candidate_review_workflow.sql`, `centinela.entity_enrichment_candidate_review_overview`, and `npm run database:review-external-candidate`. Candidate `59` has moved through second review into accepted identity context; 5 rows are `monitor`, 4 are `rejected`, and 48 remain `unreviewed` diagnostics.

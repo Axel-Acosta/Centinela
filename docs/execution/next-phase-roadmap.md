@@ -92,6 +92,8 @@
   - first local-only slice operational
   - case artifact and source-bundle controls now exposed through local API/console
   - generated case artifacts are now rediscoverable through a lightweight runtime-folder registry
+  - entity source-pack CLI now bridges entity-linked source records into cases, evidence links, source bundles, and source-document indexes in one command
+  - first live entity source packs created for `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`
   - first analyst-workspace hardening slice operational
   - first case timeline/workbench slice operational
   - first source-record evidence-link slice operational
@@ -115,6 +117,7 @@
   - local source-document indexes over case bundles with snippets, query matches, source-record IDs, evidence-link IDs, and JSONL output
   - token-protected console/API controls for writing evidence artifacts, source manifests, source bundles, and source-document indexes
   - read-only artifact registry endpoint for generated case packets and bundle/index summaries
+  - entity source-pack command that starts from an entity and writes the case/evidence/source-bundle/index packet directly
   - richer saved investigation paths later
 - Main references
   - Aleph
@@ -143,9 +146,9 @@
 
 ## Immediate next best step
 
-- Move back from casework plumbing to intelligence value: widen official DNCP release/document source checks over high-priority companies and candidate-review entities, capture selected official documents into source records, and add OCR only where a specific case justifies it.
+- Use the new entity source-pack workflow on high-priority companies and candidate-review entities, then widen official DNCP release/document source checks where the resulting packs expose real casework value. Add OCR only where a specific source pack needs it.
 - Reason
-  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, official DNCP release/document source records, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, a live case timeline view, source-record evidence links, in-case source-record search, source field helpers, gated case evidence export, source-indexed Markdown/JSON case artifacts, source attachment manifests, source bundles that copy resolvable source-run assets, source-document indexes that search bundled files with evidence/source traceability, console/API controls to generate those artifacts, and a local artifact registry to rediscover them. The casework layer is now strong enough to return attention to entity intelligence.
+  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, official DNCP release/document source records, selected official document captures, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, a live case timeline view, source-record evidence links, in-case source-record search, source field helpers, gated case evidence export, source-indexed Markdown/JSON case artifacts, source attachment manifests, source bundles that copy resolvable source-run assets, source-document indexes that search bundled files with evidence/source traceability, console/API controls to generate those artifacts, a local artifact registry to rediscover them, and now a one-command entity source-pack bridge. The casework layer is ready to be used against real entity-intelligence questions instead of extended abstractly.
 - Expected carry-over
   - local API endpoints and console views that expose candidate records with durable human-review status, notes, source-backed promotion/rejection history, second-review state, source-record links, document capture/extraction status, explanation bundles, evidence-export posture, and recent generated artifact paths
   - tighter use of hosted same-candidate confirmation versus different-result ambiguity inside analyst workflows

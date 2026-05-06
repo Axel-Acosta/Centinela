@@ -18,6 +18,7 @@ This is a working estimate, not a promise of exact dates. Centinela is being bui
 - OpenSanctions bulk and hosted comparison workflows, candidate review, source-backed second review, safer rerun preservation for reviewed candidates, stronger candidate-name evidence, and the first accepted external identity-context match.
 - Local internal console/API with entity dossiers, graph-ready networks, queues, source-record drilldowns, saved cases, notes, evidence links, timelines, public-safety gates, artifact generation, source bundles, source-document indexes, and artifact rediscovery.
 - DNCP release source-check connector that persists official OCDS release packages and document metadata as source records for entity casework; current live state is 4 release package records and 567 document metadata records across two high-priority entities.
+- Entity source-pack workflow that turns entity-linked source records into analyst cases, evidence links, source manifests, source bundles, and source-document indexes; first live packs now exist for Mendez and Consultora Guarani.
 - Runtime storage kept outside OneDrive/Git by default.
 
 ## What is still missing for the internal Paraguay MVP
@@ -25,7 +26,7 @@ This is a working estimate, not a promise of exact dates. Centinela is being bui
 - Resolve the final RUC/check-digit anchor gap if a new lawful source exposes it; current DNIT, DNCP OCDS, DNCP supplier search, and text-extractable official-document checks did not recover it.
 - Continue improving external-candidate scoring with source-document evidence and identifier comparisons where available; name-order, generic-term handling, and distinctive-token evidence are now live.
 - Add at least one more lawful Paraguay cross-domain source beyond procurement/taxpayer identity, preferably ownership/officer/accountability data if accessible.
-- Widen official DNCP release/document source checks across the highest-priority company/candidate dossiers while broader registry access remains blocked or unclear.
+- Widen official DNCP release/document source checks across the highest-priority company/candidate dossiers while broader registry access remains blocked or unclear, then turn the strongest ones into entity source packs.
 - Add selected document-content extraction/OCR for source records that analysts actually need, instead of bulk-downloading every public PDF.
 - Expand entity relationship types enough to support ownership-ready and foreign/offshore-ready graph paths.
 - Add bounded artifact-detail reading only if analysts need to inspect selected bundle/index summaries directly in the console.
@@ -42,7 +43,7 @@ This is a working estimate, not a promise of exact dates. Centinela is being bui
 
 ## Practical timeline estimate
 
-- Current analyst/casework phase: likely 1-2 more focused runs to feel complete enough for internal use.
+- Current analyst/casework phase: likely 0-1 more focused runs to feel complete enough for internal use; the remaining useful piece is console/API access for entity source-pack generation if CLI-only becomes annoying.
 - First serious Paraguay internal MVP: likely 6-10 more focused implementation runs.
 - First public pilot: likely 10-16 more focused runs after the internal MVP, depending on source access and public-safety requirements.
 

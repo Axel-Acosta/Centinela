@@ -41,6 +41,7 @@ import {
   buildCaseSourceBundleArtifacts,
   buildCaseSourceDocumentIndexArtifacts,
 } from "./storage/caseEvidenceExport";
+import { buildEntitySourcePackArtifacts } from "./storage/entitySourcePack";
 
 interface FirstSliceOptions {
   from: string;
@@ -71,6 +72,20 @@ function readBooleanArg(args: string[], name: string, fallback = false): boolean
   }
 
   return ["true", "1", "yes"].includes(value.toLowerCase());
+}
+
+function readListArg(args: string[], name: string): string[] | undefined {
+  const value = readArg(args, name);
+  if (!value) {
+    return undefined;
+  }
+
+  const items = value
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+
+  return items.length > 0 ? items : undefined;
 }
 
 function resolveInputPath(inputPath: string): string {
@@ -779,6 +794,58 @@ async function runDatabaseCaseSourceIndex(args: string[]): Promise<void> {
   console.log("Reminder: source document indexes are local search aids, not proof of wrongdoing.");
 }
 
+async function runDatabaseEntitySourcePack(args: string[]): Promise<void> {
+  const entityName = readArg(args, "--entity-name") ?? readArg(args, "--name");
+  const entityId = readNumberArg(args, "--entity-id", 0);
+  const caseId = readNumberArg(args, "--case-id", 0);
+  const caseKey = readArg(args, "--case-key");
+  const title = readArg(args, "--title");
+  const sourceRecordLimit = readNumberArg(args, "--source-record-limit", 25);
+  const query = readArg(args, "--query");
+  const sourceIndexQuery = readArg(args, "--source-index-query");
+  const publicOnly = readBooleanArg(args, "--public-only", false);
+  const copyAssets = readBooleanArg(args, "--copy-assets", true);
+  const dryRun = readBooleanArg(args, "--dry-run", false);
+  const createdBy = readArg(args, "--created-by");
+  const recordKinds = readListArg(args, "--record-kinds");
+
+  if (!entityName && !entityId) {
+    throw new Error("Missing required --entity-name/--name or --entity-id argument for entity source pack.");
+  }
+
+  const result = await buildEntitySourcePackArtifacts({
+    ...(entityName ? { entityName } : {}),
+    ...(entityId ? { entityId } : {}),
+    ...(caseId ? { caseId } : {}),
+    ...(caseKey ? { caseKey } : {}),
+    ...(title ? { title } : {}),
+    sourceRecordLimit,
+    ...(recordKinds ? { recordKinds } : {}),
+    ...(query ? { query } : {}),
+    ...(sourceIndexQuery ? { sourceIndexQuery } : {}),
+    publicOnly,
+    copyAssets,
+    ...(createdBy ? { createdBy } : {}),
+    dryRun,
+  });
+
+  console.log("Entity source pack completed.");
+  console.log(`Entity: ${result.entity.canonical_name} (#${result.entity.id})`);
+  console.log(`Case ID: ${result.caseId ?? "n/a"}`);
+  console.log(`Case key: ${result.caseKey ?? "n/a"}`);
+  console.log(`Dry run: ${result.dryRun ? "yes" : "no"}`);
+  console.log(`Selected source records: ${result.selectedSourceRecords.length}`);
+  console.log(`Linked source-record targets: ${result.linkedSourceRecordTargets}`);
+  console.log(`Created evidence links: ${result.createdEvidenceLinks}`);
+  console.log(`Skipped existing evidence links: ${result.skippedExistingEvidenceLinks}`);
+  console.log(`Source bundle: ${result.sourceBundlePath ?? "n/a"}`);
+  console.log(`Source-document index: ${result.sourceDocumentIndexPath ?? "n/a"}`);
+  console.log(`Source-document query matches: ${result.sourceDocumentIndexQueryMatches ?? "n/a"}`);
+  console.log(`Summary: ${result.summaryPath}`);
+  console.log(`Report: ${result.reportPath}`);
+  console.log("Reminder: entity source packs are review packets, not proof of wrongdoing.");
+}
+
 async function runServeInternalConsole(args: string[]): Promise<void> {
   const host = readArg(args, "--host") ?? "127.0.0.1";
   const port = readNumberArg(args, "--port", 8787);
@@ -863,6 +930,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (domain === "database" && command === "entity-source-pack") {
+    await runDatabaseEntitySourcePack(args);
+    return;
+  }
+
   if (domain === "database" && command === "entity-anchor-gaps") {
     await runDatabaseEntityAnchorGapReport(args);
     return;
@@ -938,6 +1010,7 @@ async function main(): Promise<void> {
 - tsx src/cli.ts database case-source-manifest --case-id 1 --public-only false
 - tsx src/cli.ts database case-source-bundle --case-id 1 --public-only false --copy-assets true
 - tsx src/cli.ts database case-source-index --bundle-path "C:\\path\\to\\bundle" --query "search terms"
+- tsx src/cli.ts database entity-source-pack --entity-name "Entity Name" --source-record-limit 10 --source-index-query "search terms"
 - tsx src/cli.ts database entity-anchor-gaps --limit 50
 - tsx src/cli.ts database rulebook --source-key py-dncp-bulk-2026
 - tsx src/cli.ts serve internal-console --host 127.0.0.1 --port 8787`,
