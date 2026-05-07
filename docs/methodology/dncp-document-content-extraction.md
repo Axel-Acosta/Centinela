@@ -56,6 +56,12 @@ On 2026-05-04, the connector captured two official DNCP contract PDFs:
 
 Both files downloaded and were hashed successfully. Both returned `no_extractable_text` with the current local PDF parser, which likely means they are scanned/image-only PDFs or otherwise not text-bearing for the installed parser.
 
+On 2026-05-06, the connector attempted two `contrato` documents each for `PROSALUDFARMA S.A.`, `INDEX S.A.C.I.`, and `QUIMFA S.A.` after their DNCP release/document source checks were widened.
+
+DNCP returned `404` for all six selected contract document URLs. Centinela persisted those attempts as `document_content_extract` records with `downloadStatus = download_failed` and `extractionStatus = not_attempted_download_failed`. These records are source-access limitations and review context, not evidence about the companies or the procurement processes.
+
+Current live state: 8 `py-dncp-document-content` records total.
+
 ## Analyst Use
 
 Entity briefs now show document-content source records inside `Official source records and documents`, including:
@@ -79,6 +85,6 @@ Analysts can use these records to:
 - PDF text extraction currently uses a bounded local parser through `scripts/extract_pdf_text.py`.
 - Scanned/image-only PDFs produce `no_extractable_text`; this is a parser/OCR limitation, not a finding about the document.
 - OCR is not installed in the current local runtime. Add OCR only when the specific case value justifies the extra dependency and review burden.
+- DNCP document URLs can return `404`; this should be preserved as a source-access limitation and investigated only for case-priority documents.
 - Extracted text is a navigation aid. Analysts should verify the official PDF before relying on a field publicly.
 - Public use still requires case public-safety review, methodology review, privacy review, source-license review, and careful non-accusatory language.
-

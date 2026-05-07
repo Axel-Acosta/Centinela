@@ -56,11 +56,17 @@ On 2026-05-03, this connector was run for:
 - `MENDEZ GONZALEZ FLORIANA *`, the remaining local identity-anchor gap.
 - `CONSULTORA GUARANI SA INGENIEROS CIVILES`, the first accepted second-review external identity-context match.
 
+On 2026-05-06, this connector was widened through the source-pack readiness queue for:
+
+- `PROSALUDFARMA S.A.`
+- `INDEX S.A.C.I.`
+- `QUIMFA S.A.`
+
 Current live `py-dncp-release-source-check` records:
 
-- 4 official DNCP release package source records.
-- 567 official DNCP document metadata source records.
-- 2 linked local entities.
+- 10 official DNCP release package source records.
+- 1,462 official DNCP document metadata source records.
+- 5 linked local entities.
 
 ## Analyst Use
 

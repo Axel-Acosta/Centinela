@@ -42,6 +42,7 @@ import {
   buildCaseSourceDocumentIndexArtifacts,
 } from "./storage/caseEvidenceExport";
 import { buildEntitySourcePackArtifacts } from "./storage/entitySourcePack";
+import { buildEntitySourcePackReadinessReport } from "./storage/entitySourcePackReadiness";
 
 interface FirstSliceOptions {
   from: string;
@@ -846,6 +847,23 @@ async function runDatabaseEntitySourcePack(args: string[]): Promise<void> {
   console.log("Reminder: entity source packs are review packets, not proof of wrongdoing.");
 }
 
+async function runDatabaseEntitySourcePackReadiness(args: string[]): Promise<void> {
+  const limit = readNumberArg(args, "--limit", 25);
+  const sourceRecordLimit = readNumberArg(args, "--source-record-limit", 10);
+
+  const result = await buildEntitySourcePackReadinessReport({
+    limit,
+    sourceRecordLimit,
+  });
+
+  console.log("Generated entity source-pack readiness report.");
+  console.log(`Entities ranked: ${result.items.length}`);
+  console.log(`Source-record limit hint: ${result.sourceRecordLimit}`);
+  console.log(`Summary: ${result.summaryPath}`);
+  console.log(`Report: ${result.reportPath}`);
+  console.log("Reminder: source-pack readiness is an internal planning queue, not proof of wrongdoing.");
+}
+
 async function runServeInternalConsole(args: string[]): Promise<void> {
   const host = readArg(args, "--host") ?? "127.0.0.1";
   const port = readNumberArg(args, "--port", 8787);
@@ -935,6 +953,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (domain === "database" && command === "entity-source-pack-readiness") {
+    await runDatabaseEntitySourcePackReadiness(args);
+    return;
+  }
+
   if (domain === "database" && command === "entity-anchor-gaps") {
     await runDatabaseEntityAnchorGapReport(args);
     return;
@@ -1011,6 +1034,7 @@ async function main(): Promise<void> {
 - tsx src/cli.ts database case-source-bundle --case-id 1 --public-only false --copy-assets true
 - tsx src/cli.ts database case-source-index --bundle-path "C:\\path\\to\\bundle" --query "search terms"
 - tsx src/cli.ts database entity-source-pack --entity-name "Entity Name" --source-record-limit 10 --source-index-query "search terms"
+- tsx src/cli.ts database entity-source-pack-readiness --limit 25 --source-record-limit 10
 - tsx src/cli.ts database entity-anchor-gaps --limit 50
 - tsx src/cli.ts database rulebook --source-key py-dncp-bulk-2026
 - tsx src/cli.ts serve internal-console --host 127.0.0.1 --port 8787`,

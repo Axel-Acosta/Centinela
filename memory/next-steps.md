@@ -5,7 +5,7 @@
 2. Use the DNCP release source-check lane as the first official document-linked entity evidence expansion:
    `npm run enrichment:dncp-release-source-check -- --entity-name "Entity Name" --limit 5` fetches official DNCP OCDS release packages for already-linked processes, persists `ocds_release_package` and `ocds_document_metadata` source records, and upgrades entity briefs through the `Official source records and documents` section.
 3. Current DNCP release source-check live state:
-   `py-dncp-release-source-check` has 4 official release package records and 567 official document metadata records across `MENDEZ GONZALEZ FLORIANA *` and `CONSULTORA GUARANI SA INGENIEROS CIVILES`.
+   `py-dncp-release-source-check` has 10 official release package records and 1,462 official document metadata records across `MENDEZ GONZALEZ FLORIANA *`, `CONSULTORA GUARANI SA INGENIEROS CIVILES`, `PROSALUDFARMA S.A.`, `INDEX S.A.C.I.`, and `QUIMFA S.A.`.
 4. Use the local internal API/console as the next operational surface:
    `npm run serve:internal-console -- --host 127.0.0.1 --port 8787` exposes overview, entity search, entity dossiers, graph-ready neighborhoods, graph export, source-record drilldowns, entity/process queues, external candidates, accepted matches, and token-protected analyst notes/cases from the live database.
 5. Keep accepted matches, external risk signals, review-only candidates, and public-facing language separate:
@@ -30,20 +30,22 @@
    `GET /api/analyst-cases/:id/artifacts` is live and scans the local runtime case folder for evidence artifacts, source manifests, source bundles, and source-document index summaries; the case workbench can load generated artifacts after the initial creation response is gone.
 15. Use the entity source-pack workflow for high-priority dossiers:
    `npm run database:entity-source-pack -- --entity-name "Entity Name" --source-record-limit 10 --source-index-query "search terms"` creates/reuses an analyst case, links entity source records, creates source-record evidence links, and writes evidence artifacts, source manifests, source bundles, and source-document indexes in one command. The same workflow is now available from the local API/console through `POST /api/entities/:id/source-packs` and the case workbench preview/write buttons.
-16. Treat the OpenSanctions bulk rerun path as governance-safe:
+16. Use the entity source-pack readiness report before widening:
+   `npm run database:entity-source-pack-readiness -- --limit 25 --source-record-limit 10` ranks company entities by live queue priority and source-pack coverage, then recommends `run_dncp_release_source_check`, `build_entity_source_pack`, `consider_selective_document_content_capture`, `ready_for_internal_review`, or `ready_for_internal_review_with_document_download_limits`.
+17. Treat the OpenSanctions bulk rerun path as governance-safe:
    reviewed candidates and second-review audit trails are now preserved across reruns; future reruns should verify candidate `59` still keeps accepted match ID `11`.
-17. Use the improved OpenSanctions candidate evidence:
+18. Use the improved OpenSanctions candidate evidence:
    reports now expose distinctive shared tokens, generic shared tokens, distinctive-token overlap, and name-order score. Generic company overlaps without Paraguay support should remain low-confidence diagnostics, not review leads.
-18. Keep the last local identity anchor gap visible as a documented blocker:
+19. Keep the last local identity anchor gap visible as a documented blocker:
    `MENDEZ GONZALEZ FLORIANA *` has only `PY-RUC-4070792`; DNIT bulk, DNCP OCDS JSON, DNCP supplier CSV check-digit probes, and locally parsed official PDFs did not recover a complete RUC. Revisit only when a new lawful Paraguay identity source is available.
-19. Move to the next intelligence source:
-   add the next lawful Paraguay cross-domain company/accountability source, preferably ownership/officer/registry-adjacent data if accessible. If that remains blocked, widen `py-dncp-release-source-check` over the highest-priority companies/candidates and add document-content extraction for selected official PDFs.
-20. Keep the DNCP legal-representative/person screening lane active, but preserve weak person-name overlaps as rejected diagnostics unless exact person-name agreement, stronger multi-token evidence, hosted matcher evidence, or source documents justify review escalation.
-21. Ask OpenSanctions about higher trial limits or longer-term access if another hosted rerun is needed before the monthly quota resets; otherwise continue using the already-stored hosted comparison evidence.
-22. Refine the DNCP-to-Centinela crosswalk with the best available local public red-flag descriptions and terminology.
-23. Use the current progress estimate as the planning baseline:
-   `docs/execution/progress-and-remaining-work.md` estimates the current analyst/casework phase needs about 1-2 more focused runs, the first serious Paraguay internal MVP needs about 6-10 more focused implementation runs, and the public pilot remains a later phase after methodology, privacy, UX, auth, and deployment work.
-24. Use the DNCP document-content capture lane for selected official documents:
-   `npm run enrichment:dncp-document-content -- --entity-name "Entity Name" --query "contrato" --limit 2` starts from persisted DNCP document metadata, downloads official document files, stores SHA-256 hashes and source assets, attempts bounded text extraction, and persists `document_content_extract` source records. Current live state is 2 captured official DNCP contract PDFs, both `no_extractable_text` with the current parser, now visible in the relevant entity briefs.
-25. Next best source-document move:
-   add OCR only for case-priority scanned DNCP PDFs, or first widen content capture to other high-priority source records where the value is source-bundle completeness rather than text search.
+20. Move to the next intelligence source:
+   add the next lawful Paraguay cross-domain company/accountability source, preferably ownership/officer/registry-adjacent data if accessible. If that remains blocked, continue the readiness-ranked DNCP source-pack rollout starting with SCAVONE HERMANOS SA, EL ALAMO SA, and LABORATORIO DE PRODUCTOS ETICOS C.E.I.S.A.
+21. Keep the DNCP legal-representative/person screening lane active, but preserve weak person-name overlaps as rejected diagnostics unless exact person-name agreement, stronger multi-token evidence, hosted matcher evidence, or source documents justify review escalation.
+22. Ask OpenSanctions about higher trial limits or longer-term access if another hosted rerun is needed before the monthly quota resets; otherwise continue using the already-stored hosted comparison evidence.
+23. Refine the DNCP-to-Centinela crosswalk with the best available local public red-flag descriptions and terminology.
+24. Use the current progress estimate as the planning baseline:
+   `docs/execution/progress-and-remaining-work.md` estimates the analyst/casework source-pack phase is complete enough for internal use, the first serious Paraguay internal MVP needs about 5-9 more focused implementation runs, and the public pilot remains a later phase after methodology, privacy, UX, auth, and deployment work.
+25. Use the DNCP document-content capture lane for selected official documents:
+   `npm run enrichment:dncp-document-content -- --entity-name "Entity Name" --query "contrato" --limit 2` starts from persisted DNCP document metadata, downloads official document files when available, stores SHA-256 hashes/source assets when downloaded, attempts bounded text extraction, and persists `document_content_extract` source records. Current live state is 8 document-content records: 2 earlier captured official DNCP contract PDFs with `no_extractable_text`, plus 6 priority-company contract attempts where DNCP returned `404` and the limitation is preserved in case evidence.
+26. Next best source-document move:
+   do not add OCR for the latest three priority companies yet because selected DNCP contract URLs returned `404`; instead investigate alternate lawful DNCP document access only if those source packs become case-priority, or continue source-pack readiness rollout over the next ranked companies.

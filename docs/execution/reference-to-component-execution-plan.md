@@ -896,12 +896,36 @@ Concrete proof artifacts:
 - local runtime reports under `reports/paraguay/entity-source-packs/`
 - live cases `19` and `20` for the first two DNCP-covered high-priority entities
 
+## 2026-05-06 source-pack readiness and rollout advancement
+
+- br/acc
+  - advanced because the source-pack rollout now has a source-registry coverage report instead of relying on ad hoc memory, and every recommended action is tied to entity IDs, source-record counts, source-pack cases, and evidence-link counts.
+- Aleph
+  - advanced because more high-priority entities now have actual case packets, evidence links, source bundles, and source-document indexes that analysts can open and review.
+- Sayari
+  - advanced because high-volume company dossiers now move closer to mature entity-intelligence workflows: source coverage, representatives, local profile sources, document attempts, and case evidence are visible together.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because company-contract accountability now covers three more major supplier entities with official DNCP release/document metadata and traceable case packets.
+- DNCP local precedent / OCDS / Cardinal
+  - advanced because the widening stayed grounded in official DNCP release packages and document metadata, not scraped summaries or unsupported claims.
+- Integrity Watch / RUBLI
+  - advanced because the readiness report separates `ready_for_internal_review_with_document_download_limits` from successful document capture, preserving transparent limitations when DNCP document URLs return `404`.
+
+Concrete proof artifacts:
+
+- `src/storage/entitySourcePackReadiness.ts`
+- `npm run database:entity-source-pack-readiness`
+- live `py-dncp-release-source-check` state: 10 official release package records and 1,462 official document metadata records
+- live `py-dncp-document-content` state: 8 document-content records, including 6 priority-company DNCP `404` limitation records
+- live source-pack cases `22`, `23`, and `24` for `PROSALUDFARMA S.A.`, `INDEX S.A.C.I.`, and `QUIMFA S.A.`
+- latest readiness report under local runtime `reports/paraguay/entity-source-pack-readiness.md`
+
 ## Next extraction priority
 
 - highest priority
   - move to the next lawful Paraguay cross-domain source, preferably company/officer/ownership-adjacent accountability data if access is lawful and practical
 - next after that
-  - widen DNCP release/document source-record checks across the highest-priority companies/candidates and use `py-dncp-document-content` for source records that need captured official files
+  - continue readiness-ranked DNCP release/document source-record checks across the highest-priority companies/candidates and use `py-dncp-document-content` only for source records that need captured official files or explicit source-access limitation records
   - add OCR only for case-priority scanned PDFs after weighing dependency cost, privacy/source-review burden, and concrete analyst value
   - revisit the final RUC anchor gap only when a new lawful source can expose the missing check digit; DNIT bulk, DNCP OCDS JSON, DNCP supplier search, and locally parsed official PDFs did not resolve it
 - then

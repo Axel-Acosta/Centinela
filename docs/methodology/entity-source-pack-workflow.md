@@ -12,6 +12,14 @@ It is designed for companies or people that already have source records from DNC
 npm run database:entity-source-pack -- --entity-name "Entity Name" --source-record-limit 10 --source-index-query "search terms"
 ```
 
+Use the readiness report before widening source packs:
+
+```bash
+npm run database:entity-source-pack-readiness -- --limit 25 --source-record-limit 10
+```
+
+The readiness report ranks high-priority company entities and shows whether the next action is a DNCP release source check, source-pack build, selective document-content capture, or internal review with documented download/parser limits.
+
 The same workflow is also available through the local internal console/API:
 
 ```text
@@ -53,9 +61,18 @@ Entity source packs are source-backed review packets. They are not findings, leg
 Evidence links are intentionally conservative:
 
 - `document_content_extract` records cite official document capture status and SHA-256 hash.
+- `document_content_extract` records can also cite failed download attempts, such as official DNCP document URLs returning `404`; these are source-access limitations, not evidence about the entity.
 - `ocds_document_metadata` records cite official document metadata and process context.
 - `ocds_release_package` records cite official DNCP OCDS release package context.
 - Parser limitations such as `no_extractable_text` are preserved as source/document limitations, not treated as missing evidence about an entity.
+
+## Current Live Rollout
+
+- Readiness command: `npm run database:entity-source-pack-readiness -- --limit 15 --source-record-limit 10`
+- Current source-record state: `py-dncp-release-source-check` has 10 official release package records and 1,462 official document metadata records.
+- Current document-content state: `py-dncp-document-content` has 8 document-content records; 2 earlier records downloaded and hashed official PDFs, while 6 newer priority-company contract attempts preserve DNCP `404` download failures as limitations.
+- Current source-pack cases: case `19` for `MENDEZ GONZALEZ FLORIANA *`, case `20` for `CONSULTORA GUARANI SA INGENIEROS CIVILES`, case `22` for `PROSALUDFARMA S.A.`, case `23` for `INDEX S.A.C.I.`, and case `24` for `QUIMFA S.A.`.
+- Latest readiness result: the top three newly widened entities are `ready_for_internal_review_with_document_download_limits`; the next 12 ranked entities still need `py-dncp-release-source-check`.
 
 ## Reference Influence
 
@@ -75,6 +92,7 @@ Evidence links are intentionally conservative:
 
 ## Next Improvements
 
-- Add OCR only for case-priority scanned PDFs.
+- Add OCR only for case-priority scanned PDFs or after a successful official document download justifies it.
+- Investigate alternate lawful DNCP document access only if repeated official document URLs return `404` for a case-priority source pack.
 - Extend source selection to external candidate and accepted-match source records when they are linked to the same entity.
 - Add a durable artifact registry entry for entity source packs if analysts start using them as a recurring workflow.
