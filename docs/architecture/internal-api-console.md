@@ -4,7 +4,17 @@
 
 Centinela now has a first local-only analyst API and console surface.
 
-It is not a public product yet. It is the bridge from markdown reports to an explorable investigation workspace.
+It is not a public product yet. It is the bridge from markdown reports to an explorable investigation workspace, and now the first product-like internal interface for presenting the live intelligence system coherently.
+
+The 2026-05-12 product-surface slice turns the console into a local Command Center rather than a raw workbench. It adds:
+
+- a navigable app shell for overview, entities, dossiers, casework, queues, and methodology
+- a live workflow map that separates public records, entities, relationships, candidates, evidence links, and accepted identity context
+- a source-pack showcase for the first real Paraguay entity packs
+- a product-style entity dossier summary over the existing JSON profile and network endpoints
+- a relationship summary over graph-ready one-hop neighborhoods
+- a clearer case/source-pack workspace that keeps public-safety gates, artifacts, bundles, and source-document indexes visible
+- methodology and precedent synthesis inside the interface, not only in docs
 
 The surface is designed to expose:
 
@@ -26,6 +36,7 @@ The surface is designed to expose:
 - local case source bundles that copy resolvable source-run assets beside evidence and manifest files
 - local source-document indexes that search bundled text-like source files and trace matches back to evidence/source records
 - entity source-pack generation from the case workbench, including preview mode and write mode
+- a presentable local command-center interface over those workflows
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -119,21 +130,33 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
 ## Reference synthesis
 
 - br/acc
-  - Shapes the graph-ready neighborhood response and source-linked entity model.
+  - Shapes the graph-ready neighborhood response, source-linked entity model, and connected exploration feel.
 - OCCRP Aleph
-  - Shapes entity search, dossier-first investigation, source drilldowns, and pivotable casework.
+  - Shapes entity search, dossier-first investigation, source drilldowns, pivotable casework, and the case/source-pack workspace.
 - Sayari
-  - Shapes professional entity-intelligence ergonomics and one-hop company/person exploration.
+  - Shapes professional entity-intelligence ergonomics, company/person exploration, and the product-like dossier summary.
 - Dozorro / ProZorro
   - Shapes review queues, follow-up lanes, and saved analyst notes.
 - QuiénEsQuién / TodosLosContratos
-  - Shapes company-contract-accountability views and public-product direction.
+  - Shapes company-contract-accountability views, source-pack showcase, and public-product direction.
 - OpenSanctions / OpenOwnership / OpenCorporates / ICIJ
   - Shape accepted external matches, review-only candidates, identifiers, and ownership/offshore-ready edges.
 - Open Contracting / Cardinal / OCDS, GTI, DNCP
   - Shape process and contract review endpoints.
 - Integrity Watch, Rosie, RUBLI, FUNES
-  - Shape non-accusatory language, human-review boundaries, methodology visibility, cautious surfacing, and internal-note limitations.
+  - Shape non-accusatory language, human-review boundaries, methodology visibility, cautious surfacing, limitations, and public-safety gates.
+
+## Product-surface direction
+
+The local console should now be treated as Centinela's first internal product surface. Future interface work should improve this surface before introducing a separate public website unless a separate stack becomes clearly higher leverage.
+
+Near-term interface work should prioritize:
+
+- graph visualization over the existing `/api/entities/:id/network` and export endpoints
+- artifact-detail browsing for selected source bundles and source-document indexes
+- clearer queue filters for entity, process, external-candidate, and source-pack readiness lanes
+- a case overview page that feels less like JSON and more like a source-backed review packet
+- public-methodology and limitations pages derived from the existing docs and review gates
 
 ## Current smoke-test result
 
@@ -243,6 +266,7 @@ On the entity source-pack API/console smoke test, the local API path also confir
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
 - Saved cases, analyst notes, evidence links, and case timelines exist, but the console casework UI is still an internal workbench rather than a full case-management product.
+- The command-center shell is presentable for local/internal review, but it is still not a production public UI.
 - Field suggestions are heuristic helpers, not automatic evidence judgments.
 - Public-safety review gates reduce accidental disclosure risk, but they are not a substitute for full public-product review, role-based authorization, privacy review, or methodology publication.
 - Case evidence artifacts are generated runtime outputs and should stay out of Git.

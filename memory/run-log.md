@@ -270,3 +270,13 @@
 - Refreshed the three new source packs after document-content attempts. Each case now has 12 source-pack evidence links, and the source-document index query returned 3 matches per refreshed pack.
 - Regenerated entity briefs for `PROSALUDFARMA S.A.`, `INDEX S.A.C.I.`, and `QUIMFA S.A.` so the latest official source records and document-access limitations are visible in analyst-facing dossiers.
 - Refined source-pack readiness to distinguish successful document downloads from `download_failed` content attempts. Latest readiness result: 3 entities are `ready_for_internal_review_with_document_download_limits`; the next 12 ranked entities still need `py-dncp-release-source-check`.
+
+## 2026-05-12
+
+- Re-read the current project memory, roadmap, internal API/console docs, analyst-workspace docs, source-pack workflow, source status, and run log before shifting from backend/source expansion to the presentable-interface phase.
+- Chose the existing native Node local console as the highest-leverage product surface instead of introducing a separate frontend stack, because it already reaches the live PostgreSQL-backed evidence spine, entity dossiers, graph-ready neighborhoods, source records, cases, public-safety gates, source packs, and artifact registry.
+- Upgraded `src/server/internalConsole.ts` into the first product-like local Command Center with a sticky navigation shell, live system overview, workflow map, review-first guardrail, source-pack showcase, product-style entity dossier summary, relationship summary, case/source-pack workspace, review queues, and methodology/precedent synthesis.
+- Fixed the entity source-record queries in `src/storage/internalApi.ts` and `src/storage/analystWorkspace.ts` so profile/source-record endpoints no longer fail on PostgreSQL's `SELECT DISTINCT` / `ORDER BY` expression rule.
+- Kept the interface local-only and non-accusatory; accepted matches remain second-reviewed identity context, review candidates remain separate, and source limitations remain visible.
+- Updated `docs/architecture/internal-api-console.md`, `docs/execution/next-phase-roadmap.md`, `docs/execution/progress-and-remaining-work.md`, `docs/execution/reference-to-component-execution-plan.md`, and `memory/next-steps.md` so future runs treat this as the first internal product-surface milestone.
+- Validation: `npm run check`, `npm run build`, and `git diff --check` passed. A live local console smoke test against the VPS-backed database returned `200` for the Command Center page, overview, entity search, entity profile `3940`, and entity network, and confirmed the page contains the source-pack showcase and methodology section.

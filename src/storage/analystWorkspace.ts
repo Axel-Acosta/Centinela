@@ -1291,7 +1291,7 @@ export async function listEntitySourceRecords(
        join ${schema}.source_records as records
          on records.source_key = refs.source_key
         and records.external_id = refs.external_id
-       order by records.retrieved_at desc, records.id desc
+       order by retrieved_at desc, id desc
        limit $2`,
       [entityId, limit],
     );

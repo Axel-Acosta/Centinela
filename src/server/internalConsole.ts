@@ -777,70 +777,550 @@ function consoleHtml(): string {
         flex-direction: column;
       }
     }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      min-height: 100vh;
+      padding: 24px;
+      color: #f9f4e6;
+      background:
+        linear-gradient(rgba(14, 32, 27, 0.92), rgba(14, 32, 27, 0.92)),
+        radial-gradient(circle at 10% 10%, rgba(218, 165, 96, 0.22), transparent 20rem);
+      border-right: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .brand-mark {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      color: #123029;
+      background: #f4cf72;
+      font-weight: 800;
+      margin-bottom: 16px;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
+    }
+
+    .brand-title {
+      font-size: 1.75rem;
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+      margin-bottom: 8px;
+    }
+
+    .brand-subtitle {
+      color: rgba(249, 244, 230, 0.72);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      margin-bottom: 22px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+      margin: 22px 0;
+    }
+
+    .nav a {
+      color: rgba(249, 244, 230, 0.82);
+      text-decoration: none;
+      padding: 9px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(249, 244, 230, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .nav a:hover,
+    .nav a:focus {
+      color: #fff7df;
+      border-color: rgba(244, 207, 114, 0.5);
+      background: rgba(244, 207, 114, 0.1);
+    }
+
+    .sidebar-card {
+      border: 1px solid rgba(244, 207, 114, 0.22);
+      border-radius: 20px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(249, 244, 230, 0.8);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .content {
+      width: min(1320px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 64px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+
+    .hero-copy {
+      border-radius: 32px;
+      padding: clamp(24px, 4vw, 46px);
+      background:
+        linear-gradient(135deg, rgba(255, 252, 241, 0.96), rgba(248, 238, 214, 0.82)),
+        repeating-linear-gradient(90deg, transparent 0, transparent 31px, rgba(15, 104, 72, 0.07) 32px);
+      border: 1px solid rgba(143, 111, 60, 0.28);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy h1 {
+      max-width: 820px;
+    }
+
+    .hero-card {
+      display: grid;
+      align-content: space-between;
+      border-radius: 32px;
+      padding: 22px;
+      color: #f9f4e6;
+      background:
+        radial-gradient(circle at 82% 12%, rgba(244, 207, 114, 0.26), transparent 13rem),
+        linear-gradient(145deg, #102c25, #17372f 54%, #573b24);
+      box-shadow: var(--shadow);
+      min-height: 320px;
+    }
+
+    .hero-card h2 {
+      color: #f4cf72;
+    }
+
+    .hero-card .stat {
+      background: rgba(255, 255, 255, 0.08);
+      border-left-color: #f4cf72;
+    }
+
+    .hero-card .stat span {
+      color: rgba(249, 244, 230, 0.76);
+    }
+
+    .guardrail {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin: 0 0 18px;
+      border-color: rgba(155, 79, 27, 0.34);
+      background: rgba(251, 235, 214, 0.82);
+    }
+
+    .guardrail strong {
+      display: block;
+      color: #4a2618;
+      margin-bottom: 3px;
+    }
+
+    .section-block {
+      scroll-margin-top: 22px;
+      margin-top: 18px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 14px;
+      margin: 0 0 12px;
+    }
+
+    .section-header p {
+      max-width: 760px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .workflow-grid,
+    .lane-grid,
+    .showcase-grid,
+    .method-grid,
+    .dossier-grid,
+    .case-layout,
+    .review-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .workflow-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .workflow-step,
+    .method-card,
+    .showcase-card,
+    .summary-card,
+    .lane-card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.48);
+      padding: 14px;
+    }
+
+    .workflow-step strong,
+    .summary-card strong,
+    .lane-card strong {
+      display: block;
+      font-size: 1.05rem;
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+
+    .workflow-step span,
+    .summary-card span,
+    .lane-card span {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .lane-grid {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      margin-top: 14px;
+    }
+
+    .showcase-grid {
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    }
+
+    .showcase-card {
+      display: grid;
+      gap: 9px;
+      align-content: space-between;
+      min-height: 180px;
+    }
+
+    .showcase-card .case-key {
+      color: var(--accent-2);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .dossier-grid {
+      grid-template-columns: minmax(0, 1.1fr) minmax(330px, 0.9fr);
+    }
+
+    .dossier-summary {
+      display: grid;
+      gap: 12px;
+    }
+
+    .summary-card .summary-value {
+      display: block;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 1.4rem;
+      color: var(--ink);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 5px 9px;
+      background: rgba(15, 104, 72, 0.1);
+      color: #0f4a35;
+      border: 1px solid rgba(15, 104, 72, 0.18);
+      font-size: 0.82rem;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+    }
+
+    .chip.warning {
+      background: rgba(155, 79, 27, 0.12);
+      color: #783a13;
+      border-color: rgba(155, 79, 27, 0.22);
+    }
+
+    .network-mini {
+      display: grid;
+      gap: 9px;
+    }
+
+    .network-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border-bottom: 1px solid rgba(141, 114, 69, 0.2);
+      padding-bottom: 8px;
+    }
+
+    .network-row:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .raw-card summary {
+      cursor: pointer;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .case-layout {
+      grid-template-columns: minmax(310px, 0.82fr) minmax(0, 1.18fr);
+    }
+
+    .case-summary {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .review-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .method-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .method-card {
+      line-height: 1.45;
+    }
+
+    .method-card h3,
+    .showcase-card h3 {
+      margin: 0 0 6px;
+      font-size: 1.1rem;
+    }
+
+    .method-card p,
+    .showcase-card p {
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.92rem;
+    }
+
+    .product-note {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .json-pre {
+      max-height: 420px;
+      font-size: 0.82rem;
+    }
+
+    @media (max-width: 1120px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        min-height: auto;
+      }
+
+      .nav {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      }
+
+      .hero,
+      .dossier-grid,
+      .case-layout,
+      .review-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .workflow-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 680px) {
+      .content {
+        width: min(100vw - 18px, 1320px);
+        padding-top: 12px;
+      }
+
+      .hero-copy,
+      .hero-card,
+      .panel {
+        border-radius: 22px;
+        padding: 16px;
+      }
+
+      .workflow-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
-  <main>
-    <header>
-      <h1>Centinela<br />Internal Console</h1>
-      <p class="lede">A local analyst surface for entity search, review queues, accepted enrichment matches, and graph-ready relationship pivots. This is an internal tool, not a public accusation engine.</p>
-      <p class="guardrail">All outputs are risk signals, anomalies, identity context, or leads for review. They are not proof of wrongdoing.</p>
-    </header>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Centinela navigation">
+      <div class="brand-mark">C</div>
+      <div class="brand-title">Centinela</div>
+      <p class="brand-subtitle">Paraguay integrity intelligence command center. Local, review-first, source-backed.</p>
+      <nav class="nav">
+        <a href="#overview">Overview</a>
+        <a href="#explore">Entities</a>
+        <a href="#dossier">Dossier</a>
+        <a href="#casework">Casework</a>
+        <a href="#reviews">Review queues</a>
+        <a href="#methodology">Methodology</a>
+      </nav>
+      <div class="sidebar-card">
+        This console is local-only. It turns procurement, entity, external-candidate, evidence, and source-pack workflows into one explorable analyst surface.
+      </div>
+    </aside>
 
-    <section class="grid">
-      <article class="panel span-12">
-        <h2>Live Overview</h2>
-        <div id="stats" class="stats"></div>
-      </article>
-
-      <article class="panel span-7">
-        <h2>Entity Search</h2>
-        <form id="search-form">
-          <input id="search-input" value="CONSULTORA GUARANI" aria-label="Search entities" />
-          <button type="submit">Search</button>
-        </form>
-        <div id="results" class="list"></div>
-      </article>
-
-      <article class="panel span-5">
-        <h2>Entity / Network Detail</h2>
-        <pre id="detail">Search and choose an entity to inspect.</pre>
-      </article>
-
-      <article class="panel span-4">
-        <h2>Source Records</h2>
-        <div id="source-records" class="list"></div>
-      </article>
-
-      <article class="panel span-4">
-        <h2>Analyst Notes</h2>
-        <div class="mini-form">
-          <input id="write-token" type="password" placeholder="Write token for saved notes" aria-label="Write token" />
-          <input id="analyst-name" value="centinela-operator" aria-label="Analyst name" />
-          <select id="note-type" aria-label="Note type">
-            <option value="analyst_note">Analyst note</option>
-            <option value="evidence_note">Evidence note</option>
-            <option value="limitation">Limitation</option>
-            <option value="follow_up">Follow-up</option>
-            <option value="source_check">Source check</option>
-            <option value="methodology_note">Methodology note</option>
-          </select>
-          <textarea id="note-text" placeholder="Saved notes are internal leads and context, not conclusions."></textarea>
-          <button id="save-note" type="button">Save entity note</button>
+    <main class="content">
+      <header id="overview" class="hero">
+        <div class="hero-copy">
+          <h1>Centinela<br />Command Center</h1>
+          <p class="lede">A presentable internal surface for Paraguay entity intelligence: search, dossiers, graph-ready relationships, review queues, source packs, case evidence, and public-safety gates in one coherent workspace.</p>
         </div>
-        <div id="notes" class="list"></div>
-      </article>
+        <aside class="hero-card">
+          <h2>Live system</h2>
+          <div id="stats" class="stats"></div>
+          <p class="product-note">Counts come from the live PostgreSQL-backed investigation layer.</p>
+        </aside>
+      </header>
 
-      <article class="panel span-4">
-        <h2>Graph Export</h2>
-        <button id="export-graph" type="button" class="secondary">Load Cytoscape export</button>
-        <pre id="graph-export">Open an entity first.</pre>
-      </article>
+      <section class="guardrail" aria-label="Safety rule">
+        <div>
+          <strong>Review-first boundary</strong>
+          <p>Centinela surfaces risk signals, identity context, source limitations, and review leads. It does not make accusations or legal conclusions.</p>
+        </div>
+      </section>
 
-      <article class="panel span-12">
-        <h2>Case Timeline Workbench</h2>
-        <div class="grid">
-          <div class="span-4">
+      <section class="panel section-block" aria-labelledby="workflow-title">
+        <div class="section-header">
+          <div>
+            <h2 id="workflow-title">Operating Workflow</h2>
+            <p>One visible path from public records to analyst review: signals stay separated from candidates, accepted identity context, evidence, and public-safe outputs.</p>
+          </div>
+        </div>
+        <div id="workflow-stats" class="workflow-grid"></div>
+        <div id="platform-lanes" class="lane-grid"></div>
+      </section>
+
+      <section id="explore" class="grid section-block">
+        <article class="panel span-7">
+          <div class="section-header">
+            <div>
+              <h2>Entity Search</h2>
+              <p>Open a company or person dossier, then pivot into source records, notes, graph exports, and source-pack generation.</p>
+            </div>
+          </div>
+          <form id="search-form">
+            <input id="search-input" value="CONSULTORA GUARANI" aria-label="Search entities" />
+            <button type="submit">Search</button>
+          </form>
+          <div id="results" class="list"></div>
+        </article>
+
+        <article class="panel span-5">
+          <div class="section-header">
+            <div>
+              <h2>Source-Pack Showcase</h2>
+              <p>Current source-backed cases that make the platform demonstrable without inventing sample data.</p>
+            </div>
+          </div>
+          <div id="entity-showcase" class="showcase-grid"></div>
+        </article>
+      </section>
+
+      <section id="dossier" class="section-block">
+        <div class="section-header">
+          <div>
+            <h2>Entity Dossier</h2>
+            <p>Company/accountability view inspired by Aleph, Sayari, br/acc, and QuienEsQuien: identity, procurement activity, review state, source records, and relationship pivots stay together.</p>
+          </div>
+        </div>
+        <div class="dossier-grid">
+          <article class="panel">
+            <div id="entity-summary" class="dossier-summary">
+              <div class="summary-card">
+                <strong>No entity opened yet</strong>
+                <span>Search or choose a source-pack entity to inspect the product-style dossier.</span>
+              </div>
+            </div>
+            <details class="raw-card">
+              <summary>Raw dossier and network JSON</summary>
+              <pre id="detail" class="json-pre">Search and choose an entity to inspect.</pre>
+            </details>
+          </article>
+
+          <aside class="panel">
+            <h2>Relationship View</h2>
+            <div id="network-summary" class="network-mini">
+              <div class="summary-card">
+                <strong>Graph-ready neighborhood</strong>
+                <span>Open an entity to see counterparties, representatives, processes, accepted matches, and review candidates.</span>
+              </div>
+            </div>
+            <button id="export-graph" type="button" class="secondary">Load Cytoscape export</button>
+            <pre id="graph-export" class="json-pre">Open an entity first.</pre>
+          </aside>
+        </div>
+
+        <div class="grid section-block">
+          <article class="panel span-4">
+            <h2>Source Records</h2>
+            <p class="product-note">Source-backed records linked to the opened entity or selected evidence path.</p>
+            <div id="source-records" class="list"></div>
+          </article>
+
+          <article class="panel span-4">
+            <h2>Analyst Notes</h2>
+            <div class="mini-form">
+              <input id="write-token" type="password" placeholder="Write token for saved notes and artifacts" aria-label="Write token" />
+              <input id="analyst-name" value="centinela-operator" aria-label="Analyst name" />
+              <select id="note-type" aria-label="Note type">
+                <option value="analyst_note">Analyst note</option>
+                <option value="evidence_note">Evidence note</option>
+                <option value="limitation">Limitation</option>
+                <option value="follow_up">Follow-up</option>
+                <option value="source_check">Source check</option>
+                <option value="methodology_note">Methodology note</option>
+              </select>
+              <textarea id="note-text" placeholder="Saved notes are internal leads and context, not conclusions."></textarea>
+              <button id="save-note" type="button">Save entity note</button>
+            </div>
+            <div id="notes" class="list"></div>
+          </article>
+
+          <article class="panel span-4">
+            <h2>Field Suggestions</h2>
+            <p class="product-note">Open a source record to use exact field paths in evidence links.</p>
+            <div id="field-suggestions" class="list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="casework" class="panel section-block">
+        <div class="section-header">
+          <div>
+            <h2>Case and Source-Pack Workspace</h2>
+            <p>Create or reopen internal cases, link source-record evidence, generate source manifests and bundles, then gate public-only exports through review.</p>
+          </div>
+        </div>
+        <div class="case-layout">
+          <div>
             <div class="mini-form">
               <input id="case-title" placeholder="New case title" aria-label="New case title" />
               <select id="case-priority" aria-label="Case priority">
@@ -899,32 +1379,78 @@ function consoleHtml(): string {
             </div>
             <div id="cases" class="list"></div>
             <div id="case-source-record-results" class="list"></div>
-            <div id="field-suggestions" class="list"></div>
           </div>
-          <div class="span-7">
-            <pre id="case-detail">Create or open a case to see the timeline.</pre>
-            <pre id="case-export">Evidence export appears here after public-safety review.</pre>
-            <pre id="case-artifacts">Artifact, bundle, and source index paths appear here.</pre>
+          <div>
+            <div id="case-summary" class="case-summary">
+              <div class="summary-card">
+                <strong>No case opened yet</strong>
+                <span>Create or open a case to see linked targets, notes, evidence links, public-review status, and artifacts.</span>
+              </div>
+            </div>
+            <details class="raw-card" open>
+              <summary>Case timeline JSON</summary>
+              <pre id="case-detail" class="json-pre">Create or open a case to see the timeline.</pre>
+            </details>
+            <details class="raw-card">
+              <summary>Evidence export JSON</summary>
+              <pre id="case-export" class="json-pre">Evidence export appears here after public-safety review.</pre>
+            </details>
+            <details class="raw-card">
+              <summary>Generated artifact registry JSON</summary>
+              <pre id="case-artifacts" class="json-pre">Artifact, bundle, and source index paths appear here.</pre>
+            </details>
           </div>
         </div>
-      </article>
+      </section>
 
-      <article class="panel span-4">
-        <h2>Accepted Matches</h2>
-        <div id="accepted" class="list"></div>
-      </article>
+      <section id="reviews" class="review-grid section-block">
+        <article class="panel">
+          <h2>Accepted Matches</h2>
+          <p class="product-note">Second-reviewed identity context only. Not automatic risk findings.</p>
+          <div id="accepted" class="list"></div>
+        </article>
 
-      <article class="panel span-4">
-        <h2>Entity Queue</h2>
-        <div id="entity-queue" class="list"></div>
-      </article>
+        <article class="panel">
+          <h2>Entity Queue</h2>
+          <p class="product-note">Company-level review lanes from local anchors, procurement activity, relationships, and enrichment state.</p>
+          <div id="entity-queue" class="list"></div>
+        </article>
 
-      <article class="panel span-4">
-        <h2>External Candidates</h2>
-        <div id="candidates" class="list"></div>
-      </article>
-    </section>
-  </main>
+        <article class="panel">
+          <h2>External Candidates</h2>
+          <p class="product-note">Review-only candidates and diagnostics stay separate from accepted matches.</p>
+          <div id="candidates" class="list"></div>
+        </article>
+      </section>
+
+      <section id="methodology" class="panel section-block">
+        <div class="section-header">
+          <div>
+            <h2>Methodology and Precedent Synthesis</h2>
+            <p>The visible layer keeps the reference universe active: connected graph exploration, casework, accountability mapping, explainable signals, and transparent limitations.</p>
+          </div>
+        </div>
+        <div class="method-grid">
+          <article class="method-card">
+            <h3>Graph and provenance</h3>
+            <p>br/acc shapes source-linked entities, graph-ready relationships, and source-registry discipline.</p>
+          </article>
+          <article class="method-card">
+            <h3>Investigation workflow</h3>
+            <p>Aleph and Sayari shape entity-first dossiers, relationship pivots, case timelines, and source-record drilldowns.</p>
+          </article>
+          <article class="method-card">
+            <h3>Company accountability</h3>
+            <p>QuienEsQuien and TodosLosContratos shape the company-contract visibility now exposed through dossiers and source packs.</p>
+          </article>
+          <article class="method-card">
+            <h3>Review and transparency</h3>
+            <p>Integrity Watch, Dozorro, RUBLI, DNCP, Cardinal, GTI, FUNES, and Rosie shape cautious language, review lanes, public-safety gates, and explainable signals.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <script>
     let currentEntityId = null;
@@ -964,6 +1490,125 @@ function consoleHtml(): string {
       return String(value);
     }
 
+    function numberText(value) {
+      if (value === null || value === undefined || value === '') {
+        return '0';
+      }
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) {
+        return text(value);
+      }
+      return parsed.toLocaleString('en-US');
+    }
+
+    function shortText(value, maxLength) {
+      const raw = text(value);
+      if (raw.length <= maxLength) {
+        return raw;
+      }
+      return raw.slice(0, Math.max(0, maxLength - 1)) + '...';
+    }
+
+    function html(value) {
+      return text(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function arrayCount(value) {
+      return Array.isArray(value) ? value.length : 0;
+    }
+
+    function setJson(id, value) {
+      const node = document.getElementById(id);
+      if (node) {
+        node.textContent = JSON.stringify(value, null, 2);
+      }
+    }
+
+    function pill(label, warning) {
+      return '<span class="chip' + (warning ? ' warning' : '') + '">' + html(label) + '</span>';
+    }
+
+    function summaryCard(label, value, note, warning) {
+      return '<div class="summary-card">' +
+        '<strong>' + html(label) + '</strong>' +
+        '<span class="summary-value">' + html(value) + '</span>' +
+        '<span>' + html(note) + '</span>' +
+        (warning ? '<div class="chip-row">' + pill(warning, true) + '</div>' : '') +
+        '</div>';
+    }
+
+    function workflowStep(title, count, note) {
+      return '<article class="workflow-step">' +
+        '<strong>' + html(title) + '</strong>' +
+        '<span class="summary-value">' + html(numberText(count)) + '</span>' +
+        '<span>' + html(note) + '</span>' +
+        '</article>';
+    }
+
+    function renderShowcase() {
+      const container = document.getElementById('entity-showcase');
+      if (!container) {
+        return;
+      }
+
+      const entities = [
+        {
+          id: 3940,
+          name: 'CONSULTORA GUARANI SA INGENIEROS CIVILES',
+          caseKey: 'case 20',
+          note: 'Accepted external identity-context match plus DNCP/IDB source evidence.'
+        },
+        {
+          id: 224,
+          name: 'PROSALUDFARMA S.A.',
+          caseKey: 'case 22',
+          note: 'High-priority source pack with DNCP document-access limitations preserved.'
+        },
+        {
+          id: 261,
+          name: 'INDEX S.A.C.I.',
+          caseKey: 'case 23',
+          note: 'Company-contract accountability pack with source-document index matches.'
+        },
+        {
+          id: 237,
+          name: 'QUIMFA S.A.',
+          caseKey: 'case 24',
+          note: 'Entity source pack showing official source metadata and download limits.'
+        }
+      ];
+
+      container.innerHTML = '';
+      entities.forEach((entity) => {
+        const card = document.createElement('article');
+        card.className = 'showcase-card';
+        const title = document.createElement('h3');
+        title.textContent = entity.name;
+        const caseKey = document.createElement('div');
+        caseKey.className = 'case-key';
+        caseKey.textContent = entity.caseKey;
+        const note = document.createElement('p');
+        note.textContent = entity.note;
+        const button = document.createElement('button');
+        button.className = 'secondary';
+        button.type = 'button';
+        button.textContent = 'Open dossier';
+        button.onclick = () => loadEntity(entity.id).then(() => {
+          document.getElementById('dossier').scrollIntoView({ behavior: 'smooth' });
+        });
+        card.appendChild(caseKey);
+        card.appendChild(title);
+        card.appendChild(note);
+        card.appendChild(button);
+        container.appendChild(card);
+      });
+    }
+
     function renderItem(container, title, lines, button) {
       const item = document.createElement('div');
       item.className = 'item';
@@ -994,18 +1639,54 @@ function consoleHtml(): string {
       [
         ['Entities', counts.entities],
         ['Processes', counts.procurement_processes],
-        ['Risk signals', counts.procurement_risk_signals],
-        ['Relationships', counts.relationship_edges],
-        ['Accepted matches', counts.accepted_second_reviews],
+        ['Source records', counts.source_records],
         ['Evidence links', counts.analyst_evidence_links],
-        ['Public reviews', counts.analyst_public_reviews],
-        ['External risk signals', counts.external_risk_signals]
+        ['Source candidates', counts.external_candidate_records],
+        ['Accepted context', counts.accepted_second_reviews]
       ].forEach(([label, value]) => {
         const stat = document.createElement('div');
         stat.className = 'stat';
-        stat.innerHTML = '<strong>' + text(value) + '</strong><span>' + label + '</span>';
+        stat.innerHTML = '<strong>' + html(numberText(value)) + '</strong><span>' + html(label) + '</span>';
         stats.appendChild(stat);
       });
+
+      const workflow = document.getElementById('workflow-stats');
+      if (workflow) {
+        workflow.innerHTML = [
+          workflowStep('Public records', counts.source_records, 'Source records and official-source payloads.'),
+          workflowStep('Entities', counts.entities, 'Companies, people, institutions, and external entities.'),
+          workflowStep('Relationships', counts.relationship_edges, 'Graph-ready links for review and pivoting.'),
+          workflowStep('Review candidates', counts.external_candidate_records, 'Near matches and diagnostics kept separate.'),
+          workflowStep('Evidence links', counts.analyst_evidence_links, 'Case evidence bundles with limitations.')
+        ].join('');
+      }
+
+      const lanes = document.getElementById('platform-lanes');
+      if (lanes) {
+        const anchor = overview.data.anchorCoverage || {};
+        const entityLaneText = (overview.data.entityReviewLanes || [])
+          .slice(0, 4)
+          .map((lane) => text(lane.review_lane) + ': ' + numberText(lane.count))
+          .join(' | ') || 'No entity lanes returned';
+        const processLaneText = (overview.data.processReviewLanes || [])
+          .slice(0, 4)
+          .map((lane) => text(lane.review_lane) + ': ' + numberText(lane.count))
+          .join(' | ') || 'No process lanes returned';
+        const secondReviewText = (overview.data.secondReviews || [])
+          .map((row) => text(row.decision) + ': ' + numberText(row.count))
+          .join(' | ') || 'No second reviews yet';
+
+        lanes.innerHTML = [
+          '<article class="lane-card"><strong>Local company anchor</strong><span>' +
+            html(numberText(anchor.anchored_supplier_company_count || anchor.anchored_count || 0)) +
+            ' anchored suppliers, ' +
+            html(numberText(anchor.supplier_company_count || anchor.total_supplier_company_count || 0)) +
+            ' tracked.</span></article>',
+          '<article class="lane-card"><strong>Entity review lanes</strong><span>' + html(entityLaneText) + '</span></article>',
+          '<article class="lane-card"><strong>Process review lanes</strong><span>' + html(processLaneText) + '</span></article>',
+          '<article class="lane-card"><strong>Second review governance</strong><span>' + html(secondReviewText) + '</span></article>'
+        ].join('');
+      }
     }
 
     async function searchEntities(event) {
@@ -1016,6 +1697,13 @@ function consoleHtml(): string {
       const payload = await getJson('/api/entities?q=' + encodeURIComponent(q) + '&limit=8');
       const results = document.getElementById('results');
       results.innerHTML = '';
+      if (!payload.data.length) {
+        renderItem(results, 'No entities found', [
+          'search',
+          'Try a company name, person name, RUC, DNCP identifier, or source term.'
+        ]);
+        return;
+      }
       payload.data.forEach((entity) => {
         const button = document.createElement('button');
         button.className = 'secondary';
@@ -1029,16 +1717,106 @@ function consoleHtml(): string {
       });
     }
 
+    function renderEntitySummary(profile, network) {
+      const container = document.getElementById('entity-summary');
+      if (!container) {
+        return;
+      }
+
+      const entity = profile.entity || {};
+      const identifiers = profile.identifiers || [];
+      const localProfiles = profile.localProfiles || [];
+      const acceptedMatches = profile.acceptedMatches || [];
+      const candidates = profile.externalCandidates || [];
+      const secondReviews = profile.secondReviews || [];
+      const sourceRecords = profile.sourceRecords || [];
+      const processes = profile.processes || [];
+      const representatives = profile.representatives || [];
+      const chips = [
+        entity.entity_type,
+        entity.anchor_status,
+        entity.review_lane,
+        entity.review_priority,
+        acceptedMatches.length ? 'accepted identity context' : null,
+        candidates.length ? 'review candidates/diagnostics' : null,
+        sourceRecords.length ? 'source records linked' : null
+      ].filter(Boolean).map((value, index) => pill(value, index > 2)).join('');
+      const firstIdentifiers = identifiers
+        .slice(0, 6)
+        .map((item) => text(item.scheme) + ':' + text(item.value))
+        .join(' | ');
+      const leadQuestion = entity.lead_question || 'Open queue context or source records for the next review question.';
+      const limitation = profile.disclaimer || 'This dossier is review context, not a finding.';
+
+      container.innerHTML =
+        '<div class="summary-card">' +
+          '<strong>' + html(entity.entity_name || 'Entity') + '</strong>' +
+          '<span>' + html(leadQuestion) + '</span>' +
+          '<div class="chip-row">' + chips + '</div>' +
+        '</div>' +
+        '<div class="grid">' +
+          '<div class="span-4">' + summaryCard('Processes', numberText(entity.total_process_count), 'Linked procurement processes.') + '</div>' +
+          '<div class="span-4">' + summaryCard('Risk signals', numberText(entity.total_risk_signals), 'Signals for review, not accusations.') + '</div>' +
+          '<div class="span-4">' + summaryCard('Representatives', numberText(representatives.length), 'DNCP legal representative links where available.') + '</div>' +
+          '<div class="span-4">' + summaryCard('Source records', numberText(sourceRecords.length), 'Official or external records linked to this entity.') + '</div>' +
+          '<div class="span-4">' + summaryCard('Accepted context', numberText(acceptedMatches.length), 'Second-reviewed external identity context.') + '</div>' +
+          '<div class="span-4">' + summaryCard('Network edges', numberText(arrayCount(network.edges)), 'Graph-ready relationship leads.') + '</div>' +
+        '</div>' +
+        '<div class="summary-card">' +
+          '<strong>Identifiers and local profiles</strong>' +
+          '<span>' + html(firstIdentifiers || 'No identifiers returned by the profile endpoint.') + '</span>' +
+          '<div class="chip-row">' +
+            pill('local profiles: ' + numberText(localProfiles.length), false) +
+            pill('second reviews: ' + numberText(secondReviews.length), false) +
+            pill('linked processes shown: ' + numberText(processes.length), false) +
+          '</div>' +
+        '</div>' +
+        '<div class="summary-card">' +
+          '<strong>Use limits</strong>' +
+          '<span>' + html(limitation) + '</span>' +
+        '</div>';
+    }
+
+    function renderNetworkSummary(network) {
+      const container = document.getElementById('network-summary');
+      if (!container) {
+        return;
+      }
+
+      const edges = network.edges || [];
+      const nodes = network.nodes || [];
+      const byRelation = edges.reduce((accumulator, edge) => {
+        const relation = text(edge.relation);
+        accumulator[relation] = (accumulator[relation] || 0) + 1;
+        return accumulator;
+      }, {});
+      const relationRows = Object.entries(byRelation)
+        .slice(0, 8)
+        .map(([relation, count]) => (
+          '<div class="network-row"><span>' + html(relation) + '</span><strong>' + html(numberText(count)) + '</strong></div>'
+        ))
+        .join('');
+
+      container.innerHTML =
+        '<div class="summary-card">' +
+          '<strong>One-hop relationship map</strong>' +
+          '<span>' + html(numberText(nodes.length)) + ' nodes and ' + html(numberText(edges.length)) + ' edges. These are review pivots, not proof of control or misconduct.</span>' +
+        '</div>' +
+        (relationRows || '<div class="summary-card"><strong>No graph edges returned</strong><span>Try another entity or expand source coverage.</span></div>');
+    }
+
     async function loadEntity(entityId) {
       currentEntityId = entityId;
       const [profile, network] = await Promise.all([
         getJson('/api/entities/' + entityId),
         getJson('/api/entities/' + entityId + '/network?limit=18')
       ]);
-      document.getElementById('detail').textContent = JSON.stringify({
+      setJson('detail', {
         profile: profile.data,
         network: network.data
-      }, null, 2);
+      });
+      renderEntitySummary(profile.data, network.data);
+      renderNetworkSummary(network.data);
       renderSourceRecords(profile.data.sourceRecords || []);
       renderNotes(profile.data.analystNotes || []);
       document.getElementById('graph-export').textContent = 'Ready to export entity #' + entityId + '.';
@@ -1047,7 +1825,7 @@ function consoleHtml(): string {
     async function openSourceRecord(recordId) {
       currentSourceRecordId = Number(recordId);
       const payload = await getJson('/api/source-records/' + recordId);
-      document.getElementById('detail').textContent = JSON.stringify(payload.data, null, 2);
+      setJson('detail', payload.data);
       renderFieldSuggestions(payload.data.fieldSuggestions || []);
     }
 
@@ -1172,11 +1950,24 @@ function consoleHtml(): string {
       const payload = await getJson('/api/accepted-matches?limit=5');
       const container = document.getElementById('accepted');
       container.innerHTML = '';
-      payload.data.forEach((match) => renderItem(container, match.entity_name + ' -> ' + match.external_name, [
-        match.decision,
-        'accepted match ID: ' + text(match.accepted_match_id),
-        'limit: ' + text(match.limitations)
-      ]));
+      if (!payload.data.length) {
+        renderItem(container, 'No accepted matches returned', [
+          'second review',
+          'Accepted identity context appears here after second review.'
+        ]);
+        return;
+      }
+      payload.data.forEach((match) => {
+        const button = document.createElement('button');
+        button.className = 'secondary';
+        button.textContent = 'Open local entity';
+        button.onclick = () => loadEntity(match.entity_id);
+        renderItem(container, match.entity_name + ' -> ' + match.external_name, [
+          match.decision,
+          'accepted match ID: ' + text(match.accepted_match_id),
+          'limit: ' + text(match.limitations)
+        ], button);
+      });
     }
 
     async function loadCases() {
@@ -1203,10 +1994,44 @@ function consoleHtml(): string {
       });
     }
 
+    function renderCaseSummary(data) {
+      const container = document.getElementById('case-summary');
+      if (!container) {
+        return;
+      }
+
+      const item = data.case || {};
+      const links = data.links || [];
+      const notes = data.notes || [];
+      const evidenceLinks = data.evidenceLinks || [];
+      const publicReviews = data.publicReviews || [];
+      const timeline = data.timeline || [];
+      const publicStatus = item.public_review_status || 'not reviewed for public use';
+      container.innerHTML =
+        '<div class="summary-card">' +
+          '<strong>' + html(item.title || 'Case #' + text(item.id || currentCaseId)) + '</strong>' +
+          '<span>' + html(item.summary || 'Internal casework container for review, evidence, and source-pack artifacts.') + '</span>' +
+          '<div class="chip-row">' +
+            pill('status: ' + text(item.status || 'open'), false) +
+            pill('priority: ' + text(item.priority || 'normal'), false) +
+            pill('public gate: ' + text(publicStatus), publicStatus !== 'approved_public') +
+          '</div>' +
+        '</div>' +
+        '<div class="grid">' +
+          '<div class="span-4">' + summaryCard('Links', numberText(links.length), 'Entities, source records, candidates, or other targets.') + '</div>' +
+          '<div class="span-4">' + summaryCard('Notes', numberText(notes.length), 'Internal analyst context only.') + '</div>' +
+          '<div class="span-4">' + summaryCard('Evidence links', numberText(evidenceLinks.length), 'Source-backed review bundles.') + '</div>' +
+          '<div class="span-4">' + summaryCard('Timeline events', numberText(timeline.length), 'Case creation, notes, links, evidence, and reviews.') + '</div>' +
+          '<div class="span-4">' + summaryCard('Public reviews', numberText(publicReviews.length), 'Append-only safety decisions.') + '</div>' +
+          '<div class="span-4">' + summaryCard('Case ID', text(item.id || currentCaseId), 'Use this for CLI artifact commands.') + '</div>' +
+        '</div>';
+    }
+
     async function openCase(caseId) {
       currentCaseId = caseId;
       const payload = await getJson('/api/analyst-cases/' + caseId + '?limit=50');
-      document.getElementById('case-detail').textContent = JSON.stringify(payload.data, null, 2);
+      renderCaseSummary(payload.data);
+      setJson('case-detail', payload.data);
       const status = payload.data.case && payload.data.case.public_review_status;
       if (status) {
         document.getElementById('public-review-status').value = status;
@@ -1559,17 +2384,41 @@ function consoleHtml(): string {
       ]);
       const queueNode = document.getElementById('entity-queue');
       queueNode.innerHTML = '';
-      queue.data.forEach((item) => renderItem(queueNode, item.entity_name, [
-        item.review_priority + ' / ' + item.review_lane,
-        item.lead_question
-      ]));
+      if (!queue.data.length) {
+        renderItem(queueNode, 'No entity queue rows returned', [
+          'entity review',
+          'Queue rows appear after the entity-intelligence views refresh.'
+        ]);
+      }
+      queue.data.forEach((item) => {
+        const button = document.createElement('button');
+        button.className = 'secondary';
+        button.textContent = 'Open dossier';
+        button.onclick = () => loadEntity(item.entity_id);
+        renderItem(queueNode, item.entity_name, [
+          item.review_priority + ' / ' + item.review_lane,
+          item.lead_question
+        ], button);
+      });
       const candidateNode = document.getElementById('candidates');
       candidateNode.innerHTML = '';
-      candidates.data.forEach((item) => renderItem(candidateNode, item.entity_name + ' -> ' + item.external_name, [
-        item.suggested_review_status || item.review_status,
-        'candidate #' + item.id,
-        text(item.review_next_step)
-      ]));
+      if (!candidates.data.length) {
+        renderItem(candidateNode, 'No candidate rows returned', [
+          'external candidate review',
+          'Review-only candidates and diagnostics appear here.'
+        ]);
+      }
+      candidates.data.forEach((item) => {
+        const button = document.createElement('button');
+        button.className = 'secondary';
+        button.textContent = 'Open local entity';
+        button.onclick = () => loadEntity(item.entity_id);
+        renderItem(candidateNode, item.entity_name + ' -> ' + item.external_name, [
+          item.suggested_review_status || item.review_status,
+          'candidate #' + item.id,
+          text(item.review_next_step)
+        ], button);
+      });
     }
 
     document.getElementById('search-form').addEventListener('submit', searchEntities);
@@ -1653,6 +2502,7 @@ function consoleHtml(): string {
         document.getElementById('case-artifacts').textContent = error.message;
       });
     });
+    renderShowcase();
     loadOverview().then(loadAccepted).then(loadQueues).then(loadCases).then(() => searchEntities()).catch((error) => {
       document.getElementById('detail').textContent = error.message;
     });

@@ -456,7 +456,7 @@ export async function getEntityProfile(entityId: number): Promise<Record<string,
        join ${schema}.source_records as records
          on records.source_key = refs.source_key
         and records.external_id = refs.external_id
-       order by records.retrieved_at desc, records.id desc
+       order by retrieved_at desc, id desc
        limit 20`,
       [entityId],
     );

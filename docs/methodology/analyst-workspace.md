@@ -8,6 +8,8 @@ It lets analysts preserve notes, case context, source-record drilldowns, and gra
 
 Everything remains internal, reviewable, and non-accusatory.
 
+As of the 2026-05-12 product-surface slice, the workspace also has a presentable local Command Center shell. The shell does not change evidence semantics; it makes the existing review-first workflow easier to understand through overview, entity search, dossier summary, relationship summary, source-pack showcase, case/source-pack workspace, queue panels, and methodology/limitations sections.
+
 ## Live database objects
 
 - `centinela.analyst_cases`
@@ -92,6 +94,7 @@ The artifact and bundle POST endpoints write local runtime files rather than dat
 ## Safety rules
 
 - Notes are internal analyst context, not findings of guilt.
+- The Command Center is an internal review interface, not a public publication surface.
 - Public-facing use requires later review, redaction, and methodology treatment.
 - Graph exports are relationship leads for review, not proof of ownership, control, misconduct, or liability.
 - Source-record drilldowns show raw/source-backed evidence, but interpretation still belongs in review notes or methodology.
@@ -135,4 +138,4 @@ On 2026-04-26, the first live analyst-workspace smoke test confirmed:
 
 ## Next hardening step
 
-Add a bounded artifact-detail reader for selected bundle/index files, or move to the next higher-value intelligence step: stronger external-candidate scoring and the final local RUC anchor gap.
+Add graph visualization over the existing network endpoint, then a bounded artifact-detail reader for selected bundle/index files. Only after the Command Center can visually explain entity relationships and source packets should the project return to broad cross-domain source expansion.

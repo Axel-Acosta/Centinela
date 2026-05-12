@@ -920,11 +920,44 @@ Concrete proof artifacts:
 - live source-pack cases `22`, `23`, and `24` for `PROSALUDFARMA S.A.`, `INDEX S.A.C.I.`, and `QUIMFA S.A.`
 - latest readiness report under local runtime `reports/paraguay/entity-source-pack-readiness.md`
 
+## 2026-05-12 Command Center product-surface advancement
+
+- br/acc
+  - advanced because the visible interface now foregrounds source-linked entities, relationship neighborhoods, source records, and graph-ready exploration instead of hiding them behind JSON-only endpoints.
+- Aleph
+  - advanced because entity search, dossier-first investigation, source-record drilldowns, source packs, case timelines, and evidence artifacts now sit in one navigable analyst workspace.
+- Sayari
+  - advanced because Centinela now has a more mature entity-intelligence feel: company/person dossiers summarize identity, relationships, local anchors, candidates, accepted context, and limitations before raw JSON.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because source-pack showcase cards and company-contract dossiers make accountability paths visible around real Paraguay companies instead of abstract architecture.
+- Integrity Watch / Dozorro / RUBLI
+  - advanced because the interface includes review-first language, workflow separation, queue surfacing, public-safety gates, methodology visibility, and explicit limitations.
+- DNCP / OCDS / Cardinal / GTI
+  - advanced because official DNCP source-records, procurement processes, source packs, and rule-derived review lanes are now visible in a coherent product shell.
+
+Concrete proof artifacts:
+
+- `src/server/internalConsole.ts`
+- `docs/architecture/internal-api-console.md`
+- `docs/execution/next-phase-roadmap.md`
+- `docs/execution/progress-and-remaining-work.md`
+- `memory/run-log.md`
+
+Current interface state:
+
+- local-only Command Center shell
+- navigable product sections: overview, entities, dossier, casework, review queues, methodology
+- source-pack showcase for `CONSULTORA GUARANI SA INGENIEROS CIVILES`, `PROSALUDFARMA S.A.`, `INDEX S.A.C.I.`, and `QUIMFA S.A.`
+- product-style dossier summary plus raw JSON fallback
+- relationship summary over graph-ready network output
+- source-pack/case artifact controls preserved in the same safety model
+
 ## Next extraction priority
 
 - highest priority
-  - move to the next lawful Paraguay cross-domain source, preferably company/officer/ownership-adjacent accountability data if access is lawful and practical
+  - finish the next internal-product MVP slice: graph visualization over the existing network endpoint, artifact-detail browsing for selected source bundles/indexes, and clearer queue/source-pack readiness filters
 - next after that
+  - move to the next lawful Paraguay cross-domain source, preferably company/officer/ownership-adjacent accountability data if access is lawful and practical
   - continue readiness-ranked DNCP release/document source-record checks across the highest-priority companies/candidates and use `py-dncp-document-content` only for source records that need captured official files or explicit source-access limitation records
   - add OCR only for case-priority scanned PDFs after weighing dependency cost, privacy/source-review burden, and concrete analyst value
   - revisit the final RUC anchor gap only when a new lawful source can expose the missing check digit; DNIT bulk, DNCP OCDS JSON, DNCP supplier search, and locally parsed official PDFs did not resolve it

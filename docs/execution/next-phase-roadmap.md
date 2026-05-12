@@ -90,6 +90,7 @@
 
 - Status
   - first local-only slice operational
+  - first product-like internal Command Center surface achieved
   - case artifact and source-bundle controls now exposed through local API/console
   - generated case artifacts are now rediscoverable through a lightweight runtime-folder registry
   - entity source-pack CLI now bridges entity-linked source records into cases, evidence links, source bundles, and source-document indexes in one command
@@ -102,6 +103,7 @@
   - first source-record evidence-link slice operational
   - first in-case source-record search and field-path helper slice operational
   - first case evidence export and public-safety review gate operational
+  - current interface state: presentable local command-center shell with overview navigation, live workflow map, source-pack showcase, product-style entity dossier summary, relationship summary, case/source-pack workspace, review queues, and methodology/limitations visibility
 - Core outputs
   - API for process, entity, edge, flag, and review-queue queries
   - console views for process leads, entity dossiers, and follow-up lanes
@@ -123,6 +125,8 @@
   - entity source-pack command that starts from an entity and writes the case/evidence/source-bundle/index packet directly
   - entity source-pack readiness command that prevents DNCP source-pack rollout from becoming ad hoc
   - token-protected API/console controls for previewing and writing entity source packs from the current entity
+  - product-like local interface over the live evidence spine
+  - visible methodology and precedent-synthesis panel inside the console
   - richer saved investigation paths later
 - Main references
   - Aleph
@@ -151,9 +155,10 @@
 
 ## Immediate next best step
 
-- Move to the next lawful Paraguay cross-domain company/accountability source, preferably officer/ownership/registry-adjacent data if practical. If access remains blocked, continue the source-pack readiness rollout starting with the next ranked companies and only investigate alternate DNCP document access or OCR where a specific source pack needs it.
+- Finish the internal-product MVP slice before returning to broad data expansion: add a real graph visualization over the existing network endpoint, add artifact-detail browsing for selected source bundles/indexes, and make queue/source-pack filters easier to use from the command center.
+- After that, move to the next lawful Paraguay cross-domain company/accountability source, preferably officer/ownership/registry-adjacent data if practical. If access remains blocked, continue the source-pack readiness rollout starting with the next ranked companies and only investigate alternate DNCP document access or OCR where a specific source pack needs it.
 - Reason
-  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, official DNCP release/document source records, selected official document captures and document-access limitations, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, a live case timeline view, source-record evidence links, in-case source-record search, source field helpers, gated case evidence export, source-indexed Markdown/JSON case artifacts, source attachment manifests, source bundles that copy resolvable source-run assets, source-document indexes that search bundled files with evidence/source traceability, console/API controls to generate those artifacts, a local artifact registry to rediscover them, a one-command entity source-pack bridge, and a readiness report for source-pack rollout. The casework/source-pack layer is complete enough for internal use, so the next value should come from new intelligence sources or targeted source access fixes.
+  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, official DNCP release/document source records, selected official document captures and document-access limitations, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, a live case timeline view, source-record evidence links, in-case source-record search, source field helpers, gated case evidence export, source-indexed Markdown/JSON case artifacts, source attachment manifests, source bundles that copy resolvable source-run assets, source-document indexes that search bundled files with evidence/source traceability, console/API controls to generate those artifacts, a local artifact registry to rediscover them, a one-command entity source-pack bridge, a readiness report for source-pack rollout, and now a presentable Command Center shell. The next high-leverage interface work should make graph/source-bundle exploration visibly useful before the project shifts back into more Paraguay source expansion.
 - Expected carry-over
   - local API endpoints and console views that expose candidate records with durable human-review status, notes, source-backed promotion/rejection history, second-review state, source-record links, document capture/extraction status, explanation bundles, evidence-export posture, and recent generated artifact paths
   - tighter use of hosted same-candidate confirmation versus different-result ambiguity inside analyst workflows

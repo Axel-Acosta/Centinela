@@ -489,7 +489,7 @@
 
 ## Current limits
 
-- The first API and interactive console slice is local-only and operational. It now has token-protected saved notes/cases, evidence links, case timelines, source-record drilldowns, graph export, evidence exports, public-safety review states, local Markdown/JSON case export artifacts, source attachment manifests, local source bundles, local source-document indexes, console/API controls to generate those case artifacts, and a lightweight artifact registry to reopen generated bundle/index summaries, but it still has no production authentication, role-based permissions, or public deployment posture.
+- The first API and interactive console slice is local-only and operational. It now has a presentable Command Center shell over token-protected saved notes/cases, evidence links, case timelines, source-record drilldowns, graph export, evidence exports, public-safety review states, local Markdown/JSON case export artifacts, source attachment manifests, local source bundles, local source-document indexes, console/API controls to generate those case artifacts, source-pack showcase cards, product-style entity dossier summaries, relationship summaries, and a lightweight artifact registry to reopen generated bundle/index summaries. It still has no production authentication, role-based permissions, or public deployment posture.
 - The rule registry exists, but the DNCP crosswalk and public methodology layer are still incomplete
 - Entity briefs now include external enrichment, DNIT identity validation, and official DNCP supplier-anchor sections, and the company-level queue plus anchor-gap report now make local identity gaps and local administrative history visible; 1 procurement-linked supplier company still remains without a local identity anchor because the procurement-side RUC is missing a check digit
 - DNCP release source checks are now operational for selected entities. Current live `py-dncp-release-source-check` coverage is 10 official release package records and 1,462 official document metadata records across five high-priority entities.
@@ -505,4 +505,4 @@
 
 ## Next workflow milestone
 
-- Move to the next lawful Paraguay cross-domain company/accountability source if available. If blocked, continue the readiness-ranked source-pack rollout for the next high-priority companies, and investigate alternate document access or OCR only when a specific source pack justifies it.
+- Finish the next internal-product workflow slice: graph visualization over the existing graph-ready network endpoint, artifact-detail browsing for selected source bundles/indexes, and queue/source-pack readiness filters. After that, move to the next lawful Paraguay cross-domain company/accountability source if available. If blocked, continue the readiness-ranked source-pack rollout for the next high-priority companies, and investigate alternate document access or OCR only when a specific source pack justifies it.

@@ -7,7 +7,7 @@
 3. Current DNCP release source-check live state:
    `py-dncp-release-source-check` has 10 official release package records and 1,462 official document metadata records across `MENDEZ GONZALEZ FLORIANA *`, `CONSULTORA GUARANI SA INGENIEROS CIVILES`, `PROSALUDFARMA S.A.`, `INDEX S.A.C.I.`, and `QUIMFA S.A.`.
 4. Use the local internal API/console as the next operational surface:
-   `npm run serve:internal-console -- --host 127.0.0.1 --port 8787` exposes overview, entity search, entity dossiers, graph-ready neighborhoods, graph export, source-record drilldowns, entity/process queues, external candidates, accepted matches, and token-protected analyst notes/cases from the live database.
+   `npm run serve:internal-console -- --host 127.0.0.1 --port 8787` exposes overview, entity search, product-style entity dossiers, graph-ready neighborhoods, graph export, source-record drilldowns, entity/process queues, external candidates, accepted matches, source-pack showcase, case/source-pack workspace, methodology visibility, and token-protected analyst notes/cases from the live database.
 5. Keep accepted matches, external risk signals, review-only candidates, and public-facing language separate:
    `promotable` means ready for stronger second review, not accepted identity resolution or proof of wrongdoing.
 6. Build on the live case timeline/workbench:
@@ -49,3 +49,7 @@
    `npm run enrichment:dncp-document-content -- --entity-name "Entity Name" --query "contrato" --limit 2` starts from persisted DNCP document metadata, downloads official document files when available, stores SHA-256 hashes/source assets when downloaded, attempts bounded text extraction, and persists `document_content_extract` source records. Current live state is 8 document-content records: 2 earlier captured official DNCP contract PDFs with `no_extractable_text`, plus 6 priority-company contract attempts where DNCP returned `404` and the limitation is preserved in case evidence.
 26. Next best source-document move:
    do not add OCR for the latest three priority companies yet because selected DNCP contract URLs returned `404`; instead investigate alternate lawful DNCP document access only if those source packs become case-priority, or continue source-pack readiness rollout over the next ranked companies.
+27. Next best product-interface move:
+   add a real graph visualization over `/api/entities/:id/network`, then add artifact-detail browsing and queue/source-pack readiness filters inside the Command Center before returning to broad Paraguay source expansion.
+28. Treat the 2026-05-12 Command Center as the first presentable local/internal product surface:
+   it is strong enough to show the platform concept internally, but it is not a public launch surface and still needs production auth, privacy review, public-safe copy, and methodology pages before any public exposure.
