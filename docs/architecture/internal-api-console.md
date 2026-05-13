@@ -16,6 +16,14 @@ The 2026-05-12 product-surface slice turns the console into a local Command Cent
 - a clearer case/source-pack workspace that keeps public-safety gates, artifacts, bundles, and source-document indexes visible
 - methodology and precedent synthesis inside the interface, not only in docs
 
+The follow-up product-surface slice adds:
+
+- an SVG relationship graph over the existing one-hop network endpoint
+- filterable entity, process, external-candidate, and source-pack readiness panels
+- a read-only source-pack readiness API for the Command Center
+- an artifact browser for generated evidence artifacts, manifests, source bundles, and source-document indexes
+- a bounded artifact-detail reader for local case files and bundle directories
+
 The surface is designed to expose:
 
 - entity search
@@ -37,6 +45,8 @@ The surface is designed to expose:
 - local source-document indexes that search bundled text-like source files and trace matches back to evidence/source records
 - entity source-pack generation from the case workbench, including preview mode and write mode
 - a presentable local command-center interface over those workflows
+- visual entity relationship exploration
+- local artifact/detail browsing without moving generated files into Git or OneDrive
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -66,6 +76,8 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
 
 - `GET /api/overview`
   - live counts, anchor coverage, review-lane distribution, and second-review distribution
+- `GET /api/entity-source-pack-readiness?limit=25&source_record_limit=10`
+  - read-only ranking of next entity source-pack actions; does not write report files or mutate cases
 - `GET /api/entities?q=<text>&limit=25`
   - entity search across names and identifiers
 - `GET /api/entities/:id`
@@ -96,6 +108,8 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
   - source-backed case evidence export; `public_only=true` is blocked unless the latest public-safety status is `approved_public`
 - `GET /api/analyst-cases/:id/artifacts?limit=25`
   - reads the local runtime artifact registry for a case by scanning `CENTINELA_OUTPUT_DIR/reports/cases/<case-key>/`; returns evidence artifact, source manifest, source bundle, and source-document index summaries without loading raw evidence text into the console response
+- `GET /api/analyst-cases/:id/artifact-detail?path=<artifact-path>&max_text_chars=16000`
+  - reads a bounded local artifact preview for a selected case artifact file or source-bundle directory, only when the path is inside that case artifact folder
 - `POST /api/analyst-cases/:id/evidence-artifacts`
   - writes local Markdown/JSON evidence artifacts through the API; requires local write token and reuses the `approved_public` gate when `publicOnly=true`
 - `POST /api/analyst-cases/:id/source-manifests`
@@ -152,11 +166,10 @@ The local console should now be treated as Centinela's first internal product su
 
 Near-term interface work should prioritize:
 
-- graph visualization over the existing `/api/entities/:id/network` and export endpoints
-- artifact-detail browsing for selected source bundles and source-document indexes
-- clearer queue filters for entity, process, external-candidate, and source-pack readiness lanes
 - a case overview page that feels less like JSON and more like a source-backed review packet
 - public-methodology and limitations pages derived from the existing docs and review gates
+- deeper artifact previews that summarize source-document index matches without exposing unreviewed raw material by default
+- visual filtering and expansion for larger graph neighborhoods
 
 ## Current smoke-test result
 
@@ -261,6 +274,15 @@ On the entity source-pack API/console smoke test, the local API path also confir
 - `POST /api/entities/3940/source-packs` returned a dry-run source pack for `CONSULTORA GUARANI SA INGENIEROS CIVILES`
 - the dry-run selected `3` entity-linked source records and did not create a case
 - `/console` included the entity source-pack preview/write controls and the source-pack API route
+
+On the Command Center graph/artifact/readiness smoke test, the local API path also confirmed:
+
+- the Command Center page returned `200` and included graph, artifact browser, and source-pack readiness surfaces
+- `GET /api/entities/3940/network?limit=8` returned graph edges
+- `GET /api/entity-source-pack-readiness?limit=3&source_record_limit=10` returned readiness items
+- `GET /api/queue/processes?limit=3` returned process queue rows
+- `GET /api/analyst-cases/20/artifacts?limit=5` returned a source bundle path
+- `GET /api/analyst-cases/20/artifact-detail?path=<latestBundlePath>` returned `200`
 
 ## Limits
 

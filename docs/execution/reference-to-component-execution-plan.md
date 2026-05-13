@@ -952,10 +952,34 @@ Current interface state:
 - relationship summary over graph-ready network output
 - source-pack/case artifact controls preserved in the same safety model
 
+## 2026-05-12 Graph/artifact/readiness product-surface advancement
+
+- br/acc
+  - advanced because graph-ready relationship data is now visible as an SVG exploration surface, not only as JSON or export payloads.
+- Aleph
+  - advanced because local case artifacts, source bundles, manifests, and source-document indexes are now browsable from the case workspace with bounded detail previews.
+- Sayari
+  - advanced because entity intelligence now has visual relationship exploration and filtered review surfaces closer to a mature analyst product.
+- QuiénEsQuién/TodosLosContratos
+  - advanced because company-contract source packs and readiness actions are now visible in the product layer as accountability workflows.
+- Dozorro / ProZorro / Integrity Watch
+  - advanced because review queues are filterable and more usable for follow-up routing.
+- RUBLI
+  - advanced because artifact previews and readiness panels keep limitations and non-public use boundaries visible while making the system easier to inspect.
+
+Concrete proof artifacts:
+
+- `src/server/internalConsole.ts`
+- `src/storage/caseArtifacts.ts`
+- `src/storage/entitySourcePackReadiness.ts`
+- `GET /api/entity-source-pack-readiness`
+- `GET /api/analyst-cases/:id/artifact-detail`
+- updated internal API/console and roadmap docs
+
 ## Next extraction priority
 
 - highest priority
-  - finish the next internal-product MVP slice: graph visualization over the existing network endpoint, artifact-detail browsing for selected source bundles/indexes, and clearer queue/source-pack readiness filters
+  - finish the next internal-product MVP slice: case overview as a source-backed review packet, richer source-document index match previews, and graph filters/expansion for larger neighborhoods
 - next after that
   - move to the next lawful Paraguay cross-domain source, preferably company/officer/ownership-adjacent accountability data if access is lawful and practical
   - continue readiness-ranked DNCP release/document source-record checks across the highest-priority companies/candidates and use `py-dncp-document-content` only for source records that need captured official files or explicit source-access limitation records

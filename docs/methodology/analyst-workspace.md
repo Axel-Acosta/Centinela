@@ -10,6 +10,8 @@ Everything remains internal, reviewable, and non-accusatory.
 
 As of the 2026-05-12 product-surface slice, the workspace also has a presentable local Command Center shell. The shell does not change evidence semantics; it makes the existing review-first workflow easier to understand through overview, entity search, dossier summary, relationship summary, source-pack showcase, case/source-pack workspace, queue panels, and methodology/limitations sections.
 
+The follow-up Command Center slice adds visual graph exploration, filterable queues, source-pack readiness browsing, and bounded local artifact-detail previews. These features are navigation and review aids only; they do not promote leads into findings.
+
 ## Live database objects
 
 - `centinela.analyst_cases`
@@ -48,6 +50,10 @@ Read endpoints:
   - with `public_only=true`, requires latest public-safety status `approved_public`
 - `GET /api/analyst-cases/:id/artifacts`
   - summarizes generated local evidence artifacts, source manifests, source bundles, and source-document indexes for the case
+- `GET /api/analyst-cases/:id/artifact-detail`
+  - reads a bounded local preview for a selected artifact file or bundle directory, only when the selected path is inside the case artifact folder
+- `GET /api/entity-source-pack-readiness`
+  - ranks next source-pack actions for the Command Center without writing report files or mutating casework
 - `GET /api/analyst-notes`
 - `GET /api/entities/:id/network/export?format=cytoscape`
 
@@ -109,6 +115,8 @@ The artifact and bundle POST endpoints write local runtime files rather than dat
 - Source-document indexes are local navigation aids. Snippets and searchable text must be checked against the original source file before any public reuse.
 - Console/API artifact controls make bundle generation easier, but they do not change the review meaning: a generated artifact is a review packet, not a finding.
 - The artifact registry is a convenience reader over local runtime files. If a file is deleted, moved, or generated under a different `CENTINELA_OUTPUT_DIR`, it will not appear.
+- Artifact-detail previews are bounded local navigation aids. They should not be treated as publication-ready document excerpts.
+- Graph visualization shows review pivots, not ownership, control, misconduct, or liability.
 - Write-token authentication is a local hardening step, not a full production auth system.
 
 ## Current smoke-test result
@@ -138,4 +146,4 @@ On 2026-04-26, the first live analyst-workspace smoke test confirmed:
 
 ## Next hardening step
 
-Add graph visualization over the existing network endpoint, then a bounded artifact-detail reader for selected bundle/index files. Only after the Command Center can visually explain entity relationships and source packets should the project return to broad cross-domain source expansion.
+Make case pages read more like source-backed review packets, then add richer source-document index match previews and graph filters/expansion for larger neighborhoods. Only after the Command Center can explain cases clearly should the project return to broad cross-domain source expansion.

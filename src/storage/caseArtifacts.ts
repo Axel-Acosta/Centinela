@@ -10,6 +10,11 @@ export interface ListCaseArtifactOptions {
   limit?: number | undefined;
 }
 
+export interface GetCaseArtifactDetailOptions {
+  artifactPath: string;
+  maxTextChars?: number | undefined;
+}
+
 interface FileDescriptor {
   path: string | null;
   relativePath: string | null;
@@ -94,6 +99,19 @@ function fileDescriptor(filePath: string | null): FileDescriptor {
   };
 }
 
+function clampTextChars(value: number | undefined): number {
+  if (!value || !Number.isFinite(value) || value <= 0) {
+    return 12000;
+  }
+
+  return Math.max(500, Math.min(40000, Math.trunc(value)));
+}
+
+function isWithinDirectory(parent: string, child: string): boolean {
+  const relative = path.relative(parent, child);
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
+
 function readJsonFile(filePath: string): Record<string, unknown> | null {
   if (!fs.existsSync(filePath)) {
     return null;
@@ -104,6 +122,32 @@ function readJsonFile(filePath: string): Record<string, unknown> | null {
   } catch {
     return null;
   }
+}
+
+function resolveArtifactPath(caseRoot: string, requestedPath: string): string {
+  const requested = requestedPath.trim();
+  if (!requested) {
+    throw new Error("artifactPath is required.");
+  }
+
+  const candidatePaths = path.isAbsolute(requested)
+    ? [requested]
+    : [path.join(outputRoot, requested), path.join(caseRoot, requested)];
+  const resolvedRoot = path.resolve(caseRoot);
+
+  for (const candidatePath of candidatePaths) {
+    const resolved = path.resolve(candidatePath);
+    if (isWithinDirectory(resolvedRoot, resolved) && fs.existsSync(resolved)) {
+      return resolved;
+    }
+  }
+
+  const safeCandidate = path.resolve(path.isAbsolute(requested) ? requested : path.join(outputRoot, requested));
+  if (!isWithinDirectory(resolvedRoot, safeCandidate)) {
+    throw new Error("Requested artifact path is outside the selected case artifact folder.");
+  }
+
+  throw new Error(`Artifact path was not found: ${requested}`);
 }
 
 function normalizeCaseRow(row: Record<string, unknown>): Record<string, unknown> {
@@ -333,5 +377,58 @@ export async function listCaseArtifacts(
       "Public-only artifact mode means Centinela's approved_public gate passed for metadata; copied raw files still need separate review.",
       "Use artifact paths for local analyst navigation, not as public conclusions.",
     ],
+  };
+}
+
+export async function getCaseArtifactDetail(
+  caseId: number,
+  options: GetCaseArtifactDetailOptions,
+): Promise<Record<string, unknown>> {
+  if (!Number.isInteger(caseId) || caseId <= 0) {
+    throw new Error("caseId must be a positive integer.");
+  }
+
+  const caseRow = await loadCase(caseId);
+  const caseKey = text(caseRow.case_key);
+  const caseRoot = path.join(outputRoot, "reports", "cases", slugify(caseKey));
+  const artifactPath = resolveArtifactPath(caseRoot, options.artifactPath);
+  const descriptor = fileDescriptor(artifactPath);
+  const maxTextChars = clampTextChars(options.maxTextChars);
+
+  if (fs.statSync(artifactPath).isDirectory()) {
+    const bundleIndexPath = path.join(artifactPath, "bundle-index.json");
+    const sourceDocumentIndexPath = path.join(artifactPath, "source-document-index.json");
+    const readmePath = path.join(artifactPath, "README.md");
+
+    return {
+      disclaimer:
+        "Artifact details are local review aids. They are not findings, accusations, or public-ready publication packages.",
+      case: caseRow,
+      kind: "artifact_directory",
+      file: descriptor,
+      bundleIndex: readJsonFile(bundleIndexPath),
+      sourceDocumentIndex: readJsonFile(sourceDocumentIndexPath),
+      readmePreview: fs.existsSync(readmePath)
+        ? fs.readFileSync(readmePath, "utf8").slice(0, maxTextChars)
+        : null,
+      useLimit:
+        "Directory details summarize local bundle files. Copied source files still need separate source, privacy, methodology, and UX review before any public use.",
+    };
+  }
+
+  const extension = path.extname(artifactPath).toLowerCase();
+  const textPreview = fs.readFileSync(artifactPath, "utf8").slice(0, maxTextChars);
+
+  return {
+    disclaimer:
+      "Artifact details are local review aids. They are not findings, accusations, or public-ready publication packages.",
+    case: caseRow,
+    kind: "artifact_file",
+    file: descriptor,
+    parsedJson: extension === ".json" ? readJsonFile(artifactPath) : null,
+    textPreview,
+    textPreviewTruncated: descriptor.sizeBytes !== null && descriptor.sizeBytes > maxTextChars,
+    useLimit:
+      "File previews are bounded for local navigation. Analysts should verify source context before relying on any excerpt.",
   };
 }

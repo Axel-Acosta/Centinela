@@ -50,6 +50,6 @@
 26. Next best source-document move:
    do not add OCR for the latest three priority companies yet because selected DNCP contract URLs returned `404`; instead investigate alternate lawful DNCP document access only if those source packs become case-priority, or continue source-pack readiness rollout over the next ranked companies.
 27. Next best product-interface move:
-   add a real graph visualization over `/api/entities/:id/network`, then add artifact-detail browsing and queue/source-pack readiness filters inside the Command Center before returning to broad Paraguay source expansion.
+   make the case overview read as a source-backed review packet, add richer source-document index match previews, and add graph filtering/expansion for larger neighborhoods before returning to broad Paraguay source expansion.
 28. Treat the 2026-05-12 Command Center as the first presentable local/internal product surface:
-   it is strong enough to show the platform concept internally, but it is not a public launch surface and still needs production auth, privacy review, public-safe copy, and methodology pages before any public exposure.
+   it is strong enough to show the platform concept internally, now includes graph/artifact/readiness exploration, but it is not a public launch surface and still needs production auth, privacy review, public-safe copy, and methodology pages before any public exposure.

@@ -71,6 +71,14 @@ export interface EntitySourcePackReadinessResult {
   reportPath: string;
 }
 
+export interface EntitySourcePackReadinessSnapshot {
+  generatedAt: string;
+  limit: number;
+  sourceRecordLimit: number;
+  items: EntitySourcePackReadinessItem[];
+  disclaimer: string;
+}
+
 function positiveInteger(value: number | undefined, fallback: number): number {
   if (value === undefined || !Number.isFinite(value) || value <= 0) {
     return fallback;
@@ -272,9 +280,9 @@ function renderMarkdown(input: {
   return `${lines.join("\n")}\n`;
 }
 
-export async function buildEntitySourcePackReadinessReport(
+export async function getEntitySourcePackReadiness(
   options: EntitySourcePackReadinessOptions = {},
-): Promise<EntitySourcePackReadinessResult> {
+): Promise<EntitySourcePackReadinessSnapshot> {
   const limit = positiveInteger(options.limit, 25);
   const sourceRecordLimit = positiveInteger(options.sourceRecordLimit, 10);
   const { client, schema } = await connectToPostgres();
@@ -389,32 +397,40 @@ export async function buildEntitySourcePackReadinessReport(
 
     const generatedAt = new Date().toISOString();
     const items = result.rows.map((row) => toReadinessItem(row, sourceRecordLimit));
-    const summaryPath = await writeOutputJson(["normalized", "paraguay", "entity-source-pack-readiness.json"], {
-      generatedAt,
-      limit,
-      sourceRecordLimit,
-      items,
-      disclaimer: "Source-pack readiness ranks internal evidence-building actions, not wrongdoing.",
-    });
-    const reportPath = await writeOutputText(
-      ["reports", "paraguay", "entity-source-pack-readiness.md"],
-      renderMarkdown({
-        generatedAt,
-        limit,
-        sourceRecordLimit,
-        items,
-      }),
-    );
 
     return {
       generatedAt,
       limit,
       sourceRecordLimit,
       items,
-      summaryPath,
-      reportPath,
+      disclaimer: "Source-pack readiness ranks internal evidence-building actions, not wrongdoing.",
     };
   } finally {
     await client.end();
   }
+}
+
+export async function buildEntitySourcePackReadinessReport(
+  options: EntitySourcePackReadinessOptions = {},
+): Promise<EntitySourcePackReadinessResult> {
+  const snapshot = await getEntitySourcePackReadiness(options);
+  const summaryPath = await writeOutputJson(["normalized", "paraguay", "entity-source-pack-readiness.json"], snapshot);
+  const reportPath = await writeOutputText(
+    ["reports", "paraguay", "entity-source-pack-readiness.md"],
+    renderMarkdown({
+      generatedAt: snapshot.generatedAt,
+      limit: snapshot.limit,
+      sourceRecordLimit: snapshot.sourceRecordLimit,
+      items: snapshot.items,
+    }),
+  );
+
+  return {
+    generatedAt: snapshot.generatedAt,
+    limit: snapshot.limit,
+    sourceRecordLimit: snapshot.sourceRecordLimit,
+    items: snapshot.items,
+    summaryPath,
+    reportPath,
+  };
 }

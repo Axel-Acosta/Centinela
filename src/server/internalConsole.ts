@@ -33,8 +33,9 @@ import {
   buildCaseSourceBundleArtifacts,
   buildCaseSourceDocumentIndexArtifacts,
 } from "../storage/caseEvidenceExport";
-import { listCaseArtifacts } from "../storage/caseArtifacts";
+import { getCaseArtifactDetail, listCaseArtifacts } from "../storage/caseArtifacts";
 import { buildEntitySourcePackArtifacts } from "../storage/entitySourcePack";
+import { getEntitySourcePackReadiness } from "../storage/entitySourcePackReadiness";
 
 export interface InternalConsoleOptions {
   host?: string;
@@ -186,6 +187,16 @@ function parseCaseSourceBundleRoute(pathname: string): number | undefined {
 
 function parseCaseArtifactsRoute(pathname: string): number | undefined {
   const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/artifacts$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const caseId = Number(match[1]);
+  return Number.isInteger(caseId) && caseId > 0 ? caseId : undefined;
+}
+
+function parseCaseArtifactDetailRoute(pathname: string): number | undefined {
+  const match = pathname.match(/^\/api\/analyst-cases\/(\d+)\/artifact-detail$/);
   if (!match) {
     return undefined;
   }
@@ -1056,6 +1067,112 @@ function consoleHtml(): string {
       gap: 9px;
     }
 
+    .graph-canvas {
+      position: relative;
+      min-height: 360px;
+      margin: 12px 0;
+      border: 1px solid rgba(141, 114, 69, 0.28);
+      border-radius: 24px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(15, 104, 72, 0.1), transparent 16rem),
+        linear-gradient(135deg, rgba(255, 250, 240, 0.92), rgba(238, 225, 196, 0.66));
+    }
+
+    .graph-canvas svg {
+      width: 100%;
+      min-height: 360px;
+      display: block;
+    }
+
+    .graph-edge {
+      stroke: rgba(75, 95, 84, 0.42);
+      stroke-width: 1.4;
+    }
+
+    .graph-edge.accepted_external_match {
+      stroke: rgba(15, 104, 72, 0.76);
+      stroke-width: 2.2;
+    }
+
+    .graph-edge.reviewable_external_candidate {
+      stroke: rgba(155, 79, 27, 0.68);
+      stroke-dasharray: 6 5;
+    }
+
+    .graph-node circle {
+      stroke: rgba(31, 48, 41, 0.35);
+      stroke-width: 1.2;
+      filter: drop-shadow(0 8px 14px rgba(31, 48, 41, 0.14));
+    }
+
+    .graph-node text {
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 11px;
+      fill: #24352e;
+      paint-order: stroke;
+      stroke: rgba(255, 250, 240, 0.9);
+      stroke-width: 4px;
+      stroke-linejoin: round;
+    }
+
+    .graph-node.focus circle { fill: #f4cf72; }
+    .graph-node.company circle,
+    .graph-node.supplier_company circle,
+    .graph-node.buyer_or_institution circle { fill: #3f866d; }
+    .graph-node.representative_person circle { fill: #a35a2d; }
+    .graph-node.procurement_process circle { fill: #6b7f98; }
+    .graph-node.external circle,
+    .graph-node[class*="external_"] circle { fill: #263e37; }
+
+    .graph-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 12px;
+    }
+
+    .artifact-browser {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .artifact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .artifact-card {
+      display: grid;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.5);
+      padding: 12px;
+    }
+
+    .artifact-card button {
+      justify-self: start;
+      padding: 7px 10px;
+      font-size: 0.86rem;
+    }
+
+    .queue-controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .queue-controls button,
+    .queue-controls input,
+    .queue-controls select {
+      min-width: 0;
+      width: 100%;
+    }
+
     .network-row {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -1088,7 +1205,7 @@ function consoleHtml(): string {
     }
 
     .review-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     }
 
     .method-grid {
@@ -1267,6 +1384,17 @@ function consoleHtml(): string {
 
           <aside class="panel">
             <h2>Relationship View</h2>
+            <div id="network-graph" class="graph-canvas" aria-label="Graph visualization">
+              <div class="summary-card">
+                <strong>Open an entity to draw its network</strong>
+                <span>Relationships are review pivots, not proof of wrongdoing, ownership, or control.</span>
+              </div>
+            </div>
+            <div class="graph-legend">
+              <span class="chip">focus entity</span>
+              <span class="chip">counterparty/process</span>
+              <span class="chip warning">candidate/limitation</span>
+            </div>
             <div id="network-summary" class="network-mini">
               <div class="summary-card">
                 <strong>Graph-ready neighborhood</strong>
@@ -1387,6 +1515,12 @@ function consoleHtml(): string {
                 <span>Create or open a case to see linked targets, notes, evidence links, public-review status, and artifacts.</span>
               </div>
             </div>
+            <div id="artifact-browser" class="artifact-browser">
+              <div class="summary-card">
+                <strong>No artifacts loaded yet</strong>
+                <span>Open a case and load generated artifacts to browse evidence packets, manifests, bundles, and source-document indexes.</span>
+              </div>
+            </div>
             <details class="raw-card" open>
               <summary>Case timeline JSON</summary>
               <pre id="case-detail" class="json-pre">Create or open a case to see the timeline.</pre>
@@ -1413,13 +1547,83 @@ function consoleHtml(): string {
         <article class="panel">
           <h2>Entity Queue</h2>
           <p class="product-note">Company-level review lanes from local anchors, procurement activity, relationships, and enrichment state.</p>
+          <div class="queue-controls">
+            <select id="entity-queue-lane" aria-label="Entity queue lane">
+              <option value="">All lanes</option>
+              <option value="entity_triage">Entity triage</option>
+              <option value="external_candidate_review">External candidate review</option>
+              <option value="local_anchor_gap">Local anchor gap</option>
+              <option value="local_admin_history">Local administrative history</option>
+            </select>
+            <select id="entity-queue-priority" aria-label="Entity queue priority">
+              <option value="">All priorities</option>
+              <option value="urgent">Urgent</option>
+              <option value="high">High</option>
+              <option value="triage">Triage</option>
+              <option value="normal">Normal</option>
+            </select>
+            <input id="entity-queue-limit" value="8" aria-label="Entity queue limit" />
+            <button id="refresh-entity-queue" type="button" class="secondary">Refresh entities</button>
+          </div>
           <div id="entity-queue" class="list"></div>
         </article>
 
         <article class="panel">
           <h2>External Candidates</h2>
           <p class="product-note">Review-only candidates and diagnostics stay separate from accepted matches.</p>
+          <div class="queue-controls">
+            <select id="candidate-review-status" aria-label="Candidate review status">
+              <option value="">All review states</option>
+              <option value="unreviewed">Unreviewed</option>
+              <option value="needs_evidence">Needs evidence</option>
+              <option value="promotable">Promotable</option>
+              <option value="monitor">Monitor</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <select id="candidate-second-review" aria-label="Candidate second review decision">
+              <option value="">All second reviews</option>
+              <option value="accepted_match">Accepted match</option>
+              <option value="needs_more_evidence">Needs more evidence</option>
+              <option value="rejected_match">Rejected match</option>
+            </select>
+            <input id="candidate-limit" value="8" aria-label="External candidate limit" />
+            <button id="refresh-candidates" type="button" class="secondary">Refresh candidates</button>
+          </div>
           <div id="candidates" class="list"></div>
+        </article>
+
+        <article class="panel">
+          <h2>Process Queue</h2>
+          <p class="product-note">Procurement process review lanes from DNCP/OCDS-backed risk signals.</p>
+          <div class="queue-controls">
+            <select id="process-queue-lane" aria-label="Process queue lane">
+              <option value="">All lanes</option>
+              <option value="competition_review">Competition review</option>
+              <option value="procedure_review">Procedure review</option>
+              <option value="value_review">Value review</option>
+              <option value="data_quality_review">Data quality review</option>
+            </select>
+            <select id="process-queue-priority" aria-label="Process queue priority">
+              <option value="">All priorities</option>
+              <option value="priority">Priority</option>
+              <option value="enhanced_review">Enhanced review</option>
+              <option value="standard_review">Standard review</option>
+            </select>
+            <input id="process-queue-limit" value="8" aria-label="Process queue limit" />
+            <button id="refresh-process-queue" type="button" class="secondary">Refresh processes</button>
+          </div>
+          <div id="process-queue" class="list"></div>
+        </article>
+
+        <article class="panel">
+          <h2>Source-Pack Readiness</h2>
+          <p class="product-note">Ranks next entity source-pack actions without creating files or new cases.</p>
+          <div class="queue-controls">
+            <input id="readiness-limit" value="8" aria-label="Readiness limit" />
+            <input id="readiness-source-limit" value="10" aria-label="Readiness source-record limit" />
+            <button id="refresh-readiness" type="button" class="secondary">Refresh readiness</button>
+          </div>
+          <div id="source-pack-readiness" class="list"></div>
         </article>
       </section>
 
@@ -1458,6 +1662,7 @@ function consoleHtml(): string {
     let currentSourceRecordId = null;
     let currentNoteId = null;
     let currentBundlePath = null;
+    let currentNetwork = null;
 
     async function getJson(path) {
       const response = await fetch(path);
@@ -1526,6 +1731,17 @@ function consoleHtml(): string {
       const node = document.getElementById(id);
       if (node) {
         node.textContent = JSON.stringify(value, null, 2);
+      }
+    }
+
+    function positiveInput(id, fallback) {
+      const parsed = Number(document.getElementById(id).value);
+      return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : fallback;
+    }
+
+    function addQueryParam(params, key, value) {
+      if (value !== null && value !== undefined && String(value).trim()) {
+        params.set(key, String(value).trim());
       }
     }
 
@@ -1805,18 +2021,83 @@ function consoleHtml(): string {
         (relationRows || '<div class="summary-card"><strong>No graph edges returned</strong><span>Try another entity or expand source coverage.</span></div>');
     }
 
+    function renderNetworkGraph(network) {
+      const container = document.getElementById('network-graph');
+      if (!container) {
+        return;
+      }
+
+      const nodes = (network && network.nodes) || [];
+      const edges = (network && network.edges) || [];
+      if (!nodes.length) {
+        container.innerHTML = '<div class="summary-card"><strong>No graph nodes returned</strong><span>Open an entity with relationships to draw the network.</span></div>';
+        return;
+      }
+
+      const width = 720;
+      const height = 380;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = Math.min(width, height) * 0.34;
+      const focus = nodes.find((node) => node.metadata && node.metadata.role === 'focus') || nodes[0];
+      const others = nodes.filter((node) => node.id !== focus.id).slice(0, 18);
+      const positions = new Map();
+      positions.set(focus.id, { x: centerX, y: centerY, node: focus, focus: true });
+
+      others.forEach((node, index) => {
+        const angle = (Math.PI * 2 * index) / Math.max(others.length, 1) - Math.PI / 2;
+        const jitter = index % 2 === 0 ? 0 : 24;
+        positions.set(node.id, {
+          x: centerX + Math.cos(angle) * (radius + jitter),
+          y: centerY + Math.sin(angle) * (radius + jitter),
+          node,
+          focus: false
+        });
+      });
+
+      const edgeMarkup = edges.slice(0, 36).map((edge) => {
+        const source = positions.get(edge.source);
+        const target = positions.get(edge.target);
+        if (!source || !target) {
+          return '';
+        }
+        const relationClass = text(edge.relation).replace(/[^a-zA-Z0-9_-]/g, '_');
+        return '<line class="graph-edge ' + html(relationClass) + '" x1="' + source.x + '" y1="' + source.y + '" x2="' + target.x + '" y2="' + target.y + '"><title>' + html(edge.relation) + '</title></line>';
+      }).join('');
+
+      const nodeMarkup = Array.from(positions.values()).map((position) => {
+        const node = position.node;
+        const kindClass = text(node.kind).replace(/[^a-zA-Z0-9_-]/g, '_');
+        const nodeClass = position.focus ? 'focus' : kindClass;
+        const size = position.focus ? 22 : 15;
+        const labelOffset = position.focus ? 34 : 26;
+        return '<g class="graph-node ' + html(nodeClass) + '" transform="translate(' + position.x + ' ' + position.y + ')">' +
+          '<circle r="' + size + '"><title>' + html(node.kind + ': ' + node.label) + '</title></circle>' +
+          '<text text-anchor="middle" y="' + labelOffset + '">' + html(shortText(node.label, position.focus ? 38 : 24)) + '</text>' +
+          '</g>';
+      }).join('');
+
+      container.innerHTML =
+        '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Entity relationship graph">' +
+          edgeMarkup +
+          nodeMarkup +
+        '</svg>';
+    }
+
     async function loadEntity(entityId) {
       currentEntityId = entityId;
       const [profile, network] = await Promise.all([
         getJson('/api/entities/' + entityId),
         getJson('/api/entities/' + entityId + '/network?limit=18')
       ]);
+      currentNetwork = network.data;
       setJson('detail', {
         profile: profile.data,
         network: network.data
       });
       renderEntitySummary(profile.data, network.data);
       renderNetworkSummary(network.data);
+      renderNetworkGraph(network.data);
       renderSourceRecords(profile.data.sourceRecords || []);
       renderNotes(profile.data.analystNotes || []);
       document.getElementById('graph-export').textContent = 'Ready to export entity #' + entityId + '.';
@@ -2236,6 +2517,89 @@ function consoleHtml(): string {
       return body;
     }
 
+    function artifactCountsText(artifact) {
+      const counts = artifact.counts || {};
+      return Object.entries(counts)
+        .filter(([, value]) => typeof value === 'number' || typeof value === 'string')
+        .slice(0, 4)
+        .map(([key, value]) => key + ': ' + numberText(value))
+        .join(' | ');
+    }
+
+    function artifactDetailButton(label, artifactPath) {
+      if (!artifactPath) {
+        return '';
+      }
+
+      return '<button type="button" class="secondary" data-artifact-path="' + html(artifactPath) + '">' + html(label) + '</button>';
+    }
+
+    function renderArtifactBrowser(registry) {
+      const container = document.getElementById('artifact-browser');
+      if (!container) {
+        return;
+      }
+
+      const data = registry && registry.data ? registry.data : registry;
+      const artifacts = (data && data.artifacts) || [];
+      if (!artifacts.length) {
+        container.innerHTML = '<div class="summary-card"><strong>No generated artifacts found</strong><span>Write or load a case source pack to browse local evidence packets and source bundles.</span></div>';
+        return;
+      }
+
+      container.innerHTML =
+        '<div class="summary-card">' +
+          '<strong>Generated local artifacts</strong>' +
+          '<span>' + html(numberText(artifacts.length)) + ' artifact summaries under ' + html(data.artifactRootRelativePath || data.artifactRoot || 'the runtime case folder') + '.</span>' +
+          '<div class="chip-row">' + pill('local review only', true) + pill('not publication-ready', true) + '</div>' +
+        '</div>' +
+        '<div class="artifact-grid">' +
+          artifacts.map((artifact) => {
+            const files = artifact.files || {};
+            const jsonPath = files.json && files.json.path;
+            const markdownPath = files.markdown && files.markdown.path;
+            const bundleIndexPath = files.bundleIndex && files.bundleIndex.path;
+            const sourceIndexPath = files.sourceDocumentIndexJson && files.sourceDocumentIndexJson.path;
+            const bundlePath = artifact.bundlePath;
+            return '<article class="artifact-card">' +
+              '<strong>' + html(artifact.kind) + '</strong>' +
+              '<span>' + html(artifactCountsText(artifact) || 'No count summary returned') + '</span>' +
+              '<span>' + html(artifact.useLimit || 'Local review artifact only.') + '</span>' +
+              '<div class="chip-row">' +
+                pill('public: ' + text(artifact.publicOnly === true), artifact.publicOnly !== true) +
+                pill('gate: ' + text(artifact.publicSafetyStatus || 'n/a'), artifact.publicSafetyStatus !== 'approved_public') +
+              '</div>' +
+              artifactDetailButton('Open JSON', jsonPath || bundleIndexPath) +
+              artifactDetailButton('Open Markdown', markdownPath) +
+              artifactDetailButton('Open bundle', bundlePath) +
+              artifactDetailButton('Open source index', sourceIndexPath) +
+            '</article>';
+          }).join('') +
+        '</div>';
+
+      container.querySelectorAll('[data-artifact-path]').forEach((button) => {
+        button.addEventListener('click', () => {
+          loadArtifactDetail(button.getAttribute('data-artifact-path')).catch((error) => {
+            document.getElementById('case-artifacts').textContent = error.message;
+          });
+        });
+      });
+    }
+
+    async function loadArtifactDetail(artifactPath) {
+      if (!currentCaseId || !artifactPath) {
+        document.getElementById('case-artifacts').textContent = 'Open a case and choose an artifact path first.';
+        return;
+      }
+
+      const payload = await getJson(
+        '/api/analyst-cases/' + currentCaseId + '/artifact-detail?path=' +
+        encodeURIComponent(artifactPath) +
+        '&max_text_chars=16000'
+      );
+      document.getElementById('case-artifacts').textContent = JSON.stringify(payload.data, null, 2);
+    }
+
     async function fetchCaseArtifacts(updateOutput) {
       if (!currentCaseId) {
         if (updateOutput) {
@@ -2252,6 +2616,7 @@ function consoleHtml(): string {
       if (updateOutput) {
         document.getElementById('case-artifacts').textContent = JSON.stringify(payload.data, null, 2);
       }
+      renderArtifactBrowser(payload);
       return payload;
     }
 
@@ -2377,11 +2742,12 @@ function consoleHtml(): string {
       }, null, 2);
     }
 
-    async function loadQueues() {
-      const [queue, candidates] = await Promise.all([
-        getJson('/api/queue/entities?limit=5'),
-        getJson('/api/external-candidates?limit=5')
-      ]);
+    async function loadEntityQueue() {
+      const params = new URLSearchParams();
+      params.set('limit', String(positiveInput('entity-queue-limit', 8)));
+      addQueryParam(params, 'lane', document.getElementById('entity-queue-lane').value);
+      addQueryParam(params, 'priority', document.getElementById('entity-queue-priority').value);
+      const queue = await getJson('/api/queue/entities?' + params.toString());
       const queueNode = document.getElementById('entity-queue');
       queueNode.innerHTML = '';
       if (!queue.data.length) {
@@ -2400,6 +2766,14 @@ function consoleHtml(): string {
           item.lead_question
         ], button);
       });
+    }
+
+    async function loadExternalCandidateQueue() {
+      const params = new URLSearchParams();
+      params.set('limit', String(positiveInput('candidate-limit', 8)));
+      addQueryParam(params, 'review_status', document.getElementById('candidate-review-status').value);
+      addQueryParam(params, 'second_review_decision', document.getElementById('candidate-second-review').value);
+      const candidates = await getJson('/api/external-candidates?' + params.toString());
       const candidateNode = document.getElementById('candidates');
       candidateNode.innerHTML = '';
       if (!candidates.data.length) {
@@ -2419,6 +2793,68 @@ function consoleHtml(): string {
           text(item.review_next_step)
         ], button);
       });
+    }
+
+    async function loadProcessQueue() {
+      const params = new URLSearchParams();
+      params.set('limit', String(positiveInput('process-queue-limit', 8)));
+      addQueryParam(params, 'lane', document.getElementById('process-queue-lane').value);
+      addQueryParam(params, 'priority', document.getElementById('process-queue-priority').value);
+      const processes = await getJson('/api/queue/processes?' + params.toString());
+      const processNode = document.getElementById('process-queue');
+      processNode.innerHTML = '';
+      if (!processes.data.length) {
+        renderItem(processNode, 'No process queue rows returned', [
+          'process review',
+          'Try a different lane or priority filter.'
+        ]);
+        return;
+      }
+      processes.data.forEach((item) => {
+        renderItem(processNode, item.title || item.process_id, [
+          text(item.review_priority) + ' / ' + text(item.review_lane),
+          'buyer: ' + text(item.buyer_name),
+          'signals: ' + text(item.risk_signal_count) + ', value: ' + text(item.total_contract_value),
+          text(item.lead_question)
+        ]);
+      });
+    }
+
+    async function loadSourcePackReadiness() {
+      const params = new URLSearchParams();
+      params.set('limit', String(positiveInput('readiness-limit', 8)));
+      params.set('source_record_limit', String(positiveInput('readiness-source-limit', 10)));
+      const readiness = await getJson('/api/entity-source-pack-readiness?' + params.toString());
+      const container = document.getElementById('source-pack-readiness');
+      container.innerHTML = '';
+      if (!readiness.data.items.length) {
+        renderItem(container, 'No readiness rows returned', [
+          'source-pack readiness',
+          'The readiness query returned no ranked companies.'
+        ]);
+        return;
+      }
+      readiness.data.items.forEach((item) => {
+        const button = document.createElement('button');
+        button.className = 'secondary';
+        button.textContent = 'Open dossier';
+        button.onclick = () => loadEntity(item.entityId);
+        renderItem(container, item.entityName, [
+          item.recommendedAction,
+          item.rationale,
+          'source records: ' + numberText(item.sourceRecordCount) + ', evidence links: ' + numberText(item.sourcePackEvidenceCount),
+          item.command
+        ], button);
+      });
+    }
+
+    async function loadQueues() {
+      await Promise.all([
+        loadEntityQueue(),
+        loadExternalCandidateQueue(),
+        loadProcessQueue(),
+        loadSourcePackReadiness()
+      ]);
     }
 
     document.getElementById('search-form').addEventListener('submit', searchEntities);
@@ -2500,6 +2936,26 @@ function consoleHtml(): string {
     document.getElementById('load-case-artifacts').addEventListener('click', () => {
       fetchCaseArtifacts(true).catch((error) => {
         document.getElementById('case-artifacts').textContent = error.message;
+      });
+    });
+    document.getElementById('refresh-entity-queue').addEventListener('click', () => {
+      loadEntityQueue().catch((error) => {
+        document.getElementById('entity-queue').textContent = error.message;
+      });
+    });
+    document.getElementById('refresh-candidates').addEventListener('click', () => {
+      loadExternalCandidateQueue().catch((error) => {
+        document.getElementById('candidates').textContent = error.message;
+      });
+    });
+    document.getElementById('refresh-process-queue').addEventListener('click', () => {
+      loadProcessQueue().catch((error) => {
+        document.getElementById('process-queue').textContent = error.message;
+      });
+    });
+    document.getElementById('refresh-readiness').addEventListener('click', () => {
+      loadSourcePackReadiness().catch((error) => {
+        document.getElementById('source-pack-readiness').textContent = error.message;
       });
     });
     renderShowcase();
@@ -2699,6 +3155,13 @@ async function handleApiRequest(url: URL, request: http.IncomingMessage): Promis
     return getInternalOverview();
   }
 
+  if (url.pathname === "/api/entity-source-pack-readiness") {
+    return getEntitySourcePackReadiness({
+      limit: numberParam(url, "limit"),
+      sourceRecordLimit: numberParam(url, "source_record_limit") ?? numberParam(url, "sourceRecordLimit"),
+    });
+  }
+
   if (url.pathname === "/api/entities") {
     return searchEntities(searchOptions(url));
   }
@@ -2756,6 +3219,19 @@ async function handleApiRequest(url: URL, request: http.IncomingMessage): Promis
   const caseArtifactsId = parseCaseArtifactsRoute(url.pathname);
   if (caseArtifactsId !== undefined) {
     return listCaseArtifacts(caseArtifactsId, listOptions(url));
+  }
+
+  const caseArtifactDetailId = parseCaseArtifactDetailRoute(url.pathname);
+  if (caseArtifactDetailId !== undefined) {
+    const artifactPath = textParam(url, "path") ?? textParam(url, "artifact_path");
+    if (!artifactPath) {
+      throw new Error("path is required for artifact detail.");
+    }
+
+    return getCaseArtifactDetail(caseArtifactDetailId, {
+      artifactPath,
+      maxTextChars: numberParam(url, "max_text_chars") ?? numberParam(url, "maxTextChars"),
+    });
   }
 
   const analystCaseId = parseAnalystCaseRoute(url.pathname);
