@@ -24,11 +24,18 @@ The follow-up product-surface slice adds:
 - an artifact browser for generated evidence artifacts, manifests, source bundles, and source-document indexes
 - a bounded artifact-detail reader for local case files and bundle directories
 
+The larger case-packet product slice adds:
+
+- graph filtering and expansion controls over the existing one-hop entity network
+- a source-backed case review packet that renders public-safety state, linked targets, evidence links, and timeline events as readable cards instead of JSON-only output
+- an artifact/source-document match preview that surfaces bundle/index query matches, source-record IDs, evidence-link IDs, snippets, and use limits before the raw artifact JSON
+
 The surface is designed to expose:
 
 - entity search
 - entity dossiers as JSON
 - one-hop graph-ready relationship neighborhoods
+- filtered visual graph neighborhoods with relation/type controls
 - entity and process review queues
 - review-only external candidates
 - accepted external enrichment matches
@@ -47,6 +54,8 @@ The surface is designed to expose:
 - a presentable local command-center interface over those workflows
 - visual entity relationship exploration
 - local artifact/detail browsing without moving generated files into Git or OneDrive
+- case review packets that make source-backed evidence, limits, and public-safety status understandable without opening raw JSON
+- source-document match previews that trace local snippets back to source records and evidence links
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -166,10 +175,10 @@ The local console should now be treated as Centinela's first internal product su
 
 Near-term interface work should prioritize:
 
-- a case overview page that feels less like JSON and more like a source-backed review packet
 - public-methodology and limitations pages derived from the existing docs and review gates
-- deeper artifact previews that summarize source-document index matches without exposing unreviewed raw material by default
-- visual filtering and expansion for larger graph neighborhoods
+- safer navigation from artifact/source-document matches into source records and case evidence
+- a better entity-to-case handoff so dossiers, source packs, and case packets feel like one workflow
+- later visual expansion for larger graph neighborhoods beyond the current one-hop API
 
 ## Current smoke-test result
 
@@ -284,11 +293,21 @@ On the Command Center graph/artifact/readiness smoke test, the local API path al
 - `GET /api/analyst-cases/20/artifacts?limit=5` returned a source bundle path
 - `GET /api/analyst-cases/20/artifact-detail?path=<latestBundlePath>` returned `200`
 
+On the case packet / source-index preview smoke test, the local API path also confirmed:
+
+- the Command Center page returned `200` and included `graph-relation-filter`, `case-review-packet`, and `artifact-detail-preview`
+- `GET /api/entities/3940/network?limit=24` returned `11` nodes and `10` edges
+- `GET /api/analyst-cases/20?limit=50` returned `10` evidence links and `22` timeline events
+- `GET /api/analyst-cases/20/artifacts?limit=5` returned `3` artifacts
+- `GET /api/analyst-cases/20/artifact-detail?path=<latestBundlePath>` returned an artifact directory with a bundle index, a source-document index, `8` indexed documents, and `5` query matches for `Consultora Guarani`
+- the rendered inline script parsed successfully from the served Command Center HTML
+
 ## Limits
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
 - Saved cases, analyst notes, evidence links, and case timelines exist, but the console casework UI is still an internal workbench rather than a full case-management product.
 - The command-center shell is presentable for local/internal review, but it is still not a production public UI.
+- The case review packet is a readable internal surface over existing case data; it does not replace raw JSON, source verification, or analyst judgment.
 - Field suggestions are heuristic helpers, not automatic evidence judgments.
 - Public-safety review gates reduce accidental disclosure risk, but they are not a substitute for full public-product review, role-based authorization, privacy review, or methodology publication.
 - Case evidence artifacts are generated runtime outputs and should stay out of Git.
@@ -301,4 +320,5 @@ On the Command Center graph/artifact/readiness smoke test, the local API path al
 - The console renders source-derived item text as text content rather than HTML, because source records can contain public-source strings.
 - No full-text document index yet.
 - Network output is graph-ready JSON, not a graph database.
+- Graph filters hide/show visible review pivots; they do not change underlying evidence, relationship meaning, or confidence.
 - Public-facing use requires a separate safety, privacy, methodology, and UX layer.

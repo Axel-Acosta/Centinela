@@ -976,10 +976,32 @@ Concrete proof artifacts:
 - `GET /api/analyst-cases/:id/artifact-detail`
 - updated internal API/console and roadmap docs
 
+## 2026-05-12 Case-packet/source-index product-surface advancement
+
+- br/acc
+  - advanced because case packets and artifact previews make source-record IDs, source keys, evidence-link IDs, local bundle paths, and graph relationships visible as navigable provenance rather than hidden runtime detail.
+- Aleph
+  - advanced because saved cases now read like investigator review packets: linked targets, source-backed evidence, public-safety state, timeline events, and local document-index matches are visible in one place.
+- Sayari
+  - advanced because the entity/case surface now feels closer to analyst-grade entity intelligence, with graph filters, dossier-to-case pivots, source match snippets, and limits displayed before raw data.
+- QuienEsQuien / TodosLosContratos
+  - advanced because company-contract accountability packs are easier to explain: an entity source pack can be opened as a case, its source documents can be previewed, and source records can be reopened from match rows.
+- Integrity Watch / Dozorro / RUBLI
+  - advanced because the visible case workflow keeps public-safety gate status, review-only language, and limitations attached to every packet and preview rather than hiding them in exports.
+- DNCP / OCDS / Cardinal / GTI
+  - advanced because official DNCP release/document source records remain the backbone of the current source packs, while procurement review evidence is now easier to inspect from the interface.
+
+Concrete proof artifacts:
+
+- graph relation/type filters and network limit controls in `src/server/internalConsole.ts`
+- readable case review packet in `src/server/internalConsole.ts`
+- artifact/source-document match preview in `src/server/internalConsole.ts`
+- live smoke result recorded in `memory/run-log.md`
+
 ## Next extraction priority
 
 - highest priority
-  - finish the next internal-product MVP slice: case overview as a source-backed review packet, richer source-document index match previews, and graph filters/expansion for larger neighborhoods
+  - finish the next internal-product MVP slice: public-methodology/limitations pages inside the local interface, smoother entity-to-case/source-pack navigation, and safer artifact/source verification affordances
 - next after that
   - move to the next lawful Paraguay cross-domain source, preferably company/officer/ownership-adjacent accountability data if access is lawful and practical
   - continue readiness-ranked DNCP release/document source-record checks across the highest-priority companies/candidates and use `py-dncp-document-content` only for source records that need captured official files or explicit source-access limitation records

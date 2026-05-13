@@ -12,6 +12,8 @@ As of the 2026-05-12 product-surface slice, the workspace also has a presentable
 
 The follow-up Command Center slice adds visual graph exploration, filterable queues, source-pack readiness browsing, and bounded local artifact-detail previews. These features are navigation and review aids only; they do not promote leads into findings.
 
+The case-packet Command Center slice adds graph relation/type filters, a larger network limit control, readable case review packets, and source-document match previews. These features make evidence easier to inspect, but they still sit on top of the same review-first case, source-record, artifact, and public-safety model.
+
 ## Live database objects
 
 - `centinela.analyst_cases`
@@ -46,12 +48,14 @@ Read endpoints:
   - includes bounded `fieldSuggestions` that point to useful scalar JSON fields, likely evidence role, and why the field may matter
 - `GET /api/analyst-cases`
 - `GET /api/analyst-cases/:id`
+  - the Command Center now renders this as a source-backed review packet with public-safety state, linked targets, evidence links, and timeline cards
 - `GET /api/analyst-cases/:id/evidence-export`
   - with `public_only=true`, requires latest public-safety status `approved_public`
 - `GET /api/analyst-cases/:id/artifacts`
   - summarizes generated local evidence artifacts, source manifests, source bundles, and source-document indexes for the case
 - `GET /api/analyst-cases/:id/artifact-detail`
   - reads a bounded local preview for a selected artifact file or bundle directory, only when the selected path is inside the case artifact folder
+  - the Command Center now summarizes source-document index query matches, source-record IDs, evidence-link IDs, snippets, and use limits before raw JSON
 - `GET /api/entity-source-pack-readiness`
   - ranks next source-pack actions for the Command Center without writing report files or mutating casework
 - `GET /api/analyst-notes`
@@ -117,6 +121,7 @@ The artifact and bundle POST endpoints write local runtime files rather than dat
 - The artifact registry is a convenience reader over local runtime files. If a file is deleted, moved, or generated under a different `CENTINELA_OUTPUT_DIR`, it will not appear.
 - Artifact-detail previews are bounded local navigation aids. They should not be treated as publication-ready document excerpts.
 - Graph visualization shows review pivots, not ownership, control, misconduct, or liability.
+- Graph filters and case-packet cards are display aids. They do not change evidence meaning, confidence, public-review state, or source limitations.
 - Write-token authentication is a local hardening step, not a full production auth system.
 
 ## Current smoke-test result
@@ -143,7 +148,8 @@ On 2026-04-26, the first live analyst-workspace smoke test confirmed:
 - the source-document index smoke created one temporary case and source-record evidence link to source record `10117`; public bundle/index creation was blocked before approval, approved public bundle copied `2` source assets, automatic index files were written, a refreshed query for `Consultora Guarani` returned `2` searchable documents and `2` query matches, matched documents preserved source-record and evidence-link traceability, no internal analyst interpretation leaked, and cleanup returned smoke cases/artifacts to `0`
 - the case artifact API/console smoke created one temporary case and source-record evidence link to source record `10117`; public bundle creation was blocked before approval, approved public POST artifact routes wrote evidence artifacts, source manifests, and a source bundle, the bundle copied `2` source assets, both immediate and refreshed source-index queries returned `2` matches, `/console` exposed the artifact controls, and cleanup removed the temporary case/artifacts
 - the artifact registry smoke created one temporary case and source-record evidence link to source record `10117`; `GET /api/analyst-cases/:id/artifacts` returned `3` artifact summaries, including evidence artifact, source manifest, and source bundle, preserved the latest bundle path, and showed `2` indexed documents plus `2` query matches; cleanup removed the temporary case/artifacts
+- the case-packet/source-index preview smoke confirmed the Command Center page exposes graph controls, a case review packet, and an artifact preview; case `20` returned `10` evidence links and `22` timeline events, the latest source bundle returned `8` indexed documents and `5` query matches for `Consultora Guarani`, and the served inline script parsed successfully
 
 ## Next hardening step
 
-Make case pages read more like source-backed review packets, then add richer source-document index match previews and graph filters/expansion for larger neighborhoods. Only after the Command Center can explain cases clearly should the project return to broad cross-domain source expansion.
+Add a clearer methodology/limitations surface inside the local interface, then tighten the dossier-to-case/source-pack navigation. Only after the Command Center can explain cases and source verification clearly should the project return to broad cross-domain source expansion.

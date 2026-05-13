@@ -1132,6 +1132,24 @@ function consoleHtml(): string {
       margin: 8px 0 12px;
     }
 
+    .graph-controls {
+      display: grid;
+      grid-template-columns: minmax(92px, 0.8fr) minmax(0, 1.1fr) minmax(0, 1.1fr) auto;
+      gap: 8px;
+      align-items: end;
+      margin: 10px 0 12px;
+    }
+
+    .graph-controls label {
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
     .artifact-browser {
       display: grid;
       gap: 12px;
@@ -1199,6 +1217,79 @@ function consoleHtml(): string {
     }
 
     .case-summary {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .case-packet {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .case-packet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+    }
+
+    .packet-section {
+      border: 1px solid rgba(141, 114, 69, 0.24);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.48);
+      padding: 13px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .packet-section h3 {
+      margin: 0;
+      font-size: 0.98rem;
+    }
+
+    .target-card,
+    .evidence-row,
+    .timeline-card,
+    .source-match-row {
+      border: 1px solid rgba(141, 114, 69, 0.2);
+      border-radius: 16px;
+      background: rgba(255, 250, 240, 0.62);
+      padding: 11px;
+      display: grid;
+      gap: 7px;
+    }
+
+    .target-card strong,
+    .evidence-row strong,
+    .timeline-card strong,
+    .source-match-row strong {
+      color: var(--ink);
+    }
+
+    .target-card span,
+    .evidence-row span,
+    .timeline-card span,
+    .source-match-row span {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.38;
+    }
+
+    .packet-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .packet-actions button,
+    .source-match-row button {
+      justify-self: start;
+      padding: 7px 10px;
+      font-size: 0.84rem;
+    }
+
+    .artifact-detail-preview {
       display: grid;
       gap: 12px;
       margin-bottom: 12px;
@@ -1384,6 +1475,19 @@ function consoleHtml(): string {
 
           <aside class="panel">
             <h2>Relationship View</h2>
+            <div class="graph-controls" aria-label="Graph controls">
+              <label>
+                Limit
+                <input id="network-limit" value="24" aria-label="Network limit" />
+              </label>
+              <select id="graph-relation-filter" aria-label="Graph relation filter">
+                <option value="">All relationships</option>
+              </select>
+              <select id="graph-kind-filter" aria-label="Graph node type filter">
+                <option value="">All node types</option>
+              </select>
+              <button id="refresh-network" type="button" class="secondary">Refresh graph</button>
+            </div>
             <div id="network-graph" class="graph-canvas" aria-label="Graph visualization">
               <div class="summary-card">
                 <strong>Open an entity to draw its network</strong>
@@ -1515,10 +1619,22 @@ function consoleHtml(): string {
                 <span>Create or open a case to see linked targets, notes, evidence links, public-review status, and artifacts.</span>
               </div>
             </div>
+            <div id="case-review-packet" class="case-packet">
+              <div class="summary-card">
+                <strong>Review packet not loaded</strong>
+                <span>Open a case to see public-safety status, linked targets, source-record evidence, and timeline events as readable review cards.</span>
+              </div>
+            </div>
             <div id="artifact-browser" class="artifact-browser">
               <div class="summary-card">
                 <strong>No artifacts loaded yet</strong>
                 <span>Open a case and load generated artifacts to browse evidence packets, manifests, bundles, and source-document indexes.</span>
+              </div>
+            </div>
+            <div id="artifact-detail-preview" class="artifact-detail-preview">
+              <div class="summary-card">
+                <strong>No artifact preview opened</strong>
+                <span>Open a bundle or source-document index to see searchable document matches, snippets, source-record IDs, and use limits.</span>
               </div>
             </div>
             <details class="raw-card" open>
@@ -1725,6 +1841,10 @@ function consoleHtml(): string {
 
     function arrayCount(value) {
       return Array.isArray(value) ? value.length : 0;
+    }
+
+    function object(value) {
+      return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
     }
 
     function setJson(id, value) {
@@ -1993,6 +2113,92 @@ function consoleHtml(): string {
         '</div>';
     }
 
+    function selectedValue(id) {
+      const node = document.getElementById(id);
+      return node ? node.value : '';
+    }
+
+    function networkLimit() {
+      const node = document.getElementById('network-limit');
+      if (!node) {
+        return 24;
+      }
+      const parsed = Number(node.value);
+      return Number.isFinite(parsed) && parsed > 0 ? Math.max(6, Math.min(60, Math.trunc(parsed))) : 24;
+    }
+
+    function nodeKey(node) {
+      return text(object(node).id);
+    }
+
+    function setSelectOptions(id, values, emptyLabel) {
+      const select = document.getElementById(id);
+      if (!select) {
+        return;
+      }
+
+      const current = select.value;
+      const uniqueValues = Array.from(new Set((values || []).map(text).filter((value) => value !== 'n/a'))).sort();
+      select.innerHTML =
+        '<option value="">' + html(emptyLabel) + '</option>' +
+        uniqueValues.map((value) => '<option value="' + html(value) + '">' + html(value) + '</option>').join('');
+      if (uniqueValues.includes(current)) {
+        select.value = current;
+      }
+    }
+
+    function populateNetworkControls(network) {
+      const edges = (network && network.edges) || [];
+      const nodes = (network && network.nodes) || [];
+      setSelectOptions('graph-relation-filter', edges.map((edge) => edge.relation), 'All relationships');
+      setSelectOptions('graph-kind-filter', nodes.map((node) => node.kind), 'All node types');
+    }
+
+    function applyNetworkFilters(network) {
+      const nodes = (network && network.nodes) || [];
+      const edges = (network && network.edges) || [];
+      const relationFilter = selectedValue('graph-relation-filter');
+      const kindFilter = selectedValue('graph-kind-filter');
+      const focus = nodes.find((node) => node.metadata && node.metadata.role === 'focus') || nodes[0];
+      const visibleNodeIds = new Set();
+
+      if (focus) {
+        visibleNodeIds.add(nodeKey(focus));
+      }
+
+      let filteredEdges = relationFilter
+        ? edges.filter((edge) => text(edge.relation) === relationFilter)
+        : edges.slice();
+
+      if (kindFilter) {
+        nodes
+          .filter((node) => text(node.kind) === kindFilter)
+          .forEach((node) => visibleNodeIds.add(nodeKey(node)));
+        filteredEdges = filteredEdges.filter((edge) =>
+          visibleNodeIds.has(text(edge.source)) || visibleNodeIds.has(text(edge.target))
+        );
+      } else if (!relationFilter) {
+        nodes.forEach((node) => visibleNodeIds.add(nodeKey(node)));
+      }
+
+      filteredEdges.forEach((edge) => {
+        visibleNodeIds.add(text(edge.source));
+        visibleNodeIds.add(text(edge.target));
+      });
+
+      const visibleNodes = nodes.filter((node) => visibleNodeIds.has(nodeKey(node)));
+      const visibleEdges = filteredEdges.filter((edge) =>
+        visibleNodeIds.has(text(edge.source)) && visibleNodeIds.has(text(edge.target))
+      );
+
+      return {
+        nodes: visibleNodes.length ? visibleNodes : focus ? [focus] : [],
+        edges: visibleEdges,
+        relationFilter,
+        kindFilter
+      };
+    }
+
     function renderNetworkSummary(network) {
       const container = document.getElementById('network-summary');
       if (!container) {
@@ -2001,6 +2207,7 @@ function consoleHtml(): string {
 
       const edges = network.edges || [];
       const nodes = network.nodes || [];
+      const filtered = applyNetworkFilters(network);
       const byRelation = edges.reduce((accumulator, edge) => {
         const relation = text(edge.relation);
         accumulator[relation] = (accumulator[relation] || 0) + 1;
@@ -2017,6 +2224,12 @@ function consoleHtml(): string {
         '<div class="summary-card">' +
           '<strong>One-hop relationship map</strong>' +
           '<span>' + html(numberText(nodes.length)) + ' nodes and ' + html(numberText(edges.length)) + ' edges. These are review pivots, not proof of control or misconduct.</span>' +
+          '<div class="chip-row">' +
+            pill('visible: ' + numberText(filtered.nodes.length) + ' nodes', false) +
+            pill('visible edges: ' + numberText(filtered.edges.length), false) +
+            (filtered.relationFilter ? pill('relation: ' + filtered.relationFilter, true) : '') +
+            (filtered.kindFilter ? pill('type: ' + filtered.kindFilter, true) : '') +
+          '</div>' +
         '</div>' +
         (relationRows || '<div class="summary-card"><strong>No graph edges returned</strong><span>Try another entity or expand source coverage.</span></div>');
     }
@@ -2027,8 +2240,9 @@ function consoleHtml(): string {
         return;
       }
 
-      const nodes = (network && network.nodes) || [];
-      const edges = (network && network.edges) || [];
+      const filtered = applyNetworkFilters(network || {});
+      const nodes = filtered.nodes || [];
+      const edges = filtered.edges || [];
       if (!nodes.length) {
         container.innerHTML = '<div class="summary-card"><strong>No graph nodes returned</strong><span>Open an entity with relationships to draw the network.</span></div>';
         return;
@@ -2040,14 +2254,14 @@ function consoleHtml(): string {
       const centerY = height / 2;
       const radius = Math.min(width, height) * 0.34;
       const focus = nodes.find((node) => node.metadata && node.metadata.role === 'focus') || nodes[0];
-      const others = nodes.filter((node) => node.id !== focus.id).slice(0, 18);
+      const others = nodes.filter((node) => nodeKey(node) !== nodeKey(focus)).slice(0, Math.max(1, networkLimit() - 1));
       const positions = new Map();
-      positions.set(focus.id, { x: centerX, y: centerY, node: focus, focus: true });
+      positions.set(nodeKey(focus), { x: centerX, y: centerY, node: focus, focus: true });
 
       others.forEach((node, index) => {
         const angle = (Math.PI * 2 * index) / Math.max(others.length, 1) - Math.PI / 2;
         const jitter = index % 2 === 0 ? 0 : 24;
-        positions.set(node.id, {
+        positions.set(nodeKey(node), {
           x: centerX + Math.cos(angle) * (radius + jitter),
           y: centerY + Math.sin(angle) * (radius + jitter),
           node,
@@ -2055,9 +2269,9 @@ function consoleHtml(): string {
         });
       });
 
-      const edgeMarkup = edges.slice(0, 36).map((edge) => {
-        const source = positions.get(edge.source);
-        const target = positions.get(edge.target);
+      const edgeMarkup = edges.slice(0, networkLimit() * 3).map((edge) => {
+        const source = positions.get(text(edge.source));
+        const target = positions.get(text(edge.target));
         if (!source || !target) {
           return '';
         }
@@ -2088,9 +2302,10 @@ function consoleHtml(): string {
       currentEntityId = entityId;
       const [profile, network] = await Promise.all([
         getJson('/api/entities/' + entityId),
-        getJson('/api/entities/' + entityId + '/network?limit=18')
+        getJson('/api/entities/' + entityId + '/network?limit=' + networkLimit())
       ]);
       currentNetwork = network.data;
+      populateNetworkControls(currentNetwork);
       setJson('detail', {
         profile: profile.data,
         network: network.data
@@ -2101,6 +2316,28 @@ function consoleHtml(): string {
       renderSourceRecords(profile.data.sourceRecords || []);
       renderNotes(profile.data.analystNotes || []);
       document.getElementById('graph-export').textContent = 'Ready to export entity #' + entityId + '.';
+    }
+
+    async function refreshCurrentNetwork() {
+      if (!currentEntityId) {
+        document.getElementById('network-summary').innerHTML = '<div class="summary-card"><strong>No entity opened yet</strong><span>Open an entity before refreshing the graph.</span></div>';
+        return;
+      }
+
+      const network = await getJson('/api/entities/' + currentEntityId + '/network?limit=' + networkLimit());
+      currentNetwork = network.data;
+      populateNetworkControls(currentNetwork);
+      renderNetworkSummary(currentNetwork);
+      renderNetworkGraph(currentNetwork);
+      document.getElementById('graph-export').textContent = 'Refreshed graph for entity #' + currentEntityId + ' with limit ' + networkLimit() + '.';
+    }
+
+    function rerenderCurrentNetwork() {
+      if (!currentNetwork) {
+        return;
+      }
+      renderNetworkSummary(currentNetwork);
+      renderNetworkGraph(currentNetwork);
     }
 
     async function openSourceRecord(recordId) {
@@ -2223,7 +2460,7 @@ function consoleHtml(): string {
         document.getElementById('graph-export').textContent = 'Open an entity before exporting a graph.';
         return;
       }
-      const payload = await getJson('/api/entities/' + currentEntityId + '/network/export?format=cytoscape&limit=30');
+      const payload = await getJson('/api/entities/' + currentEntityId + '/network/export?format=cytoscape&limit=' + networkLimit());
       document.getElementById('graph-export').textContent = JSON.stringify(payload.data, null, 2);
     }
 
@@ -2308,10 +2545,122 @@ function consoleHtml(): string {
         '</div>';
     }
 
+    function attachOpenActions(container) {
+      container.querySelectorAll('[data-open-entity]').forEach((button) => {
+        button.addEventListener('click', () => {
+          loadEntity(Number(button.getAttribute('data-open-entity'))).catch((error) => {
+            document.getElementById('detail').textContent = error.message;
+          });
+        });
+      });
+
+      container.querySelectorAll('[data-open-source-record]').forEach((button) => {
+        button.addEventListener('click', () => {
+          openSourceRecord(Number(button.getAttribute('data-open-source-record'))).catch((error) => {
+            document.getElementById('detail').textContent = error.message;
+          });
+        });
+      });
+    }
+
+    function caseTargetButton(link) {
+      const targetType = text(link.target_type);
+      const targetId = text(link.target_id);
+      if (targetType === 'entity') {
+        return '<button type="button" class="secondary" data-open-entity="' + html(targetId) + '">Open dossier</button>';
+      }
+      if (targetType === 'source_record') {
+        return '<button type="button" class="secondary" data-open-source-record="' + html(targetId) + '">Open source record</button>';
+      }
+      return '';
+    }
+
+    function renderCaseReviewPacket(data) {
+      const container = document.getElementById('case-review-packet');
+      if (!container) {
+        return;
+      }
+
+      const item = data.case || {};
+      const links = data.links || [];
+      const notes = data.notes || [];
+      const evidenceLinks = data.evidenceLinks || [];
+      const publicReviews = data.publicReviews || [];
+      const timeline = data.timeline || [];
+      const latestReview = publicReviews[0] || {};
+      const publicStatus = text(item.public_review_status || latestReview.review_status || 'internal_only');
+      const publicAllowed = publicStatus === 'approved_public';
+      const targetCards = links.slice(0, 10).map((link) => (
+        '<article class="target-card">' +
+          '<strong>' + html(link.label || link.target_type || 'Linked target') + '</strong>' +
+          '<span>' + html(text(link.target_type) + ' #' + text(link.target_id)) + '</span>' +
+          '<span>' + html(shortText(link.rationale || 'Linked for case review context.', 150)) + '</span>' +
+          '<div class="packet-actions">' + caseTargetButton(link) + '</div>' +
+        '</article>'
+      )).join('');
+      const evidenceRows = evidenceLinks.slice(0, 12).map((row) => (
+        '<article class="evidence-row">' +
+          '<strong>' + html(text(row.evidence_role) + ' / source record #' + text(row.source_record_id)) + '</strong>' +
+          '<span>' + html(text(row.source_key) + ' | ' + text(row.record_kind) + ' | ' + text(row.external_id)) + '</span>' +
+          '<span>' + html(shortText(row.evidence_summary || row.analyst_interpretation || 'Source linked for review context.', 190)) + '</span>' +
+          '<span>Field: ' + html(shortText(text(row.field_path) + ' = ' + text(row.field_value), 170)) + '</span>' +
+          '<span>Limits: ' + html(shortText(row.limitations || 'No limitation text recorded on this evidence link.', 170)) + '</span>' +
+          '<div class="packet-actions">' +
+            '<button type="button" class="secondary" data-open-source-record="' + html(row.source_record_id) + '">Open source</button>' +
+          '</div>' +
+        '</article>'
+      )).join('');
+      const timelineRows = timeline.slice(0, 8).map((event) => (
+        '<article class="timeline-card">' +
+          '<strong>' + html(event.title || event.event_type || 'Timeline event') + '</strong>' +
+          '<span>' + html(text(event.event_at) + ' | ' + text(event.event_type) + ' | ' + text(event.actor)) + '</span>' +
+          '<span>' + html(shortText(event.body || 'Internal case timeline event.', 170)) + '</span>' +
+        '</article>'
+      )).join('');
+
+      container.innerHTML =
+        '<div class="packet-section">' +
+          '<h3>Review packet</h3>' +
+          '<p class="product-note">' + html(data.disclaimer || 'Internal review context only. Not a public finding.') + '</p>' +
+          '<div class="chip-row">' +
+            pill(publicAllowed ? 'public gate approved' : 'public gate not approved', !publicAllowed) +
+            pill('linked targets: ' + numberText(links.length), false) +
+            pill('evidence links: ' + numberText(evidenceLinks.length), false) +
+            pill('notes: ' + numberText(notes.length), false) +
+          '</div>' +
+        '</div>' +
+        '<div class="case-packet-grid">' +
+          '<section class="packet-section">' +
+            '<h3>Public-safety gate</h3>' +
+            '<div class="target-card">' +
+              '<strong>' + html(publicStatus) + '</strong>' +
+              '<span>' + html(publicAllowed ? 'Public-only export is technically allowed, but publication still needs methodology, privacy, and UX review.' : 'This case remains internal until an approved_public review records a public-safe summary and limitations.') + '</span>' +
+              '<span>Summary: ' + html(shortText(latestReview.public_summary || item.summary || 'No public-safe summary recorded.', 190)) + '</span>' +
+              '<span>Limitations: ' + html(shortText(latestReview.public_limitations || 'No public-safe limitations recorded.', 190)) + '</span>' +
+            '</div>' +
+          '</section>' +
+          '<section class="packet-section">' +
+            '<h3>Linked targets</h3>' +
+            (targetCards || '<div class="target-card"><strong>No linked targets</strong><span>Link an entity, source record, candidate, or accepted match to make this case navigable.</span></div>') +
+          '</section>' +
+          '<section class="packet-section">' +
+            '<h3>Source-backed evidence</h3>' +
+            (evidenceRows || '<div class="evidence-row"><strong>No evidence links</strong><span>Open a source record and link it as evidence to build a packet.</span></div>') +
+          '</section>' +
+          '<section class="packet-section">' +
+            '<h3>Timeline</h3>' +
+            (timelineRows || '<div class="timeline-card"><strong>No timeline events</strong><span>Case creation, notes, evidence links, and public reviews will appear here.</span></div>') +
+          '</section>' +
+        '</div>';
+
+      attachOpenActions(container);
+    }
+
     async function openCase(caseId) {
       currentCaseId = caseId;
       const payload = await getJson('/api/analyst-cases/' + caseId + '?limit=50');
       renderCaseSummary(payload.data);
+      renderCaseReviewPacket(payload.data);
       setJson('case-detail', payload.data);
       const status = payload.data.case && payload.data.case.public_review_status;
       if (status) {
@@ -2586,6 +2935,64 @@ function consoleHtml(): string {
       });
     }
 
+    function renderArtifactDetailPreview(detail) {
+      const container = document.getElementById('artifact-detail-preview');
+      if (!container) {
+        return;
+      }
+
+      const parsedJson = object(detail && detail.parsedJson);
+      const index = detail && detail.sourceDocumentIndex
+        ? detail.sourceDocumentIndex
+        : Array.isArray(parsedJson.documents)
+          ? parsedJson
+          : null;
+      const bundleIndex = object(detail && detail.bundleIndex);
+      const file = object(detail && detail.file);
+      const counts = object(index && index.counts);
+      const documents = Array.isArray(index && index.documents) ? index.documents : [];
+      const matchedDocuments = documents.filter((document) => document.queryMatched === true);
+      const previewDocuments = (matchedDocuments.length ? matchedDocuments : documents).slice(0, 6);
+
+      const rows = previewDocuments.map((document) => {
+        const sourceRecordIds = Array.isArray(document.sourceRecordIds) ? document.sourceRecordIds.map(text) : [];
+        const evidenceLinkIds = Array.isArray(document.evidenceLinkIds) ? document.evidenceLinkIds.map(text) : [];
+        const firstSourceRecordId = sourceRecordIds[0];
+        return '<article class="source-match-row">' +
+          '<strong>' + html(text(document.documentId) + ': ' + text(document.fileName || document.bundleRelativePath)) + '</strong>' +
+          '<span>' + html(text(document.status) + ' | copied: ' + text(document.copiedStatus || 'n/a') + ' | query match: ' + text(document.queryMatched === true)) + '</span>' +
+          '<span>Source records: ' + html(sourceRecordIds.join(', ') || 'n/a') + ' | Evidence links: ' + html(evidenceLinkIds.join(', ') || 'n/a') + '</span>' +
+          '<span>Snippet: ' + html(shortText(document.querySnippet || document.indexedTextPreview || 'No snippet available.', 220)) + '</span>' +
+          '<span>Use limit: ' + html(shortText(document.useLimit || 'Verify original source context before reuse.', 170)) + '</span>' +
+          (firstSourceRecordId ? '<button type="button" class="secondary" data-open-source-record="' + html(firstSourceRecordId) + '">Open source record</button>' : '') +
+        '</article>';
+      }).join('');
+
+      const bundleCounts = object(bundleIndex.counts);
+      const bundleText = Object.keys(bundleCounts).length
+        ? 'Bundle counts: ' + Object.entries(bundleCounts).slice(0, 6).map(([key, value]) => key + ': ' + numberText(value)).join(' | ')
+        : 'No bundle counts returned for this artifact.';
+
+      container.innerHTML =
+        '<div class="packet-section">' +
+          '<h3>Artifact preview</h3>' +
+          '<p class="product-note">' + html(detail.disclaimer || 'Local artifact preview for review navigation only.') + '</p>' +
+          '<div class="chip-row">' +
+            pill('kind: ' + text(detail.kind), false) +
+            pill('file: ' + shortText(file.name || file.path || 'selected artifact', 44), false) +
+            pill('query: ' + text(index && index.query), false) +
+            pill('matches: ' + numberText(counts.queryMatchCount), Number(counts.queryMatchCount || 0) === 0) +
+          '</div>' +
+          '<span>' + html(bundleText) + '</span>' +
+        '</div>' +
+        '<div class="packet-section">' +
+          '<h3>Source-document matches</h3>' +
+          (rows || '<div class="source-match-row"><strong>No source-document index rows</strong><span>Open a source bundle or source-document-index JSON artifact to see document-level matches.</span></div>') +
+        '</div>';
+
+      attachOpenActions(container);
+    }
+
     async function loadArtifactDetail(artifactPath) {
       if (!currentCaseId || !artifactPath) {
         document.getElementById('case-artifacts').textContent = 'Open a case and choose an artifact path first.';
@@ -2598,6 +3005,7 @@ function consoleHtml(): string {
         '&max_text_chars=16000'
       );
       document.getElementById('case-artifacts').textContent = JSON.stringify(payload.data, null, 2);
+      renderArtifactDetailPreview(payload.data);
     }
 
     async function fetchCaseArtifacts(updateOutput) {
@@ -2868,6 +3276,13 @@ function consoleHtml(): string {
         document.getElementById('graph-export').textContent = error.message;
       });
     });
+    document.getElementById('refresh-network').addEventListener('click', () => {
+      refreshCurrentNetwork().catch((error) => {
+        document.getElementById('network-summary').innerHTML = '<div class="summary-card"><strong>Graph refresh failed</strong><span>' + html(error.message) + '</span></div>';
+      });
+    });
+    document.getElementById('graph-relation-filter').addEventListener('change', rerenderCurrentNetwork);
+    document.getElementById('graph-kind-filter').addEventListener('change', rerenderCurrentNetwork);
     document.getElementById('create-case').addEventListener('click', () => {
       createCase().catch((error) => {
         document.getElementById('case-detail').textContent = error.message;
