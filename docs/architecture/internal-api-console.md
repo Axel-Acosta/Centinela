@@ -30,6 +30,13 @@ The larger case-packet product slice adds:
 - a source-backed case review packet that renders public-safety state, linked targets, evidence links, and timeline events as readable cards instead of JSON-only output
 - an artifact/source-document match preview that surfaces bundle/index query matches, source-record IDs, evidence-link IDs, snippets, and use limits before the raw artifact JSON
 
+The methodology/navigation product slice adds:
+
+- a stronger methodology, limits, and publication-safety surface inside the Command Center
+- explicit allowed-claim and blocked-claim language
+- an evidence ladder and source verification checklist visible in the interface
+- source-pack shortcuts that open real case packets from the showcase, dossier, and case workspace
+
 The surface is designed to expose:
 
 - entity search
@@ -56,6 +63,8 @@ The surface is designed to expose:
 - local artifact/detail browsing without moving generated files into Git or OneDrive
 - case review packets that make source-backed evidence, limits, and public-safety status understandable without opening raw JSON
 - source-document match previews that trace local snippets back to source records and evidence links
+- methodology and publication-safety guidance in the visible product surface
+- source-pack case shortcuts from entity dossiers and showcase cards
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -175,10 +184,10 @@ The local console should now be treated as Centinela's first internal product su
 
 Near-term interface work should prioritize:
 
-- public-methodology and limitations pages derived from the existing docs and review gates
-- safer navigation from artifact/source-document matches into source records and case evidence
-- a better entity-to-case handoff so dossiers, source packs, and case packets feel like one workflow
+- safer local file/source verification affordances that do not make raw artifacts feel publication-ready
+- a small automated UI/API smoke harness for the Command Center's main navigation paths
 - later visual expansion for larger graph neighborhoods beyond the current one-hop API
+- after that, return to the next lawful Paraguay cross-domain company/accountability source
 
 ## Current smoke-test result
 
@@ -302,12 +311,21 @@ On the case packet / source-index preview smoke test, the local API path also co
 - `GET /api/analyst-cases/20/artifact-detail?path=<latestBundlePath>` returned an artifact directory with a bundle index, a source-document index, `8` indexed documents, and `5` query matches for `Consultora Guarani`
 - the rendered inline script parsed successfully from the served Command Center HTML
 
+On the methodology/navigation smoke test, the local API path also confirmed:
+
+- the Command Center page returned `200` and included `Methodology, Limits, and Publication Safety`, `Allowed claims`, `Source verification checklist`, `Open case packet`, and the `open-entity-source-pack-case` control
+- the served inline script parsed successfully
+- entity search for `MENDEZ GONZALEZ FLORIANA` returned entity `5319`, confirming the source-pack shortcut target
+- `GET /api/analyst-cases/19?limit=20` returned `8` evidence links and `18` timeline events
+- `GET /api/analyst-cases/20/artifacts?limit=5` still returned `3` artifacts
+
 ## Limits
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
 - Saved cases, analyst notes, evidence links, and case timelines exist, but the console casework UI is still an internal workbench rather than a full case-management product.
 - The command-center shell is presentable for local/internal review, but it is still not a production public UI.
 - The case review packet is a readable internal surface over existing case data; it does not replace raw JSON, source verification, or analyst judgment.
+- The methodology and limits section is product guidance for internal review; it is not a complete public methodology page yet.
 - Field suggestions are heuristic helpers, not automatic evidence judgments.
 - Public-safety review gates reduce accidental disclosure risk, but they are not a substitute for full public-product review, role-based authorization, privacy review, or methodology publication.
 - Case evidence artifacts are generated runtime outputs and should stay out of Git.

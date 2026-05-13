@@ -1307,6 +1307,43 @@ function consoleHtml(): string {
       line-height: 1.45;
     }
 
+    .method-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .method-principle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 10px;
+    }
+
+    .method-principle {
+      border: 1px solid rgba(141, 114, 69, 0.24);
+      border-radius: 20px;
+      background:
+        linear-gradient(145deg, rgba(255, 250, 240, 0.7), rgba(235, 225, 199, 0.46));
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .method-principle strong {
+      color: var(--ink);
+    }
+
+    .method-principle span,
+    .method-list li {
+      color: var(--muted);
+      line-height: 1.44;
+      font-size: 0.92rem;
+    }
+
+    .method-list {
+      margin: 0;
+      padding-left: 20px;
+    }
+
     .method-card h3,
     .showcase-card h3 {
       margin: 0 0 6px;
@@ -1324,6 +1361,17 @@ function consoleHtml(): string {
       color: var(--muted);
       font-size: 0.92rem;
       line-height: 1.45;
+    }
+
+    .dossier-actions,
+    .showcase-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .dossier-actions {
+      margin-top: 8px;
     }
 
     .json-pre {
@@ -1563,6 +1611,7 @@ function consoleHtml(): string {
               </select>
               <button id="create-case" type="button">Create case</button>
               <button id="link-entity-case" type="button" class="secondary">Link current entity to case</button>
+              <button id="open-entity-source-pack-case" type="button" class="secondary">Open current source-pack case</button>
               <input id="case-source-query" placeholder="Search source records for this case" aria-label="Case source record search" />
               <button id="search-case-source-records" type="button" class="secondary">Search source records</button>
               <select id="evidence-role" aria-label="Evidence role">
@@ -1746,27 +1795,54 @@ function consoleHtml(): string {
       <section id="methodology" class="panel section-block">
         <div class="section-header">
           <div>
-            <h2>Methodology and Precedent Synthesis</h2>
-            <p>The visible layer keeps the reference universe active: connected graph exploration, casework, accountability mapping, explainable signals, and transparent limitations.</p>
+            <h2>Methodology, Limits, and Publication Safety</h2>
+            <p>The visible layer explains what Centinela can show, what it cannot conclude, and what must happen before anything leaves internal review.</p>
           </div>
         </div>
-        <div class="method-grid">
-          <article class="method-card">
-            <h3>Graph and provenance</h3>
-            <p>br/acc shapes source-linked entities, graph-ready relationships, and source-registry discipline.</p>
-          </article>
-          <article class="method-card">
-            <h3>Investigation workflow</h3>
-            <p>Aleph and Sayari shape entity-first dossiers, relationship pivots, case timelines, and source-record drilldowns.</p>
-          </article>
-          <article class="method-card">
-            <h3>Company accountability</h3>
-            <p>QuienEsQuien and TodosLosContratos shape the company-contract visibility now exposed through dossiers and source packs.</p>
-          </article>
-          <article class="method-card">
-            <h3>Review and transparency</h3>
-            <p>Integrity Watch, Dozorro, RUBLI, DNCP, Cardinal, GTI, FUNES, and Rosie shape cautious language, review lanes, public-safety gates, and explainable signals.</p>
-          </article>
+        <div class="method-stack">
+          <div class="method-principle-grid">
+            <article class="method-principle">
+              <strong>Allowed claims</strong>
+              <span>Risk signals, source-backed identity context, anomalies, limitations, and leads for human review.</span>
+            </article>
+            <article class="method-principle">
+              <strong>Blocked claims</strong>
+              <span>No accusation, guilt, corruption finding, legal conclusion, ownership conclusion, or automatic public allegation.</span>
+            </article>
+            <article class="method-principle">
+              <strong>Evidence ladder</strong>
+              <span>Public source -> source record -> evidence link -> case packet -> public-safety gate. Each step preserves provenance and limits.</span>
+            </article>
+            <article class="method-principle">
+              <strong>External matching</strong>
+              <span>Review candidates stay separate from accepted identity context. Accepted matches are identity context only unless separately reviewed.</span>
+            </article>
+            <article class="method-principle">
+              <strong>Source limitations</strong>
+              <span>DNCP 404s, scanned PDFs, parser gaps, no comparable external IDs, and missing check digits are recorded as limits, not erased.</span>
+            </article>
+            <article class="method-principle">
+              <strong>Public gate</strong>
+              <span>Public-only export requires approved public review, but publication still needs privacy, source, methodology, and UX review.</span>
+            </article>
+          </div>
+
+          <div class="grid">
+            <article class="method-card span-6">
+              <h3>Source verification checklist</h3>
+              <ul class="method-list">
+                <li>Open the source record and check source key, external ID, URL, retrieval time, and source-run status.</li>
+                <li>Check field path and field value before relying on an evidence link.</li>
+                <li>Read the limitation row; download failures and parser limits are not evidence about an entity.</li>
+                <li>For source bundles, verify copied file hashes and original source URLs before public reuse.</li>
+                <li>For external candidates, distinguish review-only candidate, rejected diagnostic, accepted identity context, and external risk signal.</li>
+              </ul>
+            </article>
+            <article class="method-card span-6">
+              <h3>Reference influence map</h3>
+              <p>br/acc shapes provenance and graph-ready relationships. Aleph and Sayari shape casework, dossiers, and document traceability. QuienEsQuien and TodosLosContratos shape company-contract accountability. Integrity Watch, Dozorro, RUBLI, DNCP, Cardinal, GTI, FUNES, and Rosie shape cautious surfacing, review queues, public-safety gates, and explainable limits.</p>
+            </article>
+          </div>
         </div>
       </section>
     </main>
@@ -1779,6 +1855,48 @@ function consoleHtml(): string {
     let currentNoteId = null;
     let currentBundlePath = null;
     let currentNetwork = null;
+    const sourcePackShortcuts = [
+      {
+        entityId: 5319,
+        caseId: 19,
+        name: 'MENDEZ GONZALEZ FLORIANA *',
+        caseKey: 'case 19',
+        query: 'Mendez Gonzalez Floriana',
+        note: 'Source pack for the remaining local identity-anchor gap and official DNCP document limitations.'
+      },
+      {
+        entityId: 3940,
+        caseId: 20,
+        name: 'CONSULTORA GUARANI SA INGENIEROS CIVILES',
+        caseKey: 'case 20',
+        query: 'Consultora Guarani',
+        note: 'Accepted external identity-context match plus DNCP/IDB source evidence.'
+      },
+      {
+        entityId: 224,
+        caseId: 22,
+        name: 'PROSALUDFARMA S.A.',
+        caseKey: 'case 22',
+        query: 'PROSALUDFARMA',
+        note: 'High-priority source pack with DNCP document-access limitations preserved.'
+      },
+      {
+        entityId: 261,
+        caseId: 23,
+        name: 'INDEX S.A.C.I.',
+        caseKey: 'case 23',
+        query: 'INDEX',
+        note: 'Company-contract accountability pack with source-document index matches.'
+      },
+      {
+        entityId: 237,
+        caseId: 24,
+        name: 'QUIMFA S.A.',
+        caseKey: 'case 24',
+        query: 'QUIMFA',
+        note: 'Entity source pack showing official source metadata and download limits.'
+      }
+    ];
 
     async function getJson(path) {
       const response = await fetch(path);
@@ -1886,41 +2004,52 @@ function consoleHtml(): string {
         '</article>';
     }
 
+    function sourcePackShortcutForEntity(entityId) {
+      return sourcePackShortcuts.find((item) => Number(item.entityId) === Number(entityId)) || null;
+    }
+
+    async function openSourcePackShortcut(shortcut) {
+      if (!shortcut) {
+        return;
+      }
+      document.getElementById('source-index-query').value = shortcut.query || shortcut.name || '';
+      await loadEntity(shortcut.entityId);
+      await openCase(shortcut.caseId);
+      document.getElementById('casework').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function shortcutButtons(shortcut) {
+      if (!shortcut) {
+        return '';
+      }
+
+      return '<div class="dossier-actions">' +
+        '<button type="button" class="secondary" data-open-entity="' + html(shortcut.entityId) + '">Open dossier</button>' +
+        '<button type="button" class="secondary" data-open-case="' + html(shortcut.caseId) + '">Open source-pack case</button>' +
+      '</div>';
+    }
+
+    function attachShortcutActions(container) {
+      container.querySelectorAll('[data-open-case]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const caseId = Number(button.getAttribute('data-open-case'));
+          const shortcut = sourcePackShortcuts.find((item) => Number(item.caseId) === caseId);
+          (shortcut ? openSourcePackShortcut(shortcut) : openCase(caseId)).catch((error) => {
+            document.getElementById('case-detail').textContent = error.message;
+          });
+        });
+      });
+      attachOpenActions(container);
+    }
+
     function renderShowcase() {
       const container = document.getElementById('entity-showcase');
       if (!container) {
         return;
       }
 
-      const entities = [
-        {
-          id: 3940,
-          name: 'CONSULTORA GUARANI SA INGENIEROS CIVILES',
-          caseKey: 'case 20',
-          note: 'Accepted external identity-context match plus DNCP/IDB source evidence.'
-        },
-        {
-          id: 224,
-          name: 'PROSALUDFARMA S.A.',
-          caseKey: 'case 22',
-          note: 'High-priority source pack with DNCP document-access limitations preserved.'
-        },
-        {
-          id: 261,
-          name: 'INDEX S.A.C.I.',
-          caseKey: 'case 23',
-          note: 'Company-contract accountability pack with source-document index matches.'
-        },
-        {
-          id: 237,
-          name: 'QUIMFA S.A.',
-          caseKey: 'case 24',
-          note: 'Entity source pack showing official source metadata and download limits.'
-        }
-      ];
-
       container.innerHTML = '';
-      entities.forEach((entity) => {
+      sourcePackShortcuts.slice(1).forEach((entity) => {
         const card = document.createElement('article');
         card.className = 'showcase-card';
         const title = document.createElement('h3');
@@ -1930,17 +2059,28 @@ function consoleHtml(): string {
         caseKey.textContent = entity.caseKey;
         const note = document.createElement('p');
         note.textContent = entity.note;
-        const button = document.createElement('button');
-        button.className = 'secondary';
-        button.type = 'button';
-        button.textContent = 'Open dossier';
-        button.onclick = () => loadEntity(entity.id).then(() => {
+        const actions = document.createElement('div');
+        actions.className = 'showcase-actions';
+        const dossierButton = document.createElement('button');
+        dossierButton.className = 'secondary';
+        dossierButton.type = 'button';
+        dossierButton.textContent = 'Open dossier';
+        dossierButton.onclick = () => loadEntity(entity.entityId).then(() => {
           document.getElementById('dossier').scrollIntoView({ behavior: 'smooth' });
         });
+        const caseButton = document.createElement('button');
+        caseButton.className = 'secondary';
+        caseButton.type = 'button';
+        caseButton.textContent = 'Open case packet';
+        caseButton.onclick = () => openSourcePackShortcut(entity).catch((error) => {
+          document.getElementById('case-detail').textContent = error.message;
+        });
+        actions.appendChild(dossierButton);
+        actions.appendChild(caseButton);
         card.appendChild(caseKey);
         card.appendChild(title);
         card.appendChild(note);
-        card.appendChild(button);
+        card.appendChild(actions);
         container.appendChild(card);
       });
     }
@@ -2068,6 +2208,7 @@ function consoleHtml(): string {
       const sourceRecords = profile.sourceRecords || [];
       const processes = profile.processes || [];
       const representatives = profile.representatives || [];
+      const shortcut = sourcePackShortcutForEntity(entity.entity_id || entity.id || currentEntityId);
       const chips = [
         entity.entity_type,
         entity.anchor_status,
@@ -2083,6 +2224,17 @@ function consoleHtml(): string {
         .join(' | ');
       const leadQuestion = entity.lead_question || 'Open queue context or source records for the next review question.';
       const limitation = profile.disclaimer || 'This dossier is review context, not a finding.';
+      const shortcutCard = shortcut
+        ? '<div class="summary-card">' +
+            '<strong>Source-pack case shortcut</strong>' +
+            '<span>' + html(shortcut.caseKey + ' links this entity dossier to a source-backed case packet and local source-document index.') + '</span>' +
+            '<span>' + html(shortcut.note) + '</span>' +
+            shortcutButtons(shortcut) +
+          '</div>'
+        : '<div class="summary-card">' +
+            '<strong>No source-pack case shortcut</strong>' +
+            '<span>This entity may still have source records. Use preview/write source pack when a case packet is needed.</span>' +
+          '</div>';
 
       container.innerHTML =
         '<div class="summary-card">' +
@@ -2107,10 +2259,12 @@ function consoleHtml(): string {
             pill('linked processes shown: ' + numberText(processes.length), false) +
           '</div>' +
         '</div>' +
+        shortcutCard +
         '<div class="summary-card">' +
           '<strong>Use limits</strong>' +
           '<span>' + html(limitation) + '</span>' +
         '</div>';
+      attachShortcutActions(container);
     }
 
     function selectedValue(id) {
@@ -2502,7 +2656,7 @@ function consoleHtml(): string {
       payload.data.forEach((item) => {
         const button = document.createElement('button');
         button.className = 'secondary';
-        button.textContent = 'Open case timeline';
+        button.textContent = 'Open case packet';
         button.onclick = () => openCase(item.id);
         renderItem(container, item.title, [
           item.priority + ' / ' + item.status,
@@ -2709,6 +2863,22 @@ function consoleHtml(): string {
       await loadCases();
       await openCase(currentCaseId);
       document.getElementById('detail').textContent = JSON.stringify(payload.data, null, 2);
+    }
+
+    async function openCurrentEntitySourcePackCase() {
+      if (!currentEntityId) {
+        document.getElementById('case-detail').textContent = 'Open an entity before opening its source-pack case.';
+        return;
+      }
+
+      const shortcut = sourcePackShortcutForEntity(currentEntityId);
+      if (!shortcut) {
+        document.getElementById('case-detail').textContent =
+          'No known source-pack shortcut for entity #' + currentEntityId + '. Use Preview entity source pack or Write entity source pack if this entity needs a packet.';
+        return;
+      }
+
+      await openSourcePackShortcut(shortcut);
     }
 
     async function searchCaseSourceRecords() {
@@ -3290,6 +3460,11 @@ function consoleHtml(): string {
     });
     document.getElementById('link-entity-case').addEventListener('click', () => {
       linkCurrentEntityToCase().catch((error) => {
+        document.getElementById('case-detail').textContent = error.message;
+      });
+    });
+    document.getElementById('open-entity-source-pack-case').addEventListener('click', () => {
+      openCurrentEntitySourcePackCase().catch((error) => {
         document.getElementById('case-detail').textContent = error.message;
       });
     });

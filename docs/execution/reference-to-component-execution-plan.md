@@ -998,10 +998,32 @@ Concrete proof artifacts:
 - artifact/source-document match preview in `src/server/internalConsole.ts`
 - live smoke result recorded in `memory/run-log.md`
 
+## 2026-05-13 Methodology/navigation product-surface advancement
+
+- br/acc
+  - advanced because source-pack shortcuts connect source-linked entities, source-pack cases, artifact registries, and source records into one navigable provenance path.
+- Aleph
+  - advanced because analysts can move from a dossier or showcase card directly into the real case packet rather than searching raw case lists.
+- Sayari
+  - advanced because entity dossiers now expose operational next steps and source-pack case context, making the interface feel more like a serious entity-intelligence workspace.
+- QuiénEsQuién / TodosLosContratos
+  - advanced because company-contract accountability cases are visible as product objects, not hidden CLI artifacts.
+- Integrity Watch / Dozorro / RUBLI
+  - advanced because allowed claims, blocked claims, evidence ladder, source verification checklist, and publication-safety guidance are visible inside the product surface.
+- DNCP / OCDS / Cardinal / GTI
+  - advanced because official DNCP/OCDS source-pack limitations are framed in a product-visible methodology area before any public presentation.
+
+Concrete proof artifacts:
+
+- methodology/limits/publication-safety section in `src/server/internalConsole.ts`
+- source-pack shortcut model in `src/server/internalConsole.ts`
+- `Open current source-pack case` control in the case workspace
+- live smoke result recorded in `memory/run-log.md`
+
 ## Next extraction priority
 
 - highest priority
-  - finish the next internal-product MVP slice: public-methodology/limitations pages inside the local interface, smoother entity-to-case/source-pack navigation, and safer artifact/source verification affordances
+  - finish the next internal-product MVP slice only if needed: safer artifact/source verification affordances and a small Command Center smoke harness
 - next after that
   - move to the next lawful Paraguay cross-domain source, preferably company/officer/ownership-adjacent accountability data if access is lawful and practical
   - continue readiness-ranked DNCP release/document source-record checks across the highest-priority companies/candidates and use `py-dncp-document-content` only for source records that need captured official files or explicit source-access limitation records

@@ -290,3 +290,11 @@
 - The artifact preview renders source-document index query, match counts, source-record IDs, evidence-link IDs, snippets, and use limits from `GET /api/analyst-cases/:id/artifact-detail`.
 - Updated internal API/console docs, analyst-workspace docs, roadmap, progress estimate, source status, reference execution tracking, and next steps so future runs treat this as an achieved product-surface milestone.
 - Validation: `npm run check` passed. Live local console smoke against the VPS-backed database returned page `200`, confirmed `graph-relation-filter`, `case-review-packet`, and `artifact-detail-preview` are present, confirmed entity `3940` network returned `11` nodes and `10` edges at limit `24`, confirmed case `20` returned `10` evidence links and `22` timeline events, confirmed case `20` artifact registry returned `3` artifacts, confirmed the latest source bundle artifact detail returned `8` indexed documents and `5` `Consultora Guarani` query matches, and confirmed the served inline script parsed successfully.
+
+## 2026-05-13
+
+- Continued without waiting for per-step approval and chose the next Command Center internal-MVP slice: visible methodology/limits/publication-safety guidance plus source-pack case navigation.
+- Added allowed-claim and blocked-claim cards, an evidence ladder, external matching caution, source limitation guidance, public-gate guidance, and a source verification checklist to the Command Center methodology section.
+- Added source-pack shortcuts for the current live entity source-pack cases, including direct case-packet opening from showcase cards, entity dossier shortcut cards, and the case workspace.
+- Verified the uncertain Mendez shortcut against the live API: `MENDEZ GONZALEZ FLORIANA *` is entity `5319`, case `19`.
+- Validation: `npm run check`, `npm run build`, and `git diff --check` passed. Live local console smoke against the VPS-backed database returned page `200`, confirmed the methodology/safety surface and source-pack controls are present, confirmed the served inline script parsed successfully, confirmed case `19` returned `8` evidence links and `18` timeline events, and confirmed case `20` still returned `3` generated artifacts.

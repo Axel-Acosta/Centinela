@@ -14,6 +14,8 @@ The follow-up Command Center slice adds visual graph exploration, filterable que
 
 The case-packet Command Center slice adds graph relation/type filters, a larger network limit control, readable case review packets, and source-document match previews. These features make evidence easier to inspect, but they still sit on top of the same review-first case, source-record, artifact, and public-safety model.
 
+The methodology/navigation Command Center slice adds allowed/blocked claim rules, an evidence ladder, source verification checklist, publication-safety guidance, and source-pack shortcuts from showcase/dossier/case workspace into real case packets. These features reduce analyst friction and make the cautious operating model visible.
+
 ## Live database objects
 
 - `centinela.analyst_cases`
@@ -122,6 +124,7 @@ The artifact and bundle POST endpoints write local runtime files rather than dat
 - Artifact-detail previews are bounded local navigation aids. They should not be treated as publication-ready document excerpts.
 - Graph visualization shows review pivots, not ownership, control, misconduct, or liability.
 - Graph filters and case-packet cards are display aids. They do not change evidence meaning, confidence, public-review state, or source limitations.
+- Methodology cards and shortcuts are internal product guidance. They are not a substitute for a full public methodology page, privacy review, source licensing review, or production authentication.
 - Write-token authentication is a local hardening step, not a full production auth system.
 
 ## Current smoke-test result
@@ -149,7 +152,8 @@ On 2026-04-26, the first live analyst-workspace smoke test confirmed:
 - the case artifact API/console smoke created one temporary case and source-record evidence link to source record `10117`; public bundle creation was blocked before approval, approved public POST artifact routes wrote evidence artifacts, source manifests, and a source bundle, the bundle copied `2` source assets, both immediate and refreshed source-index queries returned `2` matches, `/console` exposed the artifact controls, and cleanup removed the temporary case/artifacts
 - the artifact registry smoke created one temporary case and source-record evidence link to source record `10117`; `GET /api/analyst-cases/:id/artifacts` returned `3` artifact summaries, including evidence artifact, source manifest, and source bundle, preserved the latest bundle path, and showed `2` indexed documents plus `2` query matches; cleanup removed the temporary case/artifacts
 - the case-packet/source-index preview smoke confirmed the Command Center page exposes graph controls, a case review packet, and an artifact preview; case `20` returned `10` evidence links and `22` timeline events, the latest source bundle returned `8` indexed documents and `5` query matches for `Consultora Guarani`, and the served inline script parsed successfully
+- the methodology/navigation smoke confirmed the Command Center page exposes the methodology/safety surface, source verification checklist, source-pack case controls, and valid shortcut target for Mendez entity `5319`; case `19` returned `8` evidence links and `18` timeline events
 
 ## Next hardening step
 
-Add a clearer methodology/limitations surface inside the local interface, then tighten the dossier-to-case/source-pack navigation. Only after the Command Center can explain cases and source verification clearly should the project return to broad cross-domain source expansion.
+Add safer local file/source verification affordances where they reduce analyst friction, then return to broad cross-domain Paraguay source expansion unless the interface blocks actual analysis.
