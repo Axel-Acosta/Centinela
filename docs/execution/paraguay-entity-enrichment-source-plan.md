@@ -16,12 +16,13 @@ It records which company, sanctions, ownership, offshore, and accountability sou
   - DNIT RUC equivalence bulk identity validation through official `ruc0.zip` through `ruc9.zip` resources
   - IDB Open Data sanctioned firms and individuals dataset as a row-level source check for IADB/OpenSanctions candidates
   - DNCP official OCDS release packages and document metadata as entity-linked source records through `py-dncp-release-source-check`
+  - Abogacia del Tesoro public company-level beneficial-ownership index through `py-abogacia-beneficial-ownership-public-index`
 - Why
   - publicly reachable in bulk without waiting for credentials
   - DNCP's supplier and sanctions surfaces are the strongest available local Paraguay company/disqualification anchor from the current repo state
   - DNIT's RUC equivalence bulk files provide the strongest lawful taxpayer identity-validation layer found so far beyond supplier registration
   - together they advance OpenSanctions, DNCP, br/acc, Aleph, Sayari, QQW, OpenCorporates, OpenOwnership, and ICIJ roles through a live local-plus-external spine
-  - they provide external-risk screening, official supplier/disqualification context, official taxpayer identity validation, first primary-source external candidate evidence, and official source-document navigation now
+  - they provide external-risk screening, official supplier/disqualification context, official taxpayer identity validation, first primary-source external candidate evidence, official source-document navigation, and the first ownership-ready company-accountability index now
 - Important access reality observed on 2026-04-18
   - the hosted OpenSanctions matching API currently returns `401 Unauthorized` without an API key
   - the public bulk index and exports remain reachable, so Centinela currently uses the bulk route instead of the hosted API
@@ -172,6 +173,42 @@ It records which company, sanctions, ownership, offshore, and accountability sou
 - Current observed blocker for profile/constancia flows
   - the public `perfilPublicoContribIService.do` and `constanciaRucIService.do` flows exist, but the current public-facing implementation appears human-oriented and reCAPTCHA-protected, so Centinela should not automate against it blindly from the current repo state
 
+### 4a. Abogacia del Tesoro public company beneficial-ownership index
+
+- Contains
+  - company-level public index rows from the Personas Jurídicas y Beneficiarios Finales open-data portal
+  - current connector uses only `ruc_nro` and `denominacion`
+  - richer director, shareholder, and beneficial-owner datasets are discovered but not ingested yet
+- Access
+  - official public open-data portal at `https://datos.abogacia.gov.py/`
+  - company CSV at `https://datos.abogacia.gov.py/assets/docs/beneficiario-final-publico.csv`
+- Key fields
+  - company RUC base
+  - company denomination
+  - source line number
+  - source CSV/dictionary URLs and local source asset hashes
+- Maps to
+  - `source_records`
+  - `entity_local_profiles`
+  - `entity_source_mentions`
+  - `entity_identifiers`
+  - future company-to-person/company-to-company relationship staging
+- Legal and ethical cautions
+  - current ingestion is company-level only
+  - person-level beneficial-owner, director, shareholder, address, birth-date, and document-number fields are intentionally not ingested yet
+  - public-index presence is not an ownership conclusion or wrongdoing signal
+- Immediate value
+  - very high
+- Use timing
+  - now for company-level public index
+  - staged for person-level relationships after privacy/minimization/review policy
+- Current implementation on 2026-05-14
+  - source key `py-abogacia-beneficial-ownership-public-index`
+  - live source run `49`
+  - 31,649 public company rows parsed
+  - 5,040 procurement-linked RUC targets considered
+  - 899 procurement-linked companies matched by RUC base
+
 ### 5. OpenCorporates
 
 - Contains
@@ -262,8 +299,10 @@ It records which company, sanctions, ownership, offshore, and accountability sou
   - bounded fallback matching for residual supplier identities and a dedicated `entity_anchor_gap_review` backlog
   - company-level entity-intelligence review queue for local anchor gaps, local administrative history, representative density, and external-risk state
   - DNCP release source-check records for official process documents around high-priority entities
+  - Abogacia company-level public beneficial-ownership index matches for procurement-linked companies
 - Queue next
-  - widen DNCP release/document checks over high-priority company dossiers and candidate-review entities
+  - design a person-level relationship staging lane for Abogacia directors, shareholders, and beneficial owners
+  - widen DNCP release/document checks over high-priority company dossiers and candidate-review entities where casework needs them
   - recover the missing RUC check digit for the last unresolved anchor gap only if a new lawful source exposes it
   - add selected official document-content extraction/OCR once the source-record metadata layer identifies which documents matter
 - Stage after that

@@ -35,4 +35,5 @@ This registry captures the first wave of external systems and official sources t
 | DNCP red flags | https://www.contrataciones.gov.py/dncp/red-flags/que-son-los-red-flags | Active |
 | DNCP R3D experiment | https://www.contrataciones.gov.py/dncp/incubadora-dncp/r3d/ | Watch |
 | DNIT RUC equivalence | https://www.dnit.gov.py/web/portal-institucional/listado-de-ruc-con-sus-equivalencias | Active identity validation |
+| Abogacia Personas Jurídicas y Beneficiarios Finales | https://datos.abogacia.gov.py/ | Active company/accountability index |
 | IDB sanctioned firms and individuals Open Data | https://data.iadb.org/es/dataset/dataset-of-sanctioned-firms-and-individuals | Active external source-document check |

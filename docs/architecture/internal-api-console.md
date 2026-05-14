@@ -37,6 +37,12 @@ The methodology/navigation product slice adds:
 - an evidence ladder and source verification checklist visible in the interface
 - source-pack shortcuts that open real case packets from the showcase, dossier, and case workspace
 
+The verification/smoke product slice adds:
+
+- artifact-detail verification checks for path containment, bundle index, source manifest, source-document index, copied assets, hashes, source URL coverage, and publication gate state
+- a visible artifact/source verification panel in the Command Center
+- `npm run smoke:command-center`, a repeatable live smoke harness for the main Command Center navigation paths
+
 The surface is designed to expose:
 
 - entity search
@@ -65,6 +71,7 @@ The surface is designed to expose:
 - source-document match previews that trace local snippets back to source records and evidence links
 - methodology and publication-safety guidance in the visible product surface
 - source-pack case shortcuts from entity dossiers and showcase cards
+- source/artifact verification checks before analysts rely on local files
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -184,10 +191,9 @@ The local console should now be treated as Centinela's first internal product su
 
 Near-term interface work should prioritize:
 
-- safer local file/source verification affordances that do not make raw artifacts feel publication-ready
-- a small automated UI/API smoke harness for the Command Center's main navigation paths
+- only targeted interface fixes that unblock real analysis
 - later visual expansion for larger graph neighborhoods beyond the current one-hop API
-- after that, return to the next lawful Paraguay cross-domain company/accountability source
+- return to Paraguay source expansion and person-relationship staging
 
 ## Current smoke-test result
 
@@ -319,6 +325,14 @@ On the methodology/navigation smoke test, the local API path also confirmed:
 - `GET /api/analyst-cases/19?limit=20` returned `8` evidence links and `18` timeline events
 - `GET /api/analyst-cases/20/artifacts?limit=5` still returned `3` artifacts
 
+On the verification/smoke-harness test, the local API path also confirmed:
+
+- `npm run smoke:command-center` starts the local console on a non-default port and closes it after checks
+- the Command Center HTML includes the artifact verification panel hook
+- overview returned `8,716` entities and `10,757` source records after Abogacia source expansion
+- entity search, dossier, network, case packet, artifact registry, artifact-detail, and source-pack readiness endpoints all returned expected live data
+- case `20` source-bundle artifact detail returned `8` verification checks, including path containment, hash verification, and publication gate checks
+
 ## Limits
 
 - Write-token protection is local hardening, not production authentication or role-based permissions.
@@ -326,6 +340,7 @@ On the methodology/navigation smoke test, the local API path also confirmed:
 - The command-center shell is presentable for local/internal review, but it is still not a production public UI.
 - The case review packet is a readable internal surface over existing case data; it does not replace raw JSON, source verification, or analyst judgment.
 - The methodology and limits section is product guidance for internal review; it is not a complete public methodology page yet.
+- Artifact verification checks improve local review safety, but they do not convert generated bundles into public-ready packages.
 - Field suggestions are heuristic helpers, not automatic evidence judgments.
 - Public-safety review gates reduce accidental disclosure risk, but they are not a substitute for full public-product review, role-based authorization, privacy review, or methodology publication.
 - Case evidence artifacts are generated runtime outputs and should stay out of Git.

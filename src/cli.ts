@@ -1,5 +1,6 @@
 import path from "node:path";
 import fs from "node:fs";
+import { runAbogaciaBeneficialOwnershipPublicIndex } from "./enrichment/abogaciaBeneficialOwnershipPublicIndex";
 import { runDnitRucEquivalence } from "./enrichment/dnitRucEquivalence";
 import { runDncpDocumentContentExtraction } from "./enrichment/dncpDocumentContent";
 import { runDncpReleaseSourceCheck } from "./enrichment/dncpReleaseSourceCheck";
@@ -453,6 +454,25 @@ async function runEnrichmentOpenSanctionsHostedMatch(args: string[]): Promise<vo
   console.log("OpenSanctions hosted match comparison completed.");
   console.log(`Summary: ${summaryPath}`);
   console.log(`Report: ${reportPath}`);
+}
+
+async function runEnrichmentAbogaciaBeneficialOwnershipPublicIndex(args: string[]): Promise<void> {
+  const limit = readNumberArg(args, "--limit", 0);
+  const dryRun = readBooleanArg(args, "--dry-run", false);
+  const result = await runAbogaciaBeneficialOwnershipPublicIndex({
+    dryRun,
+    ...(limit > 0 ? { limit } : {}),
+  });
+
+  console.log("Abogacia beneficial-ownership public company index completed.");
+  console.log(`Dry run: ${result.dryRun}`);
+  console.log(`Source run ID: ${result.sourceRunId ?? "n/a"}`);
+  console.log(`Public rows parsed: ${result.downloadedRowCount}`);
+  console.log(`Local procurement-linked RUC targets: ${result.localTargetCount}`);
+  console.log(`Matched procurement-linked companies: ${result.matchedCompanyCount}`);
+  console.log(`Raw parsed evidence: ${result.rawJsonPath}`);
+  console.log(`Report: ${result.reportPath}`);
+  console.log("Reminder: this first connector ingests company-level public index presence only, not personal ownership records or accusations.");
 }
 
 async function runEnrichmentDncpSupplierAnchor(args: string[]): Promise<void> {
@@ -978,6 +998,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (domain === "enrichment" && command === "abogacia-beneficial-ownership-public-index") {
+    await runEnrichmentAbogaciaBeneficialOwnershipPublicIndex(args);
+    return;
+  }
+
   if (domain === "enrichment" && command === "dncp-supplier-anchor") {
     await runEnrichmentDncpSupplierAnchor(args);
     return;
@@ -1014,6 +1039,7 @@ async function main(): Promise<void> {
 - tsx src/cli.ts paraguay bulk-year --year 2026
 - tsx src/cli.ts enrichment opensanctions
 - tsx src/cli.ts enrichment opensanctions-hosted-match --dry-run true --limit 25
+- tsx src/cli.ts enrichment abogacia-beneficial-ownership-public-index --dry-run true
 - tsx src/cli.ts enrichment dncp-supplier-anchor --limit 200 --only-unanchored true --offset 0 --concurrency 4
 - tsx src/cli.ts enrichment dnit-ruc-equivalence --limit 10000 --only-anchor-gaps false
 - tsx src/cli.ts enrichment idb-sanctions-candidate --candidate-id 59 --update-review true

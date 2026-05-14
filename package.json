@@ -11,6 +11,7 @@
     "paraguay:bulk-year": "tsx src/cli.ts paraguay bulk-year",
     "enrichment:opensanctions": "tsx src/cli.ts enrichment opensanctions",
     "enrichment:opensanctions-hosted-match": "tsx src/cli.ts enrichment opensanctions-hosted-match",
+    "enrichment:abogacia-beneficial-ownership-public-index": "tsx src/cli.ts enrichment abogacia-beneficial-ownership-public-index",
     "enrichment:dncp-supplier-anchor": "tsx src/cli.ts enrichment dncp-supplier-anchor",
     "enrichment:dnit-ruc-equivalence": "tsx src/cli.ts enrichment dnit-ruc-equivalence",
     "enrichment:idb-sanctions-candidate": "tsx src/cli.ts enrichment idb-sanctions-candidate",
@@ -33,7 +34,8 @@
     "database:entity-source-pack-readiness": "tsx src/cli.ts database entity-source-pack-readiness",
     "database:entity-anchor-gaps": "tsx src/cli.ts database entity-anchor-gaps",
     "database:rulebook": "tsx src/cli.ts database rulebook",
-    "serve:internal-console": "tsx src/cli.ts serve internal-console"
+    "serve:internal-console": "tsx src/cli.ts serve internal-console",
+    "smoke:command-center": "tsx src/quality/commandCenterSmoke.ts"
   },
   "keywords": [],
   "author": "",

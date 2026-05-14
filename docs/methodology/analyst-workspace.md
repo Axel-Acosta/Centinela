@@ -122,6 +122,7 @@ The artifact and bundle POST endpoints write local runtime files rather than dat
 - Console/API artifact controls make bundle generation easier, but they do not change the review meaning: a generated artifact is a review packet, not a finding.
 - The artifact registry is a convenience reader over local runtime files. If a file is deleted, moved, or generated under a different `CENTINELA_OUTPUT_DIR`, it will not appear.
 - Artifact-detail previews are bounded local navigation aids. They should not be treated as publication-ready document excerpts.
+- Artifact/source verification checks improve local review safety, but they do not certify public reuse. Analysts still need source, privacy, methodology, and UX review.
 - Graph visualization shows review pivots, not ownership, control, misconduct, or liability.
 - Graph filters and case-packet cards are display aids. They do not change evidence meaning, confidence, public-review state, or source limitations.
 - Methodology cards and shortcuts are internal product guidance. They are not a substitute for a full public methodology page, privacy review, source licensing review, or production authentication.
@@ -153,7 +154,8 @@ On 2026-04-26, the first live analyst-workspace smoke test confirmed:
 - the artifact registry smoke created one temporary case and source-record evidence link to source record `10117`; `GET /api/analyst-cases/:id/artifacts` returned `3` artifact summaries, including evidence artifact, source manifest, and source bundle, preserved the latest bundle path, and showed `2` indexed documents plus `2` query matches; cleanup removed the temporary case/artifacts
 - the case-packet/source-index preview smoke confirmed the Command Center page exposes graph controls, a case review packet, and an artifact preview; case `20` returned `10` evidence links and `22` timeline events, the latest source bundle returned `8` indexed documents and `5` query matches for `Consultora Guarani`, and the served inline script parsed successfully
 - the methodology/navigation smoke confirmed the Command Center page exposes the methodology/safety surface, source verification checklist, source-pack case controls, and valid shortcut target for Mendez entity `5319`; case `19` returned `8` evidence links and `18` timeline events
+- the verification/smoke-harness run confirmed `npm run smoke:command-center` starts and closes a local console, validates HTML fragments, overview, entity search, dossier, network, case packet, artifact registry, artifact-detail verification checks, and source-pack readiness against the live DB; case `20` returned `8` artifact/source verification checks
 
 ## Next hardening step
 
-Add safer local file/source verification affordances where they reduce analyst friction, then return to broad cross-domain Paraguay source expansion unless the interface blocks actual analysis.
+Add only targeted interface fixes where they unblock analysis. The next major work should prioritize Paraguay source expansion and privacy-safe person-relationship staging.

@@ -6,9 +6,9 @@ This is a working estimate, not a promise of exact dates. Centinela is being bui
 
 - Phase A - Skill, memory, reference universe: about 90-95% of the foundation is done.
 - Phase B - System foundation and internal storage: about 80-88% of the internal foundation is done.
-- Phase C - Paraguay internal implementation: about 50-60% of the first serious internal Paraguay implementation is done.
-- Phase D - Public/product publication layer: about 30-36% is done.
-- Overall long-term product: about 48-58% done, because the internal evidence spine is strong and the local product surface now has graph, artifact, queue, readiness, case-packet, source-index, methodology, and source-pack navigation surfaces, but the public product and more cross-domain Paraguay sources are still early.
+- Phase C - Paraguay internal implementation: about 53-63% of the first serious internal Paraguay implementation is done.
+- Phase D - Public/product publication layer: about 32-38% is done.
+- Overall long-term product: about 50-60% done, because the internal evidence spine is strong, the local product surface now has graph, artifact, queue, readiness, case-packet, source-index, methodology, source-pack navigation, artifact verification, and smoke-test surfaces, and the first ownership-ready Paraguay company-accountability source is live. The public product and person-level ownership relationship layer are still early.
 
 ## What is already solid
 
@@ -24,18 +24,19 @@ This is a working estimate, not a promise of exact dates. Centinela is being bui
 - Command Center graph/artifact/readiness slice with SVG entity network visualization, filterable review queues, read-only source-pack readiness panel, artifact browser, and bounded artifact-detail previews.
 - Command Center case-packet/source-index slice with graph relation/type filters, larger network limit controls, readable source-backed case review packets, and source-document match previews tied to source-record and evidence-link IDs.
 - Command Center methodology/navigation slice with allowed/blocked claim language, evidence ladder, source verification checklist, publication-safety guidance, and source-pack shortcuts from showcase/dossier/case workspace into real case packets.
+- Command Center artifact/source verification slice with path-containment, source-manifest/index, asset-copy, hash, source-URL, and publication-gate checks plus `npm run smoke:command-center`.
+- Abogacia del Tesoro public company beneficial-ownership index connector: 31,649 public company rows parsed and 899 procurement-linked company matches stored as company-level ownership-ready context, without ingesting personal beneficial-owner/director/shareholder data.
 - Runtime storage kept outside OneDrive/Git by default.
 
 ## What is still missing for the internal Paraguay MVP
 
 - Resolve the final RUC/check-digit anchor gap if a new lawful source exposes it; current DNIT, DNCP OCDS, DNCP supplier search, and text-extractable official-document checks did not recover it.
 - Continue improving external-candidate scoring with source-document evidence and identifier comparisons where available; name-order, generic-term handling, and distinctive-token evidence are now live.
-- Add at least one more lawful Paraguay cross-domain source beyond procurement/taxpayer identity, preferably ownership/officer/accountability data if accessible.
+- Design a privacy-safe person relationship staging lane before ingesting Abogacia director, shareholder, or beneficial-owner person records.
 - Continue readiness-ranked official DNCP release/document source checks only where they add concrete casework value while broader registry access remains blocked or unclear.
 - Add selected document-content extraction, alternate lawful document access checks, or OCR only for source records that analysts actually need, instead of bulk-downloading every public PDF.
 - Expand entity relationship types enough to support ownership-ready and foreign/offshore-ready graph paths.
-- Add safer local file/opening affordances where practical without making raw artifacts feel publication-ready.
-- Add more automated tests around casework and enrichment flows.
+- Add more automated tests around casework and enrichment flows beyond the current Command Center smoke harness.
 
 ## What is still missing before public release
 
@@ -49,7 +50,7 @@ This is a working estimate, not a promise of exact dates. Centinela is being bui
 ## Practical timeline estimate
 
 - Current analyst/casework source-pack phase: complete enough for internal use; future work should only add selective OCR, alternate document-access handling, or bounded artifact-detail reading where real analysis demands it.
-- First presentable local/internal product surface: first meaningful slice plus graph/artifact/readiness, case-packet/source-index, and methodology/navigation slices achieved; likely 0-1 more focused interface runs before it feels like a strong internal MVP.
+- First presentable local/internal product surface: first meaningful slice plus graph/artifact/readiness, case-packet/source-index, methodology/navigation, and artifact-verification/smoke slices achieved; complete enough for internal MVP use unless new analysis exposes a specific interface blocker.
 - First serious Paraguay internal MVP: likely 3-7 more focused implementation runs.
 - First public pilot: likely 10-16 more focused runs after the internal MVP, depending on source access and public-safety requirements.
 

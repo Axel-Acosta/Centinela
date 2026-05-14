@@ -36,9 +36,11 @@
 
 ### Paraguay non-procurement integrity sources
 
-- Status: mapped, first external connector and first local company/taxpayer identity anchors live
+- Status: mapped, first external connector, local company/taxpayer identity anchors, and first ownership-ready company-accountability index live
 - Candidates: payroll and officials rosters, sanctions/disqualifications, company records, political finance, asset declarations, court and oversight records, external enrichment layers
-- Next step: add ownership-ready or company-accountability sources where lawful access is clear. Until that access is clear, use official DNCP release/document source records as the strongest immediate document-linked accountability layer.
+- Current implementation: `py-abogacia-beneficial-ownership-public-index` uses the Abogacia del Tesoro public company-level beneficial-ownership index and matches procurement-linked companies by RUC base. Latest live result: 31,649 public company rows parsed, 5,040 local procurement-linked RUC targets considered, and 899 procurement-linked companies matched.
+- Legal/ethical boundary: the current connector intentionally ingests only company-level public-index presence. It does not ingest personal beneficial-owner, shareholder, director, address, birth-date, or document-number fields yet.
+- Next step: stage person-level director/shareholder/beneficial-owner ingestion only after privacy, minimization, relationship-provenance, and public-display rules are explicit. If that remains too sensitive for the next run, continue source-pack readiness rollout or add another lower-risk cross-domain official source.
 
 ### DNIT / SET taxpayer-profile public services and RUC equivalence bulk
 
@@ -50,6 +52,17 @@
 - Current final-gap check: `MENDEZ GONZALEZ FLORIANA *` still only has `PY-RUC-4070792`; DNIT bulk does not contain base `4070792`, the official DNCP OCDS release repeats the base-only identifier, DNCP supplier CSV checks for all ten possible check digits did not resolve a provider row, and the linked official PDFs were not text-extractable with the current local parser
 - Current observed blocker: the public `perfilPublicoContribIService.do` and `constanciaRucIService.do` flows still appear human-oriented/reCAPTCHA-protected, so Centinela should not automate against them blindly
 - Next step: recover the missing RUC check digit for `MENDEZ GONZALEZ FLORIANA *`, then rerun DNIT validation for the one remaining anchor gap
+
+### Abogacia del Tesoro / Personas Jurídicas y Beneficiarios Finales
+
+- Status: active first ownership-ready company-accountability source
+- Access mode: official public open-data portal; company-level CSV currently used
+- Why it matters: strongest current lawful bridge from procurement-linked companies toward ownership/accountability structure without immediately ingesting sensitive person-level data
+- Current implementation: `npm run enrichment:abogacia-beneficial-ownership-public-index`
+- Current observed result: latest live source run `49` parsed 31,649 public company rows and matched 899 procurement-linked companies by RUC base. It writes `source_records`, `entity_local_profiles`, `entity_source_mentions`, `PY-ABOGACIA-RUC-BASE` identifiers, and source assets.
+- Current analyst surface: entity briefs and dossiers now show `py-abogacia-beneficial-ownership-public-index` as company-level source context where matched. Example: `CONSULTORA GUARANI SA INGENIEROS CIVILES` now shows `PY-ABOGACIA-RUC-BASE:80016063`.
+- Legal/ethical cautions: public-index presence is not an ownership conclusion or wrongdoing signal. Person-level beneficial-owner, director, and shareholder CSVs are discovered but intentionally staged pending privacy/minimization/review rules.
+- Next expansion: design a person-relationship staging lane before ingesting directors, shareholders, or beneficial owners.
 
 ### OpenSanctions `default`
 

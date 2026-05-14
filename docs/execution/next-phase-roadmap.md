@@ -64,7 +64,9 @@
   - repo-side second-review accepted-match workflow achieved through `sql/postgres/015_external_candidate_second_review.sql`, `src/storage/secondReview.ts`, `npm run database:second-review-external-candidate`, and the second-review methodology note
   - live second-review accepted-match case achieved for candidate `59`, with accepted enrichment match ID `11` and zero external risk signals created by the second-review workflow
   - current blocker: the trial key hit a monthly `429` rate limit after the first live comparison pass
-  - still needs recovery of the final missing RUC check digit and the next ownership-ready/company-accountability source
+  - first ownership-ready/company-accountability source achieved through `py-abogacia-beneficial-ownership-public-index`
+  - latest Abogacia public-index live run: source run `49`, 31,649 public company rows parsed, 5,040 procurement-linked RUC targets considered, and 899 procurement-linked companies matched by RUC base
+  - still needs recovery of the final missing RUC check digit and a privacy-safe person relationship staging lane before directors/shareholders/beneficial owners are ingested
 - Core outputs
   - first live external-risk connector through OpenSanctions bulk screening
   - first Paraguay company or registry connector
@@ -77,6 +79,7 @@
   - official DNCP release/document metadata source-record workflow for selected entity dossiers
   - selected official DNCP document capture and bounded text-extraction attempt workflow
   - ownership-ready relationship model
+  - first Paraguay ownership-ready public company index connector
 - Main references
   - OpenSanctions
   - Open Ownership
@@ -107,6 +110,7 @@
   - graph/artifact/readiness slice operational: SVG entity graph, filterable review queues, read-only source-pack readiness API/panel, artifact browser, and bounded artifact-detail reader
   - case-packet/source-index slice operational: graph relation/type filters and expansion limit, readable source-backed case review packets, and artifact/source-document match previews over existing case bundles
   - methodology/navigation slice operational: visible allowed/blocked claim rules, evidence ladder, source verification checklist, publication-safety guidance, and source-pack shortcuts into real case packets
+  - verification/smoke slice operational: artifact-detail responses include path containment, source-manifest/index, asset-copy, hash, source-URL, and publication-gate checks; `npm run smoke:command-center` validates the main local navigation paths
 - Core outputs
   - API for process, entity, edge, flag, and review-queue queries
   - console views for process leads, entity dossiers, and follow-up lanes
@@ -137,6 +141,7 @@
   - source-document match previews with query, match counts, snippets, source-record IDs, evidence-link IDs, and use limits
   - visible methodology, limitations, and publication-safety guidance inside the local product surface
   - source-pack case shortcuts that connect the showcase, entity dossier, and case workspace
+  - artifact/source verification panel and repeatable Command Center smoke harness
   - richer saved investigation paths later
 - Main references
   - Aleph
@@ -165,10 +170,11 @@
 
 ## Immediate next best step
 
-- Finish the internal-product MVP slice before returning to broad data expansion: add safer local file/source verification affordances and a small Command Center smoke harness where they reduce analyst friction.
-- After that, move to the next lawful Paraguay cross-domain company/accountability source, preferably officer/ownership/registry-adjacent data if practical. If access remains blocked, continue the source-pack readiness rollout starting with the next ranked companies and only investigate alternate DNCP document access or OCR where a specific source pack needs it.
+- Internal-product MVP hardening is now complete enough for the next source-expansion run.
+- Next strongest move: design and implement a privacy-safe Abogacia person-relationship staging lane for directors/shareholders/beneficial owners, starting with source-plan, minimization policy, schema/relation mapping, and a tiny review-only pilot if legally and ethically clean.
+- If person-level ingestion is judged too sensitive for the next run, continue the source-pack readiness rollout starting with the next ranked companies and only investigate alternate DNCP document access or OCR where a specific source pack needs it.
 - Reason
-  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, official DNCP release/document source records, selected official document captures and document-access limitations, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, a live case timeline view, source-record evidence links, in-case source-record search, source field helpers, gated case evidence export, source-indexed Markdown/JSON case artifacts, source attachment manifests, source bundles that copy resolvable source-run assets, source-document indexes that search bundled files with evidence/source traceability, console/API controls to generate those artifacts, a local artifact registry to rediscover them, a one-command entity source-pack bridge, a readiness report for source-pack rollout, a presentable Command Center shell, graph filtering, readable case packets, source-document match previews, methodology/safety guidance, and source-pack shortcuts. The next high-leverage work can soon shift back into Paraguay source expansion after one more small verification/navigation hardening slice if needed.
+  - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, an Abogacia ownership-ready public company index, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, official DNCP release/document source records, selected official document captures and document-access limitations, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, a live case timeline view, source-record evidence links, in-case source-record search, source field helpers, gated case evidence export, source-indexed Markdown/JSON case artifacts, source attachment manifests, source bundles that copy resolvable source-run assets, source-document indexes that search bundled files with evidence/source traceability, console/API controls to generate those artifacts, a local artifact registry to rediscover them, a one-command entity source-pack bridge, a readiness report for source-pack rollout, a presentable Command Center shell, graph filtering, readable case packets, source-document match previews, methodology/safety guidance, source-pack shortcuts, artifact/source verification checks, and a repeatable Command Center smoke harness. The next high-leverage work is source expansion, not more interface polish unless analysis gets blocked.
 - Expected carry-over
   - local API endpoints and console views that expose candidate records with durable human-review status, notes, source-backed promotion/rejection history, second-review state, source-record links, document capture/extraction status, explanation bundles, evidence-export posture, and recent generated artifact paths
   - tighter use of hosted same-candidate confirmation versus different-result ambiguity inside analyst workflows

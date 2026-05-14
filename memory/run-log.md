@@ -298,3 +298,16 @@
 - Added source-pack shortcuts for the current live entity source-pack cases, including direct case-packet opening from showcase cards, entity dossier shortcut cards, and the case workspace.
 - Verified the uncertain Mendez shortcut against the live API: `MENDEZ GONZALEZ FLORIANA *` is entity `5319`, case `19`.
 - Validation: `npm run check`, `npm run build`, and `git diff --check` passed. Live local console smoke against the VPS-backed database returned page `200`, confirmed the methodology/safety surface and source-pack controls are present, confirmed the served inline script parsed successfully, confirmed case `19` returned `8` evidence links and `18` timeline events, and confirmed case `20` still returned `3` generated artifacts.
+
+## 2026-05-14
+
+- Continued autonomously from the live Command Center/product-surface state and closed the remaining internal-MVP hardening slice.
+- Added artifact/source verification checks to `src/storage/caseArtifacts.ts`, covering path containment, bundle index, source manifest, source-document index, copied asset coverage, SHA-256 verification, source URL coverage, and publication-gate state.
+- Added an artifact/source verification panel to the Command Center artifact preview and added `src/quality/commandCenterSmoke.ts` plus `npm run smoke:command-center`.
+- Smoke-tested the Command Center against the live VPS-backed DB: overview returned `8,716` entities and `10,757` source records after source expansion; entity search, dossier, network, case `20`, artifact registry, artifact detail, and source-pack readiness all passed; case `20` bundle detail returned `8` verification checks.
+- Found and validated a stronger next Paraguay cross-domain source: the Abogacia del Tesoro public open-data portal for Personas Jurídicas y Beneficiarios Finales.
+- Added `src/enrichment/abogaciaBeneficialOwnershipPublicIndex.ts` and `npm run enrichment:abogacia-beneficial-ownership-public-index`, a company-only connector that intentionally ingests only `ruc_nro` and `denominacion` from the public company index.
+- Ran the Abogacia connector live after a dry run. Latest clean UTF-8 run: source run `49`, `31,649` public company rows parsed, `5,040` local procurement-linked RUC targets considered, and `899` procurement-linked companies matched by RUC base.
+- Regenerated the `CONSULTORA GUARANI SA INGENIEROS CIVILES` entity brief; it now shows `PY-ABOGACIA-RUC-BASE:80016063` and the Abogacia company-level public-index profile.
+- Added `docs/methodology/abogacia-beneficial-ownership-public-index.md` and updated source status, roadmap, progress estimates, analyst workflow docs, reference execution tracking, and next steps.
+- Privacy boundary: person-level Abogacia director/shareholder/beneficial-owner CSVs are discovered but not ingested. Next run should design a privacy-safe person relationship staging lane before touching those fields.

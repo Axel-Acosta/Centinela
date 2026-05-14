@@ -1251,7 +1251,8 @@ function consoleHtml(): string {
     .target-card,
     .evidence-row,
     .timeline-card,
-    .source-match-row {
+    .source-match-row,
+    .verification-check {
       border: 1px solid rgba(141, 114, 69, 0.2);
       border-radius: 16px;
       background: rgba(255, 250, 240, 0.62);
@@ -1263,17 +1264,40 @@ function consoleHtml(): string {
     .target-card strong,
     .evidence-row strong,
     .timeline-card strong,
-    .source-match-row strong {
+    .source-match-row strong,
+    .verification-check strong {
       color: var(--ink);
     }
 
     .target-card span,
     .evidence-row span,
     .timeline-card span,
-    .source-match-row span {
+    .source-match-row span,
+    .verification-check span {
       color: var(--muted);
       font-size: 0.88rem;
       line-height: 1.38;
+    }
+
+    .verification-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+    }
+
+    .verification-check[data-status="pass"] {
+      border-color: rgba(61, 117, 85, 0.34);
+      background: rgba(236, 248, 240, 0.72);
+    }
+
+    .verification-check[data-status="review"] {
+      border-color: rgba(184, 132, 44, 0.34);
+      background: rgba(255, 247, 225, 0.74);
+    }
+
+    .verification-check[data-status="blocked"] {
+      border-color: rgba(160, 63, 57, 0.36);
+      background: rgba(255, 238, 235, 0.72);
     }
 
     .packet-actions {
@@ -1283,7 +1307,8 @@ function consoleHtml(): string {
     }
 
     .packet-actions button,
-    .source-match-row button {
+    .source-match-row button,
+    .verification-check button {
       justify-self: start;
       padding: 7px 10px;
       font-size: 0.84rem;
@@ -3053,6 +3078,44 @@ function consoleHtml(): string {
       return '<button type="button" class="secondary" data-artifact-path="' + html(artifactPath) + '">' + html(label) + '</button>';
     }
 
+    function renderVerificationPanel(verification) {
+      const data = object(verification);
+      const summary = object(data.summary);
+      const checks = Array.isArray(data.checks) ? data.checks : [];
+      const nextSteps = Array.isArray(data.nextSteps) ? data.nextSteps : [];
+      if (!checks.length) {
+        return '';
+      }
+
+      const status = text(summary.status || 'review');
+      const rows = checks.map((check) => {
+        const item = object(check);
+        const itemStatus = text(item.status || 'review');
+        return '<article class="verification-check" data-status="' + html(itemStatus) + '">' +
+          '<strong>' + html(text(item.label || item.key || 'Verification check')) + '</strong>' +
+          '<span>Status: ' + html(itemStatus) + '</span>' +
+          '<span>' + html(shortText(item.detail || 'Review this artifact before relying on it.', 220)) + '</span>' +
+        '</article>';
+      }).join('');
+      const nextStepRows = nextSteps
+        .slice(0, 4)
+        .map((step) => '<li>' + html(shortText(step, 180)) + '</li>')
+        .join('');
+
+      return '<div class="packet-section" id="artifact-verification-panel">' +
+        '<h3>Artifact and source verification</h3>' +
+        '<p class="product-note">' + html(text(summary.headline || 'Use this as a local review aid, not as publication clearance.')) + '</p>' +
+        '<div class="chip-row">' +
+          pill('verification: ' + status, status !== 'pass') +
+          pill('passed: ' + numberText(summary.passedChecks), false) +
+          pill('review: ' + numberText(summary.reviewChecks), Number(summary.reviewChecks || 0) > 0) +
+          pill('blocked: ' + numberText(summary.blockedChecks), Number(summary.blockedChecks || 0) > 0) +
+        '</div>' +
+        '<div class="verification-grid">' + rows + '</div>' +
+        (nextStepRows ? '<ul class="method-list">' + nextStepRows + '</ul>' : '') +
+      '</div>';
+    }
+
     function renderArtifactBrowser(registry) {
       const container = document.getElementById('artifact-browser');
       if (!container) {
@@ -3155,6 +3218,7 @@ function consoleHtml(): string {
           '</div>' +
           '<span>' + html(bundleText) + '</span>' +
         '</div>' +
+        renderVerificationPanel(detail.verification) +
         '<div class="packet-section">' +
           '<h3>Source-document matches</h3>' +
           (rows || '<div class="source-match-row"><strong>No source-document index rows</strong><span>Open a source bundle or source-document-index JSON artifact to see document-level matches.</span></div>') +
@@ -3836,7 +3900,7 @@ async function handleApiRequest(url: URL, request: http.IncomingMessage): Promis
   throw new Error(`Unknown API path: ${url.pathname}`);
 }
 
-export async function serveInternalConsole(options: InternalConsoleOptions = {}): Promise<void> {
+export async function serveInternalConsole(options: InternalConsoleOptions = {}): Promise<http.Server> {
   const host = options.host ?? process.env.CENTINELA_INTERNAL_HOST ?? "127.0.0.1";
   const port = options.port ?? Number(process.env.CENTINELA_INTERNAL_PORT ?? 8787);
   const allowRemote = process.env.CENTINELA_ALLOW_REMOTE_CONSOLE === "true";
@@ -3901,4 +3965,5 @@ export async function serveInternalConsole(options: InternalConsoleOptions = {})
 
   console.log(`Centinela internal console listening at http://${host}:${port}/`);
   console.log("Local-only analyst surface. Outputs are leads and identity context, not proof of wrongdoing.");
+  return server;
 }

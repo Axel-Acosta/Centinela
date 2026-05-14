@@ -1023,19 +1023,47 @@ Concrete proof artifacts:
 ## Next extraction priority
 
 - highest priority
-  - finish the next internal-product MVP slice only if needed: safer artifact/source verification affordances and a small Command Center smoke harness
+  - completed on 2026-05-14: safer artifact/source verification affordances and a small Command Center smoke harness are now live
 - next after that
-  - move to the next lawful Paraguay cross-domain source, preferably company/officer/ownership-adjacent accountability data if access is lawful and practical
+  - continue the Abogacia ownership-ready source path by designing a privacy-safe person-relationship staging lane before ingesting directors, shareholders, or beneficial owners
   - continue readiness-ranked DNCP release/document source-record checks across the highest-priority companies/candidates and use `py-dncp-document-content` only for source records that need captured official files or explicit source-access limitation records
   - add OCR only for case-priority scanned PDFs after weighing dependency cost, privacy/source-review burden, and concrete analyst value
   - revisit the final RUC anchor gap only when a new lawful source can expose the missing check digit; DNIT bulk, DNCP OCDS JSON, DNCP supplier search, and locally parsed official PDFs did not resolve it
 - then
   - stage ownership/offshore expansion influenced by OpenOwnership, ICIJ, OpenCorporates, and Sayari on top of the safer candidate-evidence and review-preservation baseline
 
+## 2026-05-14 Verification and Abogacia company-accountability advancement
+
+- Aleph and Sayari
+  - advanced because artifact details now carry verification checks that make local source bundles safer to inspect as casework evidence, while `npm run smoke:command-center` keeps the internal product surface testable.
+- RUBLI and Integrity Watch
+  - advanced because the interface now distinguishes local artifact availability, source verification, publication gate state, and public-use limits more explicitly.
+- OpenOwnership / QuiénEsQuién / TodosLosContratos / Sayari / br/acc
+  - advanced because `py-abogacia-beneficial-ownership-public-index` adds the first Paraguay ownership-ready company/accountability source beyond DNCP and DNIT.
+- br/acc
+  - advanced because the Abogacia connector follows source-registry discipline by storing source runs, source assets, source records, source mentions, local profiles, identifiers, and runtime reports.
+
+Concrete proof artifacts:
+
+- `src/storage/caseArtifacts.ts` now returns artifact/source verification checks for path containment, bundle index, source manifest, source-document index, copied assets, hash checks, source URL coverage, and publication gate state.
+- `src/server/internalConsole.ts` now renders an artifact/source verification panel.
+- `src/quality/commandCenterSmoke.ts` and `npm run smoke:command-center` provide a repeatable live Command Center smoke harness.
+- `src/enrichment/abogaciaBeneficialOwnershipPublicIndex.ts` and `npm run enrichment:abogacia-beneficial-ownership-public-index` implement the company-only Abogacia public-index connector.
+- `docs/methodology/abogacia-beneficial-ownership-public-index.md` records the source methodology and privacy boundary.
+
+Live result:
+
+- Command Center smoke passed against the live VPS-backed DB.
+- Abogacia source run `49` parsed `31,649` public company rows and matched `899` procurement-linked companies by RUC base.
+
+Staged, not yet done:
+
+- person-level director/shareholder/beneficial-owner ingestion remains staged until privacy/minimization, relationship provenance, and public-display rules are explicit.
+
 ## Still pending deeper extraction
 
 - Integrity Watch: needs a real public-safe flag metadata model and later explorer/filter contract once the rule registry exists.
-- OpenSanctions / Open Ownership / OpenCorporates / ICIJ: the first live external connector, the first hosted API comparison run, the PostgreSQL-backed hosted comparison overview, the wide official Paraguay supplier anchor, the DNIT identity-validation layer, the representative/person screening lane, the candidate-review table, the manual review-state workflow, the official IDB row-level source check, the live second-review governance workflow, the accepted candidate `59` case, the analyst-workspace schema, the candidate review report, the anchor-gap review backlog, the first company-level match-review queue, safer rerun preservation, and stronger candidate-name evidence now exist, but they still need ownership data, offshore traversal, deeper source-record-to-case workflows, and either renewed hosted API quota or a longer-term Yente/paid-access decision.
+- OpenSanctions / Open Ownership / OpenCorporates / ICIJ: the first live external connector, the first hosted API comparison run, the PostgreSQL-backed hosted comparison overview, the wide official Paraguay supplier anchor, the DNIT identity-validation layer, the Abogacia company-level beneficial-ownership public index, the representative/person screening lane, the candidate-review table, the manual review-state workflow, the official IDB row-level source check, the live second-review governance workflow, the accepted candidate `59` case, the analyst-workspace schema, the candidate review report, the anchor-gap review backlog, the first company-level match-review queue, safer rerun preservation, and stronger candidate-name evidence now exist, but they still need privacy-safe person ownership/director/shareholder staging, offshore traversal, deeper source-record-to-case workflows, and either renewed hosted API quota or a longer-term Yente/paid-access decision.
 - FUNES: needs relationship-aware rules that use political, financial, or oversight context beyond procurement alone.
 - Paraguay DNCP red flags work: needs a formal rule crosswalk instead of only language and framing influence.
 - RUBLI: needs the exact intended source confirmed, then direct methodology and limitations structure can be borrowed more concretely.
