@@ -100,6 +100,7 @@ async function main(): Promise<void> {
       "Source verification checklist",
       "artifact-verification-panel",
       "Open current source-pack case",
+      "Staged Relationships",
     ]);
     requireCondition(html.includes("oklch("), "Command Center CSS should keep impeccable OKLCH color tokens.");
     requireCondition(!html.includes("border-left: 3px"), "Command Center CSS should not use side-stripe card accents.");
@@ -186,6 +187,16 @@ async function main(): Promise<void> {
     checks.push({
       name: "source-pack-readiness",
       detail: `${rows(readiness.data.items).length} readiness rows returned.`,
+    });
+
+    const stagedRelationships = await fetchJson<Array<Record<string, unknown>>>(
+      baseUrl,
+      "/api/staged-relationships?limit=3",
+    );
+    requireCondition(stagedRelationships.data.length > 0, "Staged relationships returned no rows.");
+    checks.push({
+      name: "staged-relationships",
+      detail: `${stagedRelationships.data.length} staged relationship review rows returned.`,
     });
 
     console.log("Command Center smoke passed.");

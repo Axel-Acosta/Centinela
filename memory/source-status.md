@@ -39,10 +39,11 @@
 - Status: mapped, first external connector, local company/taxpayer identity anchors, and first ownership-ready company-accountability index live
 - Candidates: payroll and officials rosters, sanctions/disqualifications, company records, political finance, asset declarations, court and oversight records, external enrichment layers
 - Current implementation: `py-abogacia-beneficial-ownership-public-index` uses the Abogacia del Tesoro public company-level beneficial-ownership index and matches procurement-linked companies by RUC base. Latest live result: 31,649 public company rows parsed, 5,040 local procurement-linked RUC targets considered, and 899 procurement-linked companies matched.
-- Current relationship-staging implementation: `py-abogacia-person-relationship-staging` parses official director, shareholder, and beneficial-owner files in memory and writes only redacted `entity_relationship_staging` review leads for procurement-linked companies.
-- Current relationship-staging live result: source run `52` staged 90 redacted review-only leads: 30 beneficial-owner rows, 30 director rows, and 30 shareholder rows. The connector observed 59,584 raw source rows, parsed 58,613 relationship rows, and found 1,776 procurement-linked relationship rows by RUC base.
+- Current relationship-staging implementation: `py-abogacia-person-relationship-staging` parses official director, shareholder, and beneficial-owner files in memory and writes only redacted `entity_relationship_staging` review leads for procurement-linked companies. Migration `021` adds review governance and the staged relationship review queue.
+- Current relationship-staging live result: source runs `52` through `55` staged all 1,776 currently detected procurement-linked redacted review-only leads: 729 beneficial-owner rows, 749 director rows, and 298 shareholder rows. The pilot connector observed 59,584 raw source rows, parsed 58,613 relationship rows, and found 1,776 procurement-linked relationship rows by RUC base.
 - Legal/ethical boundary: Centinela does not persist raw full personal CSV files, raw person names, document numbers, addresses, birth dates, phone numbers, or emails from the staging connector. Staged rows are `staged_review_only`, `blocked_personal_data`, and `not_promoted`.
-- Next step: review the first staged relationship pilot in entity briefs/API/network outputs, then either widen the batch or add promotion governance for cases where legal/methodology review allows person-entity creation.
+- Current review workflow: `npm run database:staged-relationships -- --limit 50` writes the review queue report, and `npm run database:review-staged-relationship` records `needs_more_evidence`, `keep_staged`, `rejected`, or `promote_to_redacted_relationship`. Promotion creates only redacted internal graph context and does not authorize public display.
+- Next step: review a small number of high-priority staged rows with source packs before recording live review decisions.
 
 ### DNIT / SET taxpayer-profile public services and RUC equivalence bulk
 
@@ -63,9 +64,9 @@
 - Current implementation: `npm run enrichment:abogacia-beneficial-ownership-public-index`
 - Current observed result: latest live source run `49` parsed 31,649 public company rows and matched 899 procurement-linked companies by RUC base. It writes `source_records`, `entity_local_profiles`, `entity_source_mentions`, `PY-ABOGACIA-RUC-BASE` identifiers, and source assets.
 - Current analyst surface: entity briefs and dossiers now show `py-abogacia-beneficial-ownership-public-index` as company-level source context where matched. Example: `CONSULTORA GUARANI SA INGENIEROS CIVILES` now shows `PY-ABOGACIA-RUC-BASE:80016063`.
-- Current relationship-staging surface: `npm run enrichment:abogacia-person-relationship-staging -- --limit 250` stages redacted director/shareholder/beneficial-owner relationship leads in `entity_relationship_staging`, and entity briefs/API/network output expose those leads as internal review-only context. Live pilot run `52` staged 90 rows; CODEX S.R.L. confirms the dossier/API/network path is working.
-- Legal/ethical cautions: public-index presence and redacted relationship staging are not ownership conclusions or wrongdoing signals. The staging lane does not create person entities, accepted graph edges, or public-displayable person facts.
-- Next expansion: review pilot results, then either widen redacted staging or design a separate promotion workflow with legal/methodology checks before any person entity creation.
+- Current relationship-staging surface: `npm run enrichment:abogacia-person-relationship-staging -- --relation-kinds beneficial_owner|director|shareholder --limit 1000` has staged the full current procurement-linked set. Entity briefs/API/network output expose those leads as internal review-only context, and the Command Center has a staged-relationships panel.
+- Legal/ethical cautions: public-index presence and redacted relationship staging are not ownership conclusions or wrongdoing signals. The staging lane does not create public-displayable person facts; any promotion is limited to redacted internal graph context with source-backed rationale and limitations.
+- Next expansion: review high-priority staged rows using source packs, then record careful `needs_more_evidence`, `keep_staged`, `rejected`, or redacted-promotion decisions only when justified.
 
 ### OpenSanctions `default`
 

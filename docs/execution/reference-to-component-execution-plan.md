@@ -1023,9 +1023,9 @@ Concrete proof artifacts:
 ## Next extraction priority
 
 - highest priority
-  - completed on 2026-05-15: privacy-minimized Abogacia person relationship staging is now implemented as schema, connector, dossier/API surface, and graph-ready redacted nodes
-- next after that
-  - review the first Abogacia staging pilot, then either widen the redacted batch or implement promotion governance for staged relationships
+  - completed on 2026-05-15: privacy-minimized Abogacia person relationship staging is now implemented as schema, connector, dossier/API surface, graph-ready redacted nodes, full procurement-linked widened staging, and review/promotion governance
+- next after that, only when a concrete case requires it
+  - review a small number of high-priority Abogacia staged rows using source packs, then record `needs_more_evidence`, `keep_staged`, `rejected`, or `promote_to_redacted_relationship` decisions where source evidence justifies them
   - continue readiness-ranked DNCP release/document source-record checks across the highest-priority companies/candidates and use `py-dncp-document-content` only for source records that need captured official files or explicit source-access limitation records
   - add OCR only for case-priority scanned PDFs after weighing dependency cost, privacy/source-review burden, and concrete analyst value
   - revisit the final RUC anchor gap only when a new lawful source can expose the missing check digit; DNIT bulk, DNCP OCDS JSON, DNCP supplier search, and locally parsed official PDFs did not resolve it
@@ -1063,7 +1063,7 @@ Staged, not yet done:
 ## Still pending deeper extraction
 
 - Integrity Watch: needs a real public-safe flag metadata model and later explorer/filter contract once the rule registry exists.
-- OpenSanctions / Open Ownership / OpenCorporates / ICIJ: the first live external connector, the first hosted API comparison run, the PostgreSQL-backed hosted comparison overview, the wide official Paraguay supplier anchor, the DNIT identity-validation layer, the Abogacia company-level beneficial-ownership public index, the representative/person screening lane, the candidate-review table, the manual review-state workflow, the official IDB row-level source check, the live second-review governance workflow, the accepted candidate `59` case, the analyst-workspace schema, the candidate review report, the anchor-gap review backlog, the first company-level match-review queue, safer rerun preservation, and stronger candidate-name evidence now exist, but they still need privacy-safe person ownership/director/shareholder staging, offshore traversal, deeper source-record-to-case workflows, and either renewed hosted API quota or a longer-term Yente/paid-access decision.
+- OpenSanctions / Open Ownership / OpenCorporates / ICIJ: the first live external connector, the first hosted API comparison run, the PostgreSQL-backed hosted comparison overview, the wide official Paraguay supplier anchor, the DNIT identity-validation layer, the Abogacia company-level beneficial-ownership public index, the privacy-minimized Abogacia relationship staging/review workflow, the representative/person screening lane, the candidate-review table, the manual review-state workflow, the official IDB row-level source check, the live second-review governance workflow, the accepted candidate `59` case, the analyst-workspace schema, the candidate review report, the anchor-gap review backlog, the first company-level match-review queue, safer rerun preservation, and stronger candidate-name evidence now exist, but they still need offshore traversal, deeper source-pack-backed relationship review, and either renewed hosted API quota or a longer-term Yente/paid-access decision.
 - FUNES: needs relationship-aware rules that use political, financial, or oversight context beyond procurement alone.
 - Paraguay DNCP red flags work: needs a formal rule crosswalk instead of only language and framing influence.
 - RUBLI: needs the exact intended source confirmed, then direct methodology and limitations structure can be borrowed more concretely.
@@ -1092,3 +1092,34 @@ Concrete proof artifacts:
 - entity brief `Abogacia staged person relationship leads` section in `src/storage/analyst.ts`
 - internal API `stagedRelationships` entity profile field and graph-ready redacted staged-person nodes in `src/storage/internalApi.ts`
 - live source run `52`: 90 staged review-only rows across beneficial-owner, director, and shareholder lanes
+
+## 2026-05-15 Internal MVP finish and relationship-governance advancement
+
+- br/acc
+  - advanced because the relationship layer now has source-registry discipline, redacted source records, queueable review state, and a governed path from source row to graph edge.
+- OpenOwnership / Sayari
+  - advanced because ownership-adjacent roles can now move from staged lead to redacted internal relationship context only through explicit review, rationale, and limitations.
+- Aleph
+  - advanced because staged relationship leads are now casework queue objects with source-record IDs, source-line numbers, review decisions, and dossier/API visibility.
+- QuiénEsQuién / TodosLosContratos
+  - advanced because company-contract accountability now has a concrete company-to-redacted-relationship review layer for later public explanation, while public display remains blocked.
+- Integrity Watch / RUBLI
+  - advanced because the methodology now has an explicit finish boundary, public exclusions, and reproducible review decisions instead of vague future caution.
+
+Concrete proof artifacts:
+
+- `docs/execution/internal-mvp-finish-plan.md`
+- `sql/postgres/021_relationship_staging_review_workflow.sql`
+- `src/storage/relationshipStagingReview.ts`
+- `npm run database:staged-relationships`
+- `npm run database:review-staged-relationship`
+- internal API `GET /api/staged-relationships`
+- internal API `POST /api/staged-relationships/:id/reviews`
+- Command Center `Staged Relationships` panel
+
+Live result:
+
+- migration `021` applied to the live VPS-backed DB
+- full current procurement-linked Abogacia redacted staging widened to `1,776` rows: `729` beneficial-owner, `749` director, and `298` shareholder
+- dry-run promotion governance verified on staged row `1271` without recording a human review decision
+- first serious Paraguay internal MVP marked useful enough for internal review, demonstration, and focused casework

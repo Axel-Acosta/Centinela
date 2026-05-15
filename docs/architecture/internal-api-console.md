@@ -61,6 +61,7 @@ The surface is designed to expose:
 - filtered visual graph neighborhoods with relation/type controls
 - entity and process review queues
 - review-only external candidates
+- redacted staged Abogacia relationship leads
 - accepted external enrichment matches
 - second-review rationale and limitations
 - source-record drilldowns
@@ -131,6 +132,10 @@ Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled
   - process-level procurement review queue
 - `GET /api/external-candidates?review_status=<status>&second_review_decision=<decision>&limit=25`
   - review-only candidate and diagnostic layer, including second-review state
+- `GET /api/staged-relationships?review_status=<status>&promotion_status=<status>&limit=25`
+  - redacted Abogacia relationship review queue with source-record IDs, source-line numbers, priority, lead question, and recommended action
+- `POST /api/staged-relationships/:id/reviews`
+  - records staged-relationship review decisions; requires local write token. Accepted decisions are `needs_more_evidence`, `keep_staged`, `rejected`, and `promote_to_redacted_relationship`. Promotion creates only redacted internal graph context.
 - `GET /api/accepted-matches?limit=25`
   - accepted second-review enrichment matches
 - `GET /api/source-records?source_key=<key>&external_id=<id>&q=<text>&limit=25`

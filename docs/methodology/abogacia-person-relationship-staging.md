@@ -58,6 +58,12 @@ The migration `sql/postgres/020_abogacia_relationship_staging.sql` adds:
 - `entity_relationship_staging_overview`
 - `entity_relationship_staging_summary`
 
+The migration `sql/postgres/021_relationship_staging_review_workflow.sql` adds:
+
+- `entity_relationship_staging_reviews`
+- `entity_relationship_staging_review_queue`
+- latest-review fields on `entity_relationship_staging_overview`
+
 The connector writes:
 
 - a `source_runs` row with source key `py-abogacia-person-relationship-staging`
@@ -70,19 +76,26 @@ The connector writes:
 
 Latest pilot run:
 
-- source run ID: `52`
-- raw source rows observed across selected official files: `59,584`
-- parsed relationship rows: `58,613`
+- pilot source run ID: `52`
+- widening source runs: `53`, `54`, `55`
+- raw source rows observed across selected official files during the pilot: `59,584`
+- parsed relationship rows during the pilot: `58,613`
 - procurement-linked rows matched by RUC base: `1,776`
-- staged review-only rows: `90`
-- beneficial-owner staged rows: `30`
-- director staged rows: `30`
-- shareholder staged rows: `30`
+- staged review-only rows now stored: `1,776`
+- beneficial-owner staged rows: `729`
+- director staged rows: `749`
+- shareholder staged rows: `298`
 
 Runtime report:
 
 ```text
 C:\Users\Axeld\AppData\Local\Centinela\data\reports\paraguay\abogacia-person-relationship-staging-2026-05-15T12-31-31-079Z.md
+```
+
+Staged review queue report:
+
+```bash
+npm run database:staged-relationships -- --limit 50
 ```
 
 ## Data Minimization
@@ -121,13 +134,34 @@ Every row is stored as:
 - `public_display_status = blocked_personal_data`
 - `promotion_status = not_promoted`
 
-The staging lane does not create person entities.
+The staging lane does not create person entities by default.
 
-The staging lane does not create accepted graph edges in `entity_relationships`.
+The staging lane does not create accepted graph edges in `entity_relationships` by default.
 
 The staging lane does not create external risk signals.
 
-Promotion to person entity or public display requires a later governance step with legal/methodology review.
+Promotion requires the separate review-governance workflow in migration `021`.
+
+Allowed review decisions are:
+
+- `needs_more_evidence`
+- `keep_staged`
+- `rejected`
+- `promote_to_redacted_relationship`
+
+Promotion creates only a redacted internal person placeholder and a redacted internal graph edge. It does not expose raw person identity and does not authorize public display.
+
+CLI review command:
+
+```bash
+npm run database:review-staged-relationship -- --staging-id <id> --decision needs_more_evidence --reviewer "Analyst Name" --rationale "Source-backed rationale"
+```
+
+Dry-run promotion check:
+
+```bash
+npm run database:review-staged-relationship -- --staging-id <id> --decision promote_to_redacted_relationship --reviewer "Analyst Name" --rationale "Governance test" --limitations "Raw person identity remains redacted; public display blocked." --dry-run true
+```
 
 ## Matching Logic
 
@@ -148,6 +182,13 @@ Entity briefs now include an `Abogacia staged person relationship leads` section
 The internal API entity profile now returns `stagedRelationships`.
 
 The graph-ready entity network now includes redacted staged-person nodes and review-only edges where staged rows exist.
+
+The internal API now exposes:
+
+- `GET /api/staged-relationships`
+- `POST /api/staged-relationships/:id/reviews`
+
+The Command Center now includes a staged-relationships review panel.
 
 These surfaces are internal review aids only.
 

@@ -67,8 +67,9 @@
   - first ownership-ready/company-accountability source achieved through `py-abogacia-beneficial-ownership-public-index`
   - latest Abogacia public-index live run: source run `49`, 31,649 public company rows parsed, 5,040 procurement-linked RUC targets considered, and 899 procurement-linked companies matched by RUC base
   - privacy-safe Abogacia person relationship staging lane achieved through `sql/postgres/020_abogacia_relationship_staging.sql` and `py-abogacia-person-relationship-staging`
-  - latest Abogacia relationship-staging live run: source run `52`, 90 redacted review-only relationship leads staged across 30 beneficial-owner, 30 director, and 30 shareholder rows; 1,776 procurement-linked source rows were found by RUC base
-  - still needs recovery of the final missing RUC check digit and a promotion-governance workflow before staged director/shareholder/beneficial-owner rows can become accepted person entities or public-facing facts
+  - Abogacia staged relationship review governance achieved through `sql/postgres/021_relationship_staging_review_workflow.sql`, `npm run database:staged-relationships`, and `npm run database:review-staged-relationship`
+  - latest Abogacia relationship-staging live result: source runs `53`, `54`, and `55` widened the live staging set to all `1,776` procurement-linked redacted relationship leads currently found by RUC base: `729` beneficial-owner, `749` director, and `298` shareholder rows
+  - still needs recovery of the final missing RUC check digit and careful source-pack-backed review before any staged rows are promoted to redacted internal graph context
 - Core outputs
   - first live external-risk connector through OpenSanctions bulk screening
   - first Paraguay company or registry connector
@@ -83,6 +84,7 @@
   - ownership-ready relationship model
   - first Paraguay ownership-ready public company index connector
   - privacy-minimized person relationship staging table, connector, dossier/API surface, and graph-ready redacted nodes
+  - staged relationship review queue and redacted-promotion governance
 - Main references
   - OpenSanctions
   - Open Ownership
@@ -142,6 +144,7 @@
   - visible methodology and precedent-synthesis panel inside the console
   - local graph visualization over the existing entity network endpoint
   - filterable entity/process/external-candidate/source-pack readiness panels
+  - filterable staged-relationship review panel
   - bounded artifact-detail reader for selected case artifacts and source bundles
   - readable case review packets with public-safety gate state, linked targets, source-backed evidence rows, and timeline cards
   - source-document match previews with query, match counts, snippets, source-record IDs, evidence-link IDs, and use limits
@@ -180,9 +183,9 @@
 
 ## Immediate next best step
 
-- Internal-product MVP hardening is now complete enough for source-expansion work. The interface has a guided proof path, a local impeccable standard, the installed project-local Impeccable skill, and root product/design context, so additional interface work should be tied to concrete analysis blockers.
-- Current strongest move: review the live Abogacia person-relationship staging pilot in briefs/API/network output, then either widen the redacted staging batch or implement promotion governance for staged relationships.
-- If person-level promotion remains too sensitive, continue the source-pack readiness rollout starting with the next ranked companies and only investigate alternate DNCP document access or OCR where a specific source pack needs it.
+- The first serious Paraguay internal MVP is now useful enough for internal review, demonstration, and focused casework. Use `docs/execution/internal-mvp-finish-plan.md` as the stop rule.
+- Current strongest move if work continues: review a small number of high-priority staged Abogacia rows with source packs, then record `needs_more_evidence`, `keep_staged`, `rejected`, or `promote_to_redacted_relationship` only where source evidence justifies it.
+- If no concrete case requires relationship review, pause broad foundation building and move only on specific source, deployment/auth, public-safety, or UI blockers.
 - Reason
   - the system now has a live OpenSanctions spine, a wide official DNCP supplier anchor, a DNIT taxpayer identity-validation layer, an Abogacia ownership-ready public company index, a conservative representative/person screening lane, a tightened review-only candidate layer, a persisted hosted matcher comparison lane, a manual review-state workflow, one official IDB row-level source check, official DNCP release/document source records, selected official document captures and document-access limitations, one accepted second-review match, a local console/API, source-record drilldowns, graph exports, token-protected notes/cases, a live case timeline view, source-record evidence links, in-case source-record search, source field helpers, gated case evidence export, source-indexed Markdown/JSON case artifacts, source attachment manifests, source bundles that copy resolvable source-run assets, source-document indexes that search bundled files with evidence/source traceability, console/API controls to generate those artifacts, a local artifact registry to rediscover them, a one-command entity source-pack bridge, a readiness report for source-pack rollout, a presentable Command Center shell, graph filtering, readable case packets, source-document match previews, methodology/safety guidance, source-pack shortcuts, artifact/source verification checks, a guided proof path, a Centinela-local impeccable standard, an installed Impeccable skill with root product/design context, and a repeatable Command Center smoke harness. The next high-leverage work is source expansion, not more interface polish unless analysis gets blocked.
 - Expected carry-over

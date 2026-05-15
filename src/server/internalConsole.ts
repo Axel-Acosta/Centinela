@@ -36,6 +36,11 @@ import {
 import { getCaseArtifactDetail, listCaseArtifacts } from "../storage/caseArtifacts";
 import { buildEntitySourcePackArtifacts } from "../storage/entitySourcePack";
 import { getEntitySourcePackReadiness } from "../storage/entitySourcePackReadiness";
+import {
+  getStagedRelationshipQueue,
+  reviewStagedRelationship,
+  type StagedRelationshipQueueOptions,
+} from "../storage/relationshipStagingReview";
 
 export interface InternalConsoleOptions {
   host?: string;
@@ -215,6 +220,16 @@ function parseCasePublicReviewRoute(pathname: string): number | undefined {
   return Number.isInteger(caseId) && caseId > 0 ? caseId : undefined;
 }
 
+function parseStagedRelationshipReviewRoute(pathname: string): number | undefined {
+  const match = pathname.match(/^\/api\/staged-relationships\/(\d+)\/reviews$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const stagingId = Number(match[1]);
+  return Number.isInteger(stagingId) && stagingId > 0 ? stagingId : undefined;
+}
+
 function parseAnalystCaseRoute(pathname: string): number | undefined {
   const match = pathname.match(/^\/api\/analyst-cases\/(\d+)$/);
   if (!match) {
@@ -279,6 +294,32 @@ function externalCandidateOptions(url: URL): ExternalCandidateOptions {
 
   if (secondReviewDecision !== undefined) {
     options.secondReviewDecision = secondReviewDecision;
+  }
+
+  if (limit !== undefined) {
+    options.limit = limit;
+  }
+
+  return options;
+}
+
+function stagedRelationshipOptions(url: URL): StagedRelationshipQueueOptions {
+  const options: StagedRelationshipQueueOptions = {};
+  const reviewStatus = textParam(url, "review_status");
+  const promotionStatus = textParam(url, "promotion_status");
+  const decision = textParam(url, "decision");
+  const limit = numberParam(url, "limit");
+
+  if (reviewStatus !== undefined) {
+    options.reviewStatus = reviewStatus;
+  }
+
+  if (promotionStatus !== undefined) {
+    options.promotionStatus = promotionStatus;
+  }
+
+  if (decision !== undefined) {
+    options.decision = decision;
   }
 
   if (limit !== undefined) {
@@ -1942,6 +1983,28 @@ function consoleHtml(): string {
             <button id="refresh-candidates" type="button" class="secondary">Refresh candidates</button>
           </div>
           <div id="candidates" class="list"></div>
+        </article>
+
+        <article class="panel">
+          <h2>Staged Relationships</h2>
+          <p class="product-note">Redacted Abogacia relationship leads for internal review. Public display stays blocked by default.</p>
+          <div class="queue-controls">
+            <select id="staged-relationship-review-status" aria-label="Staged relationship review status">
+              <option value="">All review states</option>
+              <option value="staged_review_only">Staged review only</option>
+              <option value="needs_more_evidence">Needs more evidence</option>
+              <option value="reviewed_promoted">Reviewed promoted</option>
+              <option value="reviewed_rejected">Reviewed rejected</option>
+            </select>
+            <select id="staged-relationship-promotion-status" aria-label="Staged relationship promotion status">
+              <option value="">All promotion states</option>
+              <option value="not_promoted">Not promoted</option>
+              <option value="promoted_to_redacted_relationship">Promoted redacted edge</option>
+            </select>
+            <input id="staged-relationship-limit" value="8" aria-label="Staged relationship limit" />
+            <button id="refresh-staged-relationships" type="button" class="secondary">Refresh staged relationships</button>
+          </div>
+          <div id="staged-relationships" class="list"></div>
         </article>
 
         <article class="panel">
@@ -3640,6 +3703,35 @@ function consoleHtml(): string {
       });
     }
 
+    async function loadStagedRelationshipQueue() {
+      const params = new URLSearchParams();
+      params.set('limit', String(positiveInput('staged-relationship-limit', 8)));
+      addQueryParam(params, 'review_status', document.getElementById('staged-relationship-review-status').value);
+      addQueryParam(params, 'promotion_status', document.getElementById('staged-relationship-promotion-status').value);
+      const staged = await getJson('/api/staged-relationships?' + params.toString());
+      const stagedNode = document.getElementById('staged-relationships');
+      stagedNode.innerHTML = '';
+      if (!staged.data.length) {
+        renderItem(stagedNode, 'No staged relationship rows returned', [
+          'redacted relationship review',
+          'Rows appear after the Abogacia relationship staging connector runs.'
+        ]);
+        return;
+      }
+      staged.data.forEach((item) => {
+        const openCompany = document.createElement('button');
+        openCompany.className = 'secondary';
+        openCompany.textContent = 'Open company';
+        openCompany.onclick = () => loadEntity(item.company_entity_id);
+        renderItem(stagedNode, '#' + item.id + ' ' + item.company_entity_name + ' -> ' + item.related_person_display, [
+          text(item.review_priority) + ' / ' + text(item.relation_label),
+          'status: ' + text(item.review_status) + ' / ' + text(item.promotion_status),
+          'source record #' + text(item.source_record_id) + ', line ' + text(item.source_line_number),
+          text(item.lead_question)
+        ], openCompany);
+      });
+    }
+
     async function loadProcessQueue() {
       const params = new URLSearchParams();
       params.set('limit', String(positiveInput('process-queue-limit', 8)));
@@ -3697,6 +3789,7 @@ function consoleHtml(): string {
       await Promise.all([
         loadEntityQueue(),
         loadExternalCandidateQueue(),
+        loadStagedRelationshipQueue(),
         loadProcessQueue(),
         loadSourcePackReadiness()
       ]);
@@ -3821,6 +3914,11 @@ function consoleHtml(): string {
     document.getElementById('refresh-candidates').addEventListener('click', () => {
       loadExternalCandidateQueue().catch((error) => {
         document.getElementById('candidates').textContent = error.message;
+      });
+    });
+    document.getElementById('refresh-staged-relationships').addEventListener('click', () => {
+      loadStagedRelationshipQueue().catch((error) => {
+        document.getElementById('staged-relationships').textContent = error.message;
       });
     });
     document.getElementById('refresh-process-queue').addEventListener('click', () => {
@@ -4005,6 +4103,28 @@ async function handleApiRequest(url: URL, request: http.IncomingMessage): Promis
       return buildCaseSourceDocumentIndexArtifacts(sourceIndexOptions);
     }
 
+    const stagedRelationshipId = parseStagedRelationshipReviewRoute(url.pathname);
+    if (stagedRelationshipId !== undefined) {
+      const limitations = stringField(body, "limitations");
+      const evidenceUrl = stringField(body, "evidenceUrl") ?? stringField(body, "evidence_url");
+      const evidenceNote = stringField(body, "evidenceNote") ?? stringField(body, "evidence_note");
+
+      return reviewStagedRelationship({
+        stagingId: stagedRelationshipId,
+        decision: stringField(body, "decision") ?? "",
+        reviewer:
+          stringField(body, "reviewer") ??
+          stringField(body, "reviewedBy") ??
+          stringField(body, "reviewed_by") ??
+          "centinela-console-reviewer",
+        rationale: stringField(body, "rationale") ?? "",
+        ...(limitations ? { limitations } : {}),
+        ...(evidenceUrl ? { evidenceUrl } : {}),
+        ...(evidenceNote ? { evidenceNote } : {}),
+        dryRun,
+      });
+    }
+
     const caseId = parseCaseLinkRoute(url.pathname);
     if (caseId !== undefined) {
       return linkAnalystCaseTarget({
@@ -4064,6 +4184,10 @@ async function handleApiRequest(url: URL, request: http.IncomingMessage): Promis
 
   if (url.pathname === "/api/external-candidates") {
     return getExternalCandidates(externalCandidateOptions(url));
+  }
+
+  if (url.pathname === "/api/staged-relationships") {
+    return getStagedRelationshipQueue(stagedRelationshipOptions(url));
   }
 
   if (url.pathname === "/api/accepted-matches") {

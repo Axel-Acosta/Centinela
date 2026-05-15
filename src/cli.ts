@@ -25,6 +25,11 @@ import { fetchDncpBulkYear } from "./sources/paraguay/dncpBulk";
 import { writeOutputJson, writeOutputText } from "./storage/files";
 import { candidateReviewStatuses, updateExternalCandidateReview } from "./storage/candidateReview";
 import { secondReviewDecisions, secondReviewExternalCandidate } from "./storage/secondReview";
+import {
+  buildStagedRelationshipReviewReport,
+  reviewStagedRelationship,
+  stagedRelationshipReviewDecisions,
+} from "./storage/relationshipStagingReview";
 import { serveInternalConsole } from "./server/internalConsole";
 import { applySqlFile } from "./storage/sqlFile";
 import {
@@ -640,6 +645,25 @@ async function runDatabaseExternalCandidates(args: string[]): Promise<void> {
   console.log(`Generated external candidate review report: ${reportPath}`);
 }
 
+async function runDatabaseStagedRelationships(args: string[]): Promise<void> {
+  const limit = readNumberArg(args, "--limit", 50);
+  const reviewStatus = readArg(args, "--review-status") ?? readArg(args, "--review_status");
+  const promotionStatus = readArg(args, "--promotion-status") ?? readArg(args, "--promotion_status");
+  const decision = readArg(args, "--decision");
+
+  const result = await buildStagedRelationshipReviewReport({
+    limit,
+    ...(reviewStatus ? { reviewStatus } : {}),
+    ...(promotionStatus ? { promotionStatus } : {}),
+    ...(decision ? { decision } : {}),
+  });
+
+  console.log("Generated staged relationship review queue report.");
+  console.log(`Rows shown: ${result.itemCount}`);
+  console.log(`Report: ${result.reportPath}`);
+  console.log("Reminder: staged relationships are redacted review leads, not proof of ownership, influence, or wrongdoing.");
+}
+
 async function runDatabaseReviewExternalCandidate(args: string[]): Promise<void> {
   const candidateId = readNumberArg(args, "--candidate-id", 0);
   const reviewStatus = readArg(args, "--status");
@@ -727,6 +751,53 @@ async function runDatabaseSecondReviewExternalCandidate(args: string[]): Promise
   console.log(`Accepted match ID: ${result.acceptedMatchId ?? "n/a"}`);
   console.log(`External entity ID: ${result.externalEntityId ?? "n/a"}`);
   console.log("Reminder: accepted matches are enrichment context and do not create proof of wrongdoing.");
+}
+
+async function runDatabaseReviewStagedRelationship(args: string[]): Promise<void> {
+  const stagingId = readNumberArg(args, "--staging-id", 0);
+  const decision = readArg(args, "--decision");
+  const reviewer = readArg(args, "--reviewer") ?? process.env.USERNAME ?? process.env.USER ?? "centinela-relationship-reviewer";
+  const rationale = readArg(args, "--rationale");
+  const limitations = readArg(args, "--limitations");
+  const evidenceUrl = readArg(args, "--evidence-url");
+  const evidenceNote = readArg(args, "--evidence-note");
+  const dryRun = readBooleanArg(args, "--dry-run", false);
+
+  if (!stagingId) {
+    throw new Error("Missing required --staging-id argument for staged relationship review.");
+  }
+
+  if (!decision) {
+    throw new Error(
+      `Missing required --decision argument for staged relationship review. Use one of: ${stagedRelationshipReviewDecisions.join(", ")}`,
+    );
+  }
+
+  if (!rationale) {
+    throw new Error("Missing required --rationale argument for staged relationship review.");
+  }
+
+  const result = await reviewStagedRelationship({
+    stagingId,
+    decision,
+    reviewer,
+    rationale,
+    dryRun,
+    ...(limitations ? { limitations } : {}),
+    ...(evidenceUrl ? { evidenceUrl } : {}),
+    ...(evidenceNote ? { evidenceNote } : {}),
+  });
+
+  const prefix = result.dryRun ? "Dry-run staged relationship review" : "Recorded staged relationship review";
+  console.log(`${prefix}: ${result.staging.company_entity_name} -> ${result.staging.related_person_display}`);
+  console.log(`Staging ID: ${result.staging.id}`);
+  console.log(`Decision: ${result.decision}`);
+  console.log(`Review ID: ${result.reviewId ?? "n/a"}`);
+  console.log(`Review status after: ${result.reviewStatusAfter}`);
+  console.log(`Promotion status after: ${result.promotionStatusAfter}`);
+  console.log(`Redacted person entity ID: ${result.redactedPersonEntityId ?? "n/a"}`);
+  console.log(`Relationship ID: ${result.relationshipId ?? "n/a"}`);
+  console.log("Reminder: promoted staged relationships remain redacted internal graph context, not public person identity or proof of wrongdoing.");
 }
 
 async function runDatabaseEntityAnchorGapReport(args: string[]): Promise<void> {
@@ -961,6 +1032,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (domain === "database" && command === "staged-relationships") {
+    await runDatabaseStagedRelationships(args);
+    return;
+  }
+
   if (domain === "database" && command === "review-external-candidate") {
     await runDatabaseReviewExternalCandidate(args);
     return;
@@ -968,6 +1044,11 @@ async function main(): Promise<void> {
 
   if (domain === "database" && command === "second-review-external-candidate") {
     await runDatabaseSecondReviewExternalCandidate(args);
+    return;
+  }
+
+  if (domain === "database" && command === "review-staged-relationship") {
+    await runDatabaseReviewStagedRelationship(args);
     return;
   }
 
@@ -1082,8 +1163,10 @@ async function main(): Promise<void> {
 - tsx src/cli.ts database review-queue --source-key py-dncp-bulk-2026
 - tsx src/cli.ts database entity-intelligence-queue --limit 25
 - tsx src/cli.ts database external-candidates --limit 50
+- tsx src/cli.ts database staged-relationships --limit 50
 - tsx src/cli.ts database review-external-candidate --candidate-id 1 --status needs_evidence --reviewer "Analyst Name" --notes "Review note"
 - tsx src/cli.ts database second-review-external-candidate --candidate-id 1 --decision accepted_match --reviewer "Second Reviewer" --rationale "Source-backed identity review" --limitations "State known limits"
+- tsx src/cli.ts database review-staged-relationship --staging-id 1 --decision needs_more_evidence --reviewer "Analyst Name" --rationale "Explain review finding"
 - tsx src/cli.ts database case-evidence-export --case-id 1 --public-only false
 - tsx src/cli.ts database case-source-manifest --case-id 1 --public-only false
 - tsx src/cli.ts database case-source-bundle --case-id 1 --public-only false --copy-assets true

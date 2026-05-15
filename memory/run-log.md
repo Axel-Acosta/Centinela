@@ -337,3 +337,15 @@
 - Verification passed: `npm run check`, `npm run build`, `npm run smoke:command-center`, and `git diff --check`.
 - Added `docs/methodology/abogacia-person-relationship-staging.md` and updated source plan/status/roadmap/reference docs.
 - Next: inspect the pilot for usefulness, then decide whether to widen the batch or build promotion governance.
+
+## 2026-05-15 - Internal MVP finish line
+
+- Re-read current memory/docs and chose the closure-oriented finish move: staged Abogacia relationship governance plus full procurement-linked redacted staging, rather than more open-ended framework work.
+- Added `docs/execution/internal-mvp-finish-plan.md`, defining the useful internal MVP finish boundary, excluded public-launch scope, stop rule, and future-work triggers.
+- Added `sql/postgres/021_relationship_staging_review_workflow.sql` with `entity_relationship_staging_reviews`, latest-review fields, and `entity_relationship_staging_review_queue`.
+- Added `src/storage/relationshipStagingReview.ts`, `npm run database:staged-relationships`, and `npm run database:review-staged-relationship`.
+- Added internal API/console support for `GET /api/staged-relationships` and token-protected `POST /api/staged-relationships/:id/reviews`, plus a staged-relationships panel in the Command Center.
+- Reopened the VPS PostgreSQL SSH tunnel after an initial `ECONNRESET`, applied migration `021`, and widened Abogacia staging to all currently detected procurement-linked redacted rows.
+- Live widened result: `1,776` staged rows total: `729` beneficial-owner leads, `749` director leads, and `298` shareholder leads. All remain `staged_review_only`, `blocked_personal_data`, and `not_promoted`.
+- Dry-run tested redacted promotion governance on staged row `1271` for `PROSALUDFARMA S.A.`. No live human review decision was recorded.
+- Updated source status, VPS notes, internal API docs, Abogacia methodology, progress estimates, and next steps so future work treats the first Paraguay internal MVP as useful enough for internal review, demonstration, and focused casework.
