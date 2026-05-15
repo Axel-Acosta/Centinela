@@ -101,6 +101,10 @@ async function main(): Promise<void> {
       "artifact-verification-panel",
       "Open current source-pack case",
     ]);
+    requireCondition(html.includes("oklch("), "Command Center CSS should keep impeccable OKLCH color tokens.");
+    requireCondition(!html.includes("border-left: 3px"), "Command Center CSS should not use side-stripe card accents.");
+    requireCondition(!html.includes("background-clip: text"), "Command Center CSS should not use gradient text.");
+    requireCondition(!html.includes("backdrop-filter:"), "Command Center CSS should not use decorative glass blur.");
     checks.push({ name: "html", detail: "Command Center shell and verification UI fragments are present." });
 
     const overview = await fetchJson<Record<string, unknown>>(baseUrl, "/api/overview");

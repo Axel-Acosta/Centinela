@@ -315,3 +315,11 @@
 - Upgraded the Command Center with a guided proof path that opens the canonical live Consultora Guarani dossier, source-pack case `20`, generated artifact/source verification trail, and methodology limits.
 - Extended `npm run smoke:command-center` so the guided proof-path surface is part of the repeatable local interface gate.
 - Validation passed with `npm run check`, `npm run build`, `git diff --check`, and `npm run smoke:command-center`. Browser verification clicked the guided proof path: `Open case packet` loaded case `20`, and `Open evidence trail` loaded artifact/source verification with source-document matches, hash verification, and publication-gate checks.
+
+## 2026-05-15
+
+- Installed the real `pbakaus/impeccable` UI/UX skill project-locally with `npx --yes skills add pbakaus/impeccable --skill impeccable`; the install created `.agents/skills/impeccable` and `skills-lock.json`.
+- Added root `PRODUCT.md` and `DESIGN.md` so Impeccable can load Centinela-specific product context before future Command Center work.
+- Ran `.agents/skills/impeccable/scripts/load-context.mjs` successfully; it resolved context from the repo root and loaded both files.
+- Applied the first Impeccable-guided Command Center polish pass: converted the core palette to OKLCH/tinted neutrals, removed decorative glass blur and thick side-stripe card accents, switched the UI to a product-native system font stack, strengthened hover/focus states, and preserved the guided proof path and non-accusatory evidence language.
+- Extended `npm run smoke:command-center` so it now checks the Command Center for key Impeccable guardrails: OKLCH tokens, no thick side-stripe accents, no gradient text, and no decorative glass blur.

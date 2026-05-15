@@ -46,8 +46,12 @@ The verification/smoke product slice adds:
 The impeccable-guidance product slice adds:
 
 - `.impeccable.md`, a Centinela-local product quality contract for serious, source-first, non-accusatory interface work
+- the project-local `impeccable` skill installation under `.agents/skills/impeccable`, pinned by `skills-lock.json`
+- root `PRODUCT.md` and `DESIGN.md` files so the skill loads Centinela-specific product and visual context before future interface work
 - a guided proof path in the Command Center that starts with a live entity dossier, opens the source-backed case packet, loads generated artifacts, and surfaces verification/methodology limits
+- a first skill-guided polish pass that moves the Command Center toward OKLCH design tokens, removes decorative glass blur and side-stripe card accents, improves keyboard focus/hover states, and keeps the surface product-like rather than ornamental
 - smoke-test coverage for the guided proof-path surface so future interface work cannot accidentally hide the primary demonstration trail
+- smoke-test coverage for core impeccable guardrails: OKLCH token presence, no thick side-stripe accents, no gradient text, and no decorative glass blur
 
 The surface is designed to expose:
 
@@ -79,6 +83,7 @@ The surface is designed to expose:
 - source-pack case shortcuts from entity dossiers and showcase cards
 - source/artifact verification checks before analysts rely on local files
 - a guided proof path for `CONSULTORA GUARANI SA INGENIEROS CIVILES`, case `20`, and the current source-bundle verification trail
+- project-local `impeccable` context for future product-surface work
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -354,6 +359,7 @@ On the impeccable-guided proof-path test, the local browser path also confirmed:
 - Write-token protection is local hardening, not production authentication or role-based permissions.
 - Saved cases, analyst notes, evidence links, and case timelines exist, but the console casework UI is still an internal workbench rather than a full case-management product.
 - The command-center shell is presentable for local/internal review, but it is still not a production public UI.
+- The installed `impeccable` skill is project-local. If Codex does not show it in a fresh session, restart Codex or open a new session so `.agents/skills/impeccable` is picked up by the harness.
 - The case review packet is a readable internal surface over existing case data; it does not replace raw JSON, source verification, or analyst judgment.
 - The methodology and limits section is product guidance for internal review; it is not a complete public methodology page yet.
 - Artifact verification checks improve local review safety, but they do not convert generated bundles into public-ready packages.
