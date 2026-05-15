@@ -43,6 +43,12 @@ The verification/smoke product slice adds:
 - a visible artifact/source verification panel in the Command Center
 - `npm run smoke:command-center`, a repeatable live smoke harness for the main Command Center navigation paths
 
+The impeccable-guidance product slice adds:
+
+- `.impeccable.md`, a Centinela-local product quality contract for serious, source-first, non-accusatory interface work
+- a guided proof path in the Command Center that starts with a live entity dossier, opens the source-backed case packet, loads generated artifacts, and surfaces verification/methodology limits
+- smoke-test coverage for the guided proof-path surface so future interface work cannot accidentally hide the primary demonstration trail
+
 The surface is designed to expose:
 
 - entity search
@@ -72,6 +78,7 @@ The surface is designed to expose:
 - methodology and publication-safety guidance in the visible product surface
 - source-pack case shortcuts from entity dossiers and showcase cards
 - source/artifact verification checks before analysts rely on local files
+- a guided proof path for `CONSULTORA GUARANI SA INGENIEROS CIVILES`, case `20`, and the current source-bundle verification trail
 
 All outputs remain leads, identity context, or risk signals for review. They are not proof of wrongdoing.
 
@@ -194,6 +201,8 @@ Near-term interface work should prioritize:
 - only targeted interface fixes that unblock real analysis
 - later visual expansion for larger graph neighborhoods beyond the current one-hop API
 - return to Paraguay source expansion and person-relationship staging
+
+Future product-surface changes should follow `.impeccable.md`: dossier before dashboard, evidence trail over spectacle, review-first language everywhere, progressive disclosure, no fake proof, and visible source limitations.
 
 ## Current smoke-test result
 
@@ -332,6 +341,13 @@ On the verification/smoke-harness test, the local API path also confirmed:
 - overview returned `8,716` entities and `10,757` source records after Abogacia source expansion
 - entity search, dossier, network, case packet, artifact registry, artifact-detail, and source-pack readiness endpoints all returned expected live data
 - case `20` source-bundle artifact detail returned `8` verification checks, including path containment, hash verification, and publication gate checks
+
+On the impeccable-guided proof-path test, the local browser path also confirmed:
+
+- the Command Center page includes `Start with a Real Evidence Trail` and the `guided-proof-path` controls
+- `Open case packet` loads case `20` with review packet, source-backed evidence, and public-safety gate sections
+- `Open evidence trail` loads the latest case `20` source bundle detail with artifact/source verification, source-document matches, hash verification, and publication-gate checks
+- the path remains internal review context and does not convert source evidence into public findings
 
 ## Limits
 

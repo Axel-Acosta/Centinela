@@ -52,8 +52,10 @@
 26. Next best source-document move:
    do not add OCR for the latest three priority companies yet because selected DNCP contract URLs returned `404`; instead investigate alternate lawful DNCP document access only if those source packs become case-priority, or continue source-pack readiness rollout over the next ranked companies.
 27. Next best product-interface move:
-   only add targeted interface fixes if they unblock analysis; artifact/source verification checks and `npm run smoke:command-center` are now live.
+   only add targeted interface fixes if they unblock analysis; artifact/source verification checks, the guided proof path, `.impeccable.md`, and `npm run smoke:command-center` are now live.
 28. Treat the 2026-05-12 Command Center as the first presentable local/internal product surface:
-   it is strong enough to show the platform concept internally, now includes graph/artifact/readiness exploration, case review packets, source-document match previews, artifact/source verification checks, methodology/limits/publication-safety guidance, source-pack case shortcuts, and a repeatable smoke harness, but it is not a public launch surface and still needs production auth, privacy review, public-safe copy, and methodology pages before any public exposure.
+   it is strong enough to show the platform concept internally, now includes graph/artifact/readiness exploration, case review packets, source-document match previews, artifact/source verification checks, a guided evidence trail for Consultora Guarani/case 20, methodology/limits/publication-safety guidance, source-pack case shortcuts, and a repeatable smoke harness, but it is not a public launch surface and still needs production auth, privacy review, public-safe copy, and methodology pages before any public exposure.
 29. Treat Abogacia person-level data as staged:
    directors, shareholders, and beneficial-owner CSVs are publicly discoverable, but they include personal fields. Do not ingest them until Centinela has explicit privacy/minimization rules, relationship provenance, review queues, and public-display limits.
+30. Use `.impeccable.md` before substantial product-surface work:
+   the active standard is dossier before dashboard, evidence trail over spectacle, review-first language, progressive disclosure, no fake proof, source-grounded humility, and product polish only where it clarifies real workflow.

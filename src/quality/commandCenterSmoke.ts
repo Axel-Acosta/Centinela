@@ -94,6 +94,9 @@ async function main(): Promise<void> {
     containsAll(html, [
       "Command Center",
       "Methodology, Limits, and Publication Safety",
+      "Start with a Real Evidence Trail",
+      "guided-proof-path",
+      "Open evidence trail",
       "Source verification checklist",
       "artifact-verification-panel",
       "Open current source-pack case",

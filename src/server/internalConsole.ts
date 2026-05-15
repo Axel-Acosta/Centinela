@@ -936,6 +936,78 @@ function consoleHtml(): string {
       margin-bottom: 3px;
     }
 
+    .proof-path {
+      border-color: rgba(15, 104, 72, 0.2);
+      background:
+        linear-gradient(135deg, rgba(255, 252, 241, 0.94), rgba(237, 226, 199, 0.84)),
+        radial-gradient(circle at 96% 12%, rgba(244, 207, 114, 0.2), transparent 18rem);
+    }
+
+    .proof-path-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+
+    .proof-path-header p {
+      max-width: 800px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .proof-path-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .proof-step {
+      position: relative;
+      display: grid;
+      gap: 9px;
+      align-content: space-between;
+      min-height: 192px;
+      border: 1px solid rgba(141, 114, 69, 0.24);
+      border-radius: 22px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.58);
+    }
+
+    .proof-step::before {
+      content: attr(data-step);
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      color: #123029;
+      background: #f4cf72;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .proof-step strong {
+      font-size: 1.06rem;
+      line-height: 1.22;
+    }
+
+    .proof-step span {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.38;
+    }
+
+    .proof-step button {
+      justify-self: start;
+      margin-top: 4px;
+      padding: 8px 12px;
+      font-size: 0.88rem;
+    }
+
     .section-block {
       scroll-margin-top: 22px;
       margin-top: 18px;
@@ -1428,6 +1500,11 @@ function consoleHtml(): string {
       .workflow-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
+      .proof-path-header,
+      .proof-path-grid {
+        grid-template-columns: 1fr 1fr;
+      }
     }
 
     @media (max-width: 680px) {
@@ -1444,6 +1521,11 @@ function consoleHtml(): string {
       }
 
       .workflow-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .proof-path-header,
+      .proof-path-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -1485,6 +1567,42 @@ function consoleHtml(): string {
         <div>
           <strong>Review-first boundary</strong>
           <p>Centinela surfaces risk signals, identity context, source limitations, and review leads. It does not make accusations or legal conclusions.</p>
+        </div>
+      </section>
+
+      <section class="panel section-block proof-path" aria-labelledby="proof-path-title">
+        <div class="proof-path-header">
+          <div>
+            <h2 id="proof-path-title">Start with a Real Evidence Trail</h2>
+            <p>Use this guided path to see Centinela as a platform: live entity dossier, source-backed case packet, generated artifacts, verification checks, and methodology limits.</p>
+          </div>
+          <div class="chip-row" aria-label="Product quality principles">
+            <span class="chip">live data only</span>
+            <span class="chip warning">review context</span>
+            <span class="chip warning">not public-ready</span>
+          </div>
+        </div>
+        <div class="proof-path-grid" id="guided-proof-path">
+          <article class="proof-step" data-step="01">
+            <strong>Open the canonical dossier</strong>
+            <span>Start with Consultora Guarani, the current proof path for local identity, source records, and accepted identity context.</span>
+            <button id="quick-open-dossier" type="button">Open dossier</button>
+          </article>
+          <article class="proof-step" data-step="02">
+            <strong>Read the case packet</strong>
+            <span>Open case 20 to see linked targets, evidence links, timeline events, and the public-safety gate.</span>
+            <button id="quick-open-case-packet" type="button">Open case packet</button>
+          </article>
+          <article class="proof-step" data-step="03">
+            <strong>Verify source artifacts</strong>
+            <span>Load the generated bundle and inspect source-document matches, hashes, copied assets, source URLs, and limits.</span>
+            <button id="quick-open-evidence-trail" type="button">Open evidence trail</button>
+          </article>
+          <article class="proof-step" data-step="04">
+            <strong>Check the boundaries</strong>
+            <span>Review what Centinela may show, what it cannot conclude, and what must happen before public use.</span>
+            <button id="quick-open-methodology" type="button" class="secondary">Open methodology</button>
+          </article>
         </div>
       </section>
 
@@ -2031,6 +2149,47 @@ function consoleHtml(): string {
 
     function sourcePackShortcutForEntity(entityId) {
       return sourcePackShortcuts.find((item) => Number(item.entityId) === Number(entityId)) || null;
+    }
+
+    function canonicalProofShortcut() {
+      return sourcePackShortcuts.find((item) => Number(item.caseId) === 20) || sourcePackShortcuts[0] || null;
+    }
+
+    async function openCanonicalDossier() {
+      const shortcut = canonicalProofShortcut();
+      if (!shortcut) {
+        document.getElementById('detail').textContent = 'No canonical proof-path entity is configured.';
+        return;
+      }
+
+      await loadEntity(shortcut.entityId);
+      document.getElementById('dossier').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function openCanonicalCasePacket() {
+      const shortcut = canonicalProofShortcut();
+      if (!shortcut) {
+        document.getElementById('case-detail').textContent = 'No canonical proof-path case is configured.';
+        return;
+      }
+
+      await openSourcePackShortcut(shortcut);
+    }
+
+    async function openCanonicalEvidenceTrail() {
+      const shortcut = canonicalProofShortcut();
+      if (!shortcut) {
+        document.getElementById('case-artifacts').textContent = 'No canonical proof-path artifact trail is configured.';
+        return;
+      }
+
+      await openSourcePackShortcut(shortcut);
+      const registry = await fetchCaseArtifacts(false);
+      const latestBundlePath = registry && registry.data ? registry.data.latestBundlePath : null;
+      if (latestBundlePath) {
+        await loadArtifactDetail(latestBundlePath);
+      }
+      document.getElementById('artifact-detail-preview').scrollIntoView({ behavior: 'smooth' });
     }
 
     async function openSourcePackShortcut(shortcut) {
@@ -3500,6 +3659,24 @@ function consoleHtml(): string {
     }
 
     document.getElementById('search-form').addEventListener('submit', searchEntities);
+    document.getElementById('quick-open-dossier').addEventListener('click', () => {
+      openCanonicalDossier().catch((error) => {
+        document.getElementById('detail').textContent = error.message;
+      });
+    });
+    document.getElementById('quick-open-case-packet').addEventListener('click', () => {
+      openCanonicalCasePacket().catch((error) => {
+        document.getElementById('case-detail').textContent = error.message;
+      });
+    });
+    document.getElementById('quick-open-evidence-trail').addEventListener('click', () => {
+      openCanonicalEvidenceTrail().catch((error) => {
+        document.getElementById('case-artifacts').textContent = error.message;
+      });
+    });
+    document.getElementById('quick-open-methodology').addEventListener('click', () => {
+      document.getElementById('methodology').scrollIntoView({ behavior: 'smooth' });
+    });
     document.getElementById('save-note').addEventListener('click', () => {
       saveCurrentEntityNote().catch((error) => {
         document.getElementById('detail').textContent = error.message;
