@@ -323,3 +323,17 @@
 - Ran `.agents/skills/impeccable/scripts/load-context.mjs` successfully; it resolved context from the repo root and loaded both files.
 - Applied the first Impeccable-guided Command Center polish pass: converted the core palette to OKLCH/tinted neutrals, removed decorative glass blur and thick side-stripe card accents, switched the UI to a product-native system font stack, strengthened hover/focus states, and preserved the guided proof path and non-accusatory evidence language.
 - Extended `npm run smoke:command-center` so it now checks the Command Center for key Impeccable guardrails: OKLCH tokens, no thick side-stripe accents, no gradient text, and no decorative glass blur.
+## 2026-05-15 - Abogacia person relationship staging
+
+- Implemented and ran the privacy-minimized Abogacia person relationship staging lane.
+- Added `sql/postgres/020_abogacia_relationship_staging.sql` with `entity_relationship_staging`, `entity_relationship_staging_overview`, and `entity_relationship_staging_summary`.
+- Added `src/enrichment/abogaciaPersonRelationshipStaging.ts` and `npm run enrichment:abogacia-person-relationship-staging`.
+- The connector parses official Abogacia beneficial-owner, director, and shareholder files in memory and does not persist raw full personal CSV files, raw person names, document numbers, addresses, birth dates, phone numbers, or emails.
+- Staged rows store redacted display initials, one-way person-name hashes, source-row hashes, source line numbers, RUC-base company links, relationship attributes, provenance, and limitations.
+- Updated entity briefs, internal API profiles, and graph-ready network output so staged relationship leads are visible as review-only, redacted, non-public context.
+- Applied migration `020` to the live VPS-backed database.
+- Live source run `52` staged 90 redacted review-only relationship leads: 30 beneficial-owner rows, 30 director rows, and 30 shareholder rows. The connector observed 59,584 raw source rows, parsed 58,613 relationship rows, and found 1,776 procurement-linked rows by RUC base.
+- Generated a CODEX S.R.L. entity brief confirming staged leads appear in the analyst dossier. Internal API/network check found 4 staged relationship rows, 4 redacted staged-person nodes, and 4 staged relationship edges for entity `3419`.
+- Verification passed: `npm run check`, `npm run build`, `npm run smoke:command-center`, and `git diff --check`.
+- Added `docs/methodology/abogacia-person-relationship-staging.md` and updated source plan/status/roadmap/reference docs.
+- Next: inspect the pilot for usefulness, then decide whether to widen the batch or build promotion governance.

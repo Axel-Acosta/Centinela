@@ -117,6 +117,7 @@ export async function getInternalOverview(): Promise<Record<string, unknown>> {
          (select count(*) from ${schema}.entity_external_risk_signals)::int as external_risk_signals,
          (select count(*) from ${schema}.entity_enrichment_candidate_review_overview)::int as external_candidate_records,
          (select count(*) from ${schema}.entity_relationships)::int as relationship_edges,
+         (select count(*) from ${schema}.entity_relationship_staging)::int as staged_relationship_leads,
          (select count(*) from ${schema}.source_records)::int as source_records,
          (select count(*) from ${schema}.analyst_case_overview)::int as analyst_cases,
          (select count(*) from ${schema}.analyst_note_overview)::int as analyst_notes,
@@ -175,6 +176,13 @@ export async function searchEntities(options: SearchEntitiesOptions = {}): Promi
            array_agg(distinct concat(scheme, ':', value) order by concat(scheme, ':', value)) as identifiers
          from ${schema}.entity_identifiers
          group by entity_id
+       ),
+       staged_relationship_summary as (
+         select
+           entity_id,
+           sum(staged_relation_count)::int as staged_relationship_lead_count
+         from ${schema}.entity_relationship_staging_summary
+         group by entity_id
        )
        select
          entities.id::text as entity_id,
@@ -194,7 +202,8 @@ export async function searchEntities(options: SearchEntitiesOptions = {}): Promi
          queue.recommended_action,
          coalesce(queue.external_match_count, 0)::int as external_match_count,
          coalesce(queue.external_review_candidate_count, 0)::int as external_review_candidate_count,
-         coalesce(queue.representative_count, 0)::int as representative_count
+         coalesce(queue.representative_count, 0)::int as representative_count,
+         coalesce(staged_relationship_summary.staged_relationship_lead_count, 0)::int as staged_relationship_lead_count
        from ${schema}.entities as entities
        left join identifier_summary
          on identifier_summary.entity_id = entities.id
@@ -202,6 +211,8 @@ export async function searchEntities(options: SearchEntitiesOptions = {}): Promi
          on activity.entity_id = entities.id
        left join ${schema}.entity_intelligence_review_queue as queue
          on queue.entity_id = entities.id
+       left join staged_relationship_summary
+         on staged_relationship_summary.entity_id = entities.id
        where
          $1::text is null
          or entities.normalized_name ilike '%' || lower($1::text) || '%'
@@ -360,6 +371,43 @@ export async function getEntityProfile(entityId: number): Promise<Record<string,
       [entityId],
     );
 
+    const stagedRelationships = await client.query<Record<string, unknown>>(
+      `select
+         id::text,
+         source_run_id::text,
+         source_record_id::text,
+         source_key,
+         relation_type,
+         relation_label,
+         related_entity_type,
+         related_person_display,
+         related_person_name_hash,
+         source_row_hash,
+         source_line_number::int,
+         match_method,
+         match_confidence::text,
+         review_status,
+         public_display_status,
+         promotion_status,
+         rationale,
+         relationship_attributes,
+         provenance,
+         limitations,
+         source_url
+       from ${schema}.entity_relationship_staging_overview
+       where company_entity_id = $1
+       order by
+         case relation_type
+           when 'abogacia_beneficial_owner_staged' then 3
+           when 'abogacia_director_staged' then 2
+           else 1
+         end desc,
+         match_confidence desc nulls last,
+         source_line_number
+       limit 50`,
+      [entityId],
+    );
+
     const counterpartyEdges = await client.query<Record<string, unknown>>(
       `select
          buyer_entity_id::text,
@@ -442,6 +490,14 @@ export async function getEntityProfile(entityId: number): Promise<Record<string,
          where entity_id = $1
            and source_key is not null
            and external_id is not null
+
+         union
+
+         select source_key, source_record_external_id as external_id
+         from ${schema}.entity_relationship_staging_overview
+         where company_entity_id = $1
+           and source_key is not null
+           and source_record_external_id is not null
        )
        select distinct
          records.id::text,
@@ -496,6 +552,7 @@ export async function getEntityProfile(entityId: number): Promise<Record<string,
       externalCandidates: normalizeRows(externalCandidates.rows),
       secondReviews: normalizeRows(secondReviews.rows),
       representatives: normalizeRows(representatives.rows),
+      stagedRelationships: normalizeRows(stagedRelationships.rows),
       counterpartyEdges: normalizeRows(counterpartyEdges.rows),
       processes: normalizeRows(processes.rows),
       sourceRecords: normalizeRows(sourceRecords.rows),
@@ -630,6 +687,76 @@ export async function getEntityNetwork(entityId: number, options: ListOptions = 
             },
           },
           row.confidence,
+        ),
+      );
+    }
+
+    const stagedRelationships = await client.query<Record<string, unknown>>(
+      `select
+         id::text,
+         relation_type,
+         relation_label,
+         related_person_display,
+         related_person_name_hash,
+         source_row_hash,
+         source_line_number::int,
+         match_confidence::text,
+         review_status,
+         public_display_status,
+         promotion_status,
+         relationship_attributes,
+         source_url
+       from ${schema}.entity_relationship_staging_overview
+       where company_entity_id = $1
+       order by
+         case relation_type
+           when 'abogacia_beneficial_owner_staged' then 3
+           when 'abogacia_director_staged' then 2
+           else 1
+         end desc,
+         match_confidence desc nulls last,
+         source_line_number
+       limit $2`,
+      [entityId, limit],
+    );
+
+    for (const row of stagedRelationships.rows) {
+      const stagedNodeId = `staged-person:${row.related_person_name_hash as string}:${row.relation_type as string}`;
+      addNode({
+        id: stagedNodeId,
+        label: row.related_person_display as string,
+        kind: "staged_person_relationship_lead",
+        metadata: {
+          relationType: row.relation_type,
+          relationLabel: row.relation_label,
+          reviewStatus: row.review_status,
+          publicDisplayStatus: row.public_display_status,
+          promotionStatus: row.promotion_status,
+          sourceLineNumber: row.source_line_number,
+          sourceUrl: row.source_url,
+          personalDataRedacted: true,
+        },
+      });
+      addEdge(
+        withConfidence(
+          {
+            id: `staged-relationship:${entityId}:${row.id as string}`,
+            source: centerId,
+            target: stagedNodeId,
+            relation: row.relation_type as string,
+            metadata: {
+              relationLabel: row.relation_label,
+              reviewStatus: row.review_status,
+              publicDisplayStatus: row.public_display_status,
+              promotionStatus: row.promotion_status,
+              sourceRowHash: row.source_row_hash,
+              sourceLineNumber: row.source_line_number,
+              relationshipAttributes: row.relationship_attributes,
+              nonAccusatoryUse: true,
+              reviewOnly: true,
+            },
+          },
+          row.match_confidence,
         ),
       );
     }

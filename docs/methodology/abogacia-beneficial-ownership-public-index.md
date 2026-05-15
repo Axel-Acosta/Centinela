@@ -64,14 +64,23 @@ The match is company/accountability context only. It is not an ownership conclus
 
 The same portal exposes richer director, shareholder, and beneficial-owner CSVs. These are high-value, but they include personal fields. Centinela should not ingest them casually.
 
-Before person-level ingestion, add:
+Centinela now implements the first privacy-minimized staging lane in `docs/methodology/abogacia-person-relationship-staging.md`.
+
+The staging lane:
+
+- parses official person-relationship files in memory
+- stores no raw personal CSV files
+- stores no raw person names, document numbers, addresses, birth dates, phone numbers, or emails
+- stores only redacted relationship leads in `entity_relationship_staging`
+- keeps all rows `staged_review_only`, `blocked_personal_data`, and `not_promoted`
+
+Before any public person-level use, still add:
 
 - a privacy review boundary
-- person-field minimization rules
-- relationship-specific provenance and time-bounding
-- public-copy limits
-- a person/entity relationship review queue
-- a public-safe display policy
+- public-facing copy limits
+- person/entity promotion governance
+- legal/methodology review for any raw-source inspection workflow
+- a public-safe display policy beyond the internal redacted lane
 
 ## Reference Influence
 

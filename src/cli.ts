@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import { runAbogaciaBeneficialOwnershipPublicIndex } from "./enrichment/abogaciaBeneficialOwnershipPublicIndex";
+import { runAbogaciaPersonRelationshipStaging } from "./enrichment/abogaciaPersonRelationshipStaging";
 import { runDnitRucEquivalence } from "./enrichment/dnitRucEquivalence";
 import { runDncpDocumentContentExtraction } from "./enrichment/dncpDocumentContent";
 import { runDncpReleaseSourceCheck } from "./enrichment/dncpReleaseSourceCheck";
@@ -473,6 +474,28 @@ async function runEnrichmentAbogaciaBeneficialOwnershipPublicIndex(args: string[
   console.log(`Raw parsed evidence: ${result.rawJsonPath}`);
   console.log(`Report: ${result.reportPath}`);
   console.log("Reminder: this first connector ingests company-level public index presence only, not personal ownership records or accusations.");
+}
+
+async function runEnrichmentAbogaciaPersonRelationshipStaging(args: string[]): Promise<void> {
+  const limit = readNumberArg(args, "--limit", 250);
+  const dryRun = readBooleanArg(args, "--dry-run", false);
+  const relationKinds = readListArg(args, "--relation-kinds");
+  const result = await runAbogaciaPersonRelationshipStaging({
+    limit,
+    dryRun,
+    ...(relationKinds ? { relationKinds } : {}),
+  });
+
+  console.log("Abogacia person relationship staging completed.");
+  console.log(`Dry run: ${result.dryRun}`);
+  console.log(`Source run ID: ${result.sourceRunId ?? "n/a"}`);
+  console.log(`Local company targets: ${result.localTargetCount}`);
+  console.log(`Raw rows observed: ${result.totalRawRows}`);
+  console.log(`Procurement-linked rows: ${result.totalProcurementLinkedRows}`);
+  console.log(`Staged review-only rows: ${result.totalStagedRows}`);
+  console.log(`Redacted summary: ${result.summaryPath}`);
+  console.log(`Report: ${result.reportPath}`);
+  console.log("Reminder: staged person relationships are review-only, redacted, and not public accusations or accepted graph facts.");
 }
 
 async function runEnrichmentDncpSupplierAnchor(args: string[]): Promise<void> {
@@ -1003,6 +1026,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (domain === "enrichment" && command === "abogacia-person-relationship-staging") {
+    await runEnrichmentAbogaciaPersonRelationshipStaging(args);
+    return;
+  }
+
   if (domain === "enrichment" && command === "dncp-supplier-anchor") {
     await runEnrichmentDncpSupplierAnchor(args);
     return;
@@ -1040,6 +1068,7 @@ async function main(): Promise<void> {
 - tsx src/cli.ts enrichment opensanctions
 - tsx src/cli.ts enrichment opensanctions-hosted-match --dry-run true --limit 25
 - tsx src/cli.ts enrichment abogacia-beneficial-ownership-public-index --dry-run true
+- tsx src/cli.ts enrichment abogacia-person-relationship-staging --dry-run true --limit 250
 - tsx src/cli.ts enrichment dncp-supplier-anchor --limit 200 --only-unanchored true --offset 0 --concurrency 4
 - tsx src/cli.ts enrichment dnit-ruc-equivalence --limit 10000 --only-anchor-gaps false
 - tsx src/cli.ts enrichment idb-sanctions-candidate --candidate-id 59 --update-review true

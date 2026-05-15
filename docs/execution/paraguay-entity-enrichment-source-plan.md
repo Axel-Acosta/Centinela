@@ -17,6 +17,7 @@ It records which company, sanctions, ownership, offshore, and accountability sou
   - IDB Open Data sanctioned firms and individuals dataset as a row-level source check for IADB/OpenSanctions candidates
   - DNCP official OCDS release packages and document metadata as entity-linked source records through `py-dncp-release-source-check`
   - Abogacia del Tesoro public company-level beneficial-ownership index through `py-abogacia-beneficial-ownership-public-index`
+  - privacy-minimized Abogacia director/shareholder/beneficial-owner relationship staging through `py-abogacia-person-relationship-staging`
 - Why
   - publicly reachable in bulk without waiting for credentials
   - DNCP's supplier and sanctions surfaces are the strongest available local Paraguay company/disqualification anchor from the current repo state
@@ -178,7 +179,7 @@ It records which company, sanctions, ownership, offshore, and accountability sou
 - Contains
   - company-level public index rows from the Personas Jurídicas y Beneficiarios Finales open-data portal
   - current connector uses only `ruc_nro` and `denominacion`
-  - richer director, shareholder, and beneficial-owner datasets are discovered but not ingested yet
+  - richer director, shareholder, and beneficial-owner datasets are parsed only through the privacy-minimized staging lane
 - Access
   - official public open-data portal at `https://datos.abogacia.gov.py/`
   - company CSV at `https://datos.abogacia.gov.py/assets/docs/beneficiario-final-publico.csv`
@@ -187,27 +188,35 @@ It records which company, sanctions, ownership, offshore, and accountability sou
   - company denomination
   - source line number
   - source CSV/dictionary URLs and local source asset hashes
+  - redacted relationship display initials, relationship type, source-row hash, one-way name hash, and non-sensitive relationship attributes for staged person rows
 - Maps to
   - `source_records`
   - `entity_local_profiles`
   - `entity_source_mentions`
   - `entity_identifiers`
-  - future company-to-person/company-to-company relationship staging
+  - `entity_relationship_staging` and graph-ready internal review nodes
 - Legal and ethical cautions
   - current ingestion is company-level only
-  - person-level beneficial-owner, director, shareholder, address, birth-date, and document-number fields are intentionally not ingested yet
+  - raw person names, document numbers, addresses, birth dates, phone numbers, emails, and raw full personal CSV files are not persisted by the staging connector
+  - staged person rows are internal review leads blocked from public display and not promoted into accepted person entities
   - public-index presence is not an ownership conclusion or wrongdoing signal
 - Immediate value
   - very high
 - Use timing
   - now for company-level public index
-  - staged for person-level relationships after privacy/minimization/review policy
+  - now for redacted person-relationship staging
+  - staged later for any promotion to person entities or public display
 - Current implementation on 2026-05-14
   - source key `py-abogacia-beneficial-ownership-public-index`
   - live source run `49`
   - 31,649 public company rows parsed
   - 5,040 procurement-linked RUC targets considered
   - 899 procurement-linked companies matched by RUC base
+- Current implementation on 2026-05-15
+  - source key `py-abogacia-person-relationship-staging`
+  - schema `entity_relationship_staging`
+  - connector parses official director, shareholder, and beneficial-owner files in memory
+  - connector stores redacted, review-only relationship leads for procurement-linked companies without raw person names or document/address fields
 
 ### 5. OpenCorporates
 
@@ -300,8 +309,9 @@ It records which company, sanctions, ownership, offshore, and accountability sou
   - company-level entity-intelligence review queue for local anchor gaps, local administrative history, representative density, and external-risk state
   - DNCP release source-check records for official process documents around high-priority entities
   - Abogacia company-level public beneficial-ownership index matches for procurement-linked companies
+  - Abogacia redacted person-relationship staging for ownership/director/shareholder-ready internal review
 - Queue next
-  - design a person-level relationship staging lane for Abogacia directors, shareholders, and beneficial owners
+  - run a wider Abogacia relationship-staging batch only after checking the first pilot results and dossier usefulness
   - widen DNCP release/document checks over high-priority company dossiers and candidate-review entities where casework needs them
   - recover the missing RUC check digit for the last unresolved anchor gap only if a new lawful source exposes it
   - add selected official document-content extraction/OCR once the source-record metadata layer identifies which documents matter

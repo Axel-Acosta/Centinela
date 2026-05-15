@@ -1023,9 +1023,9 @@ Concrete proof artifacts:
 ## Next extraction priority
 
 - highest priority
-  - completed on 2026-05-14: safer artifact/source verification affordances and a small Command Center smoke harness are now live
+  - completed on 2026-05-15: privacy-minimized Abogacia person relationship staging is now implemented as schema, connector, dossier/API surface, and graph-ready redacted nodes
 - next after that
-  - continue the Abogacia ownership-ready source path by designing a privacy-safe person-relationship staging lane before ingesting directors, shareholders, or beneficial owners
+  - review the first Abogacia staging pilot, then either widen the redacted batch or implement promotion governance for staged relationships
   - continue readiness-ranked DNCP release/document source-record checks across the highest-priority companies/candidates and use `py-dncp-document-content` only for source records that need captured official files or explicit source-access limitation records
   - add OCR only for case-priority scanned PDFs after weighing dependency cost, privacy/source-review burden, and concrete analyst value
   - revisit the final RUC anchor gap only when a new lawful source can expose the missing check digit; DNIT bulk, DNCP OCDS JSON, DNCP supplier search, and locally parsed official PDFs did not resolve it
@@ -1067,3 +1067,28 @@ Staged, not yet done:
 - FUNES: needs relationship-aware rules that use political, financial, or oversight context beyond procurement alone.
 - Paraguay DNCP red flags work: needs a formal rule crosswalk instead of only language and framing influence.
 - RUBLI: needs the exact intended source confirmed, then direct methodology and limitations structure can be borrowed more concretely.
+
+## 2026-05-15 Abogacia person-relationship staging advancement
+
+- br/acc
+  - advanced because Centinela now stages source-backed public-data relationships with source runs, source assets, redacted source records, source-row hashes, and explicit provenance before any graph promotion.
+- OpenOwnership
+  - advanced because director, shareholder, and beneficial-owner roles are represented as ownership-ready relationship types without overclaiming beneficial ownership or control.
+- Sayari
+  - advanced because entity dossiers and graph-ready API output now expose company/person relationship leads in a professional analyst workflow while keeping review and promotion status visible.
+- QuiénEsQuién / TodosLosContratos
+  - advanced because company-contract accountability can now point to redacted relationship context around procurement-linked companies, not only contracts and supplier profiles.
+- Aleph
+  - advanced because entity briefs now include source-linked relationship leads with source records, line numbers, hashes, and limitations for casework.
+- Integrity Watch / RUBLI
+  - advanced because the connector stores public-display status, promotion status, limitations, and non-accusatory rationale beside each staged row instead of burying methodology in prose.
+
+Concrete proof artifacts:
+
+- `sql/postgres/020_abogacia_relationship_staging.sql`
+- `src/enrichment/abogaciaPersonRelationshipStaging.ts`
+- `npm run enrichment:abogacia-person-relationship-staging`
+- `docs/methodology/abogacia-person-relationship-staging.md`
+- entity brief `Abogacia staged person relationship leads` section in `src/storage/analyst.ts`
+- internal API `stagedRelationships` entity profile field and graph-ready redacted staged-person nodes in `src/storage/internalApi.ts`
+- live source run `52`: 90 staged review-only rows across beneficial-owner, director, and shareholder lanes

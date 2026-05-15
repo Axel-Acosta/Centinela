@@ -196,6 +196,26 @@ interface EntityRepresentativeRow {
   provider_ruc: string | null;
 }
 
+interface EntityRelationshipStagingRow {
+  id: string;
+  source_record_id: string | null;
+  source_key: string;
+  relation_type: string;
+  relation_label: string;
+  related_person_display: string;
+  related_person_name_hash: string;
+  source_row_hash: string;
+  source_line_number: string | null;
+  match_method: string;
+  match_confidence: string | null;
+  review_status: string;
+  public_display_status: string;
+  promotion_status: string;
+  rationale: string;
+  relationship_attributes: unknown;
+  source_url: string | null;
+}
+
 interface RepresentativeExternalMatchRow {
   representative_name: string;
   representative_source_key: string;
@@ -769,6 +789,7 @@ function renderEntityBrief(
   externalCandidates: EntityExternalCandidateRow[],
   hostedComparisons: EntityHostedComparisonRow[],
   representatives: EntityRepresentativeRow[],
+  stagedRelationshipLeads: EntityRelationshipStagingRow[],
   representativeExternalMatches: RepresentativeExternalMatchRow[],
   representativeExternalCandidates: RepresentativeExternalCandidateRow[],
   representativeHostedComparisons: RepresentativeHostedComparisonRow[],
@@ -1139,6 +1160,40 @@ function renderEntityBrief(
   }
 
   lines.push("");
+  lines.push("## Abogacia staged person relationship leads");
+  lines.push("");
+
+  if (stagedRelationshipLeads.length === 0) {
+    lines.push(
+      "- No Abogacia person relationship leads are currently staged for this entity. This does not mean no relationship exists; it means no privacy-minimized Abogacia row is currently linked in Centinela.",
+    );
+  } else {
+    lines.push(
+      "- These are redacted, review-only relationship leads from Paraguay's official Abogacia open-data portal. They are not accepted person entities, ownership findings, sanctions matches, or proof of wrongdoing.",
+    );
+    lines.push("");
+    for (const lead of stagedRelationshipLeads) {
+      lines.push(`### ${lead.related_person_display} - ${lead.relation_label}`);
+      lines.push(`- Staging ID: ${lead.id}`);
+      lines.push(`- Source key: ${lead.source_key}`);
+      lines.push(`- Source record ID: ${lead.source_record_id ?? "n/a"}`);
+      lines.push(`- Relation type: ${lead.relation_type}`);
+      lines.push(`- Match method: ${lead.match_method}`);
+      lines.push(`- Match confidence: ${lead.match_confidence ?? "n/a"}`);
+      lines.push(`- Review status: ${lead.review_status}`);
+      lines.push(`- Public display status: ${lead.public_display_status}`);
+      lines.push(`- Promotion status: ${lead.promotion_status}`);
+      lines.push(`- Source line: ${lead.source_line_number ?? "n/a"}`);
+      lines.push(`- Source row hash: ${lead.source_row_hash}`);
+      lines.push(`- Redacted person hash: ${lead.related_person_name_hash}`);
+      lines.push(`- Relationship attributes: ${JSON.stringify(lead.relationship_attributes)}`);
+      lines.push(`- Source URL: ${lead.source_url ?? "n/a"}`);
+      lines.push(`- Rationale: ${lead.rationale}`);
+      lines.push("");
+    }
+  }
+
+  lines.push("");
   lines.push("## Representative external screening candidates");
   lines.push("");
 
@@ -1297,6 +1352,7 @@ function renderEntityBrief(
   lines.push("- DNCP supplier anchors and DNIT RUC equivalence profiles are the strongest current local Paraguay identity layers in Centinela and should be preferred over weaker name-only assumptions.");
   lines.push("- The entity-intelligence triage section above is the current company-level review handoff: it turns anchor gaps, local administrative history, representative density, and external screening into one follow-up lens.");
   lines.push("- Representative links are official-profile relationship leads that make future ownership-style exploration possible, but they remain text-derived and reviewable.");
+  lines.push("- Abogacia staged person relationship leads add an ownership/director/shareholder-ready lane without storing raw person names or promoting relationship rows into public graph facts.");
   lines.push("- OpenSanctions accepted matches, review-only candidates, and rejected diagnostics are separated so analysts can see why a lead was surfaced without treating it as proof of identity or wrongdoing.");
   lines.push("- Hosted matcher comparison evidence is now stored separately so analysts can distinguish same-candidate confirmations from broad-name alternative hits before promoting any candidate.");
   lines.push("- Future enrichment should add ownership, representation, and offshore context without overwriting local Paraguayan facts.");
@@ -2088,6 +2144,39 @@ export async function buildEntityBrief(
       [entity.entity_id],
     );
 
+    const stagedRelationshipResult = await client.query<EntityRelationshipStagingRow>(
+      `select
+         id::text,
+         source_record_id::text,
+         source_key,
+         relation_type,
+         relation_label,
+         related_person_display,
+         related_person_name_hash,
+         source_row_hash,
+         source_line_number::text,
+         match_method,
+         match_confidence::text,
+         review_status,
+         public_display_status,
+         promotion_status,
+         rationale,
+         relationship_attributes,
+         source_url
+       from ${schema}.entity_relationship_staging_overview
+       where company_entity_id::text = $1
+       order by
+         case relation_type
+           when 'abogacia_beneficial_owner_staged' then 3
+           when 'abogacia_director_staged' then 2
+           else 1
+         end desc,
+         match_confidence desc nulls last,
+         source_line_number
+       limit 12`,
+      [entity.entity_id],
+    );
+
     const representativeExternalMatchResult = await client.query<RepresentativeExternalMatchRow>(
       `select
          representatives.representative_name,
@@ -2341,6 +2430,7 @@ export async function buildEntityBrief(
       externalCandidateResult.rows,
       hostedComparisonResult.rows,
       representativeResult.rows,
+      stagedRelationshipResult.rows,
       representativeExternalMatchResult.rows,
       representativeExternalCandidateResult.rows,
       representativeHostedComparisonResult.rows,
