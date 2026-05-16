@@ -48,6 +48,9 @@ async function main(): Promise<void> {
     assert(!html.includes("/api/analyst-cases/"), "Public page should not call internal analyst-case APIs.");
     assert(!html.includes("CENTINELA_WRITE_TOKEN"), "Public page should not mention write-token internals.");
 
+    const head = await fetch(`${baseUrl}/`, { method: "HEAD" });
+    assert(head.ok, "Public page HEAD request did not return 200.");
+
     const health = await getJson(`${baseUrl}/healthz`);
     assert(health.ok === true, "Health endpoint did not return ok.");
 

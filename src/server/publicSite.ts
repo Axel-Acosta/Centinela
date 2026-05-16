@@ -1028,8 +1028,8 @@ export async function servePublicSite(options: PublicSiteOptions = {}): Promise<
         return;
       }
 
-      if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
-        sendHtml(response, 200, publicHtml());
+      if (url.pathname === "/" || url.pathname === "/index.html") {
+        sendHtml(response, 200, request.method === "HEAD" ? "" : publicHtml());
         return;
       }
 
