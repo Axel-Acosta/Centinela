@@ -38,7 +38,9 @@
     "database:entity-anchor-gaps": "tsx src/cli.ts database entity-anchor-gaps",
     "database:rulebook": "tsx src/cli.ts database rulebook",
     "serve:internal-console": "tsx src/cli.ts serve internal-console",
-    "smoke:command-center": "tsx src/quality/commandCenterSmoke.ts"
+    "serve:public-web": "tsx src/cli.ts serve public-web",
+    "smoke:command-center": "tsx src/quality/commandCenterSmoke.ts",
+    "smoke:public-web": "tsx src/quality/publicWebSmoke.ts"
   },
   "keywords": [],
   "author": "",

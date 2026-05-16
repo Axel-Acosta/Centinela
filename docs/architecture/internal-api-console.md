@@ -6,6 +6,8 @@ Centinela now has a first local-only analyst API and console surface.
 
 It is not a public product yet. It is the bridge from markdown reports to an explorable investigation workspace, and now the first product-like internal interface for presenting the live intelligence system coherently.
 
+Centinela also now has a separate public-safe web surface documented in `docs/deployment/public-web.md`. That surface is deliberately read-only and sanitized. It is the right surface to expose remotely; the internal Command Center should remain local or protected until production authentication, privacy review, and role-based access exist.
+
 The 2026-05-12 product-surface slice turns the console into a local Command Center rather than a raw workbench. It adds:
 
 - a navigable app shell for overview, entities, dossiers, casework, queues, and methodology
@@ -107,6 +109,14 @@ CENTINELA_ALLOW_REMOTE_CONSOLE=true
 ```
 
 Do not expose this first internal console publicly. It has no production authentication layer yet.
+
+For public access, use:
+
+```bash
+npm run serve:public-web -- --host 0.0.0.0 --port 8788
+```
+
+The public web service exposes only `/`, `/healthz`, and `/api/public/*`.
 
 Write endpoints are disabled unless `CENTINELA_WRITE_TOKEN` is set. When enabled locally, the token must be supplied as `X-Centinela-Write-Token` or as a Bearer token.
 

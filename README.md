@@ -19,6 +19,7 @@ This first foundation run prioritizes:
 - `research/` comparative system analysis and Paraguay source mapping
 - `docs/` architecture, red-flag, and VPS/storage notes
 - `docs/architecture/internal-api-console.md` first local analyst API and console surface
+- `docs/deployment/public-web.md` public-safe read-only web surface and deployment boundary
 - `docs/execution/progress-and-remaining-work.md` current completion estimate and remaining milestones
 - `docs/methodology/analyst-workspace.md` saved notes, cases, evidence links, case timelines, source-record drilldowns, graph export rules, evidence export gates, and public-safety review states
 - `docs/methodology/external-candidate-review-workflow.md` manual external-candidate review status workflow
@@ -87,6 +88,8 @@ npm run database:entity-source-pack -- --entity-name "Entity Name" --source-reco
 npm run database:entity-anchor-gaps -- --limit 50
 npm run database:rulebook -- --source-key py-dncp-bulk-2026
 npm run serve:internal-console -- --host 127.0.0.1 --port 8787
+npm run serve:public-web -- --host 127.0.0.1 --port 8788
+npm run smoke:public-web
 ```
 
 Those commands fetch annual DNCP OCDS bulk slices, persist them into PostgreSQL, and then generate database-backed internal investigation artifacts including analyst briefs, review queues, entity dossiers, external-candidate review, manual candidate-review status updates, and rulebook methodology outputs.
@@ -94,6 +97,7 @@ The IDB command is a source-document evidence check for OpenSanctions/IADB candi
 The DNCP release source-check command fetches official DNCP OCDS release packages for already-linked entity/process records and stores release/document metadata as source records for casework.
 The DNCP document-content command captures selected official DNCP document files from persisted document metadata, stores hashes and source assets, attempts bounded text extraction, and records parser/OCR limits without treating them as findings.
 The internal console command serves a local-only analyst surface and JSON API for entity search, dossiers, graph-ready network neighborhoods, graph export, source-record drilldowns, source field suggestions, review queues, external candidates, accepted matches, token-protected analyst notes/cases, evidence links, case timelines, evidence export, public-safety review gates, token-protected case artifact/source-bundle/source-index generation, entity source-pack generation, and generated-artifact rediscovery.
+The public web command serves a separate read-only public-safe surface for country-scale procurement risk-rule coverage, public-safe company search, one company evidence profile, methodology boundaries, and the future verified-transparency-profile model. It does not expose internal analyst write routes, local artifact paths, raw person-level staged rows, or private notes.
 The case evidence export command writes Markdown and JSON artifacts to the local runtime folder with a source-record index; public-only artifacts require `approved_public`.
 The case source manifest command writes Markdown and JSON attachment manifests with linked source records, source-run assets, source URLs, hashes, and local path availability; public-only manifests require `approved_public`.
 The case source bundle command writes a local review folder with evidence files, source manifest files, `bundle-index.json`, `README.md`, and copied source-run assets when local paths resolve; public-only bundles require `approved_public`, but copied raw files still need review before public reuse.
@@ -111,6 +115,7 @@ Generated output paths are controlled by `CENTINELA_OUTPUT_DIR`; leave it blank 
 - The first selected official DNCP document-content capture lane is live. It currently stores 2 captured official contract PDFs with SHA-256 hashes and `no_extractable_text` extraction status for high-priority entity dossiers.
 - The second-review governance workflow is live. Candidate `59`, `CONSULTORA GUARANI SA INGENIEROS CIVILES` -> `Consultora Guaraní S.A. Ingenieros Civiles`, is the first accepted external enrichment match; it created accepted identity context, not an external risk signal.
 - The first internal API/console slice is live locally through `npm run serve:internal-console`, exposing entity search, entity profiles, graph-ready networks, queues, candidates, and accepted matches.
+- The first public web surface is live in code through `npm run serve:public-web`, with public-safe APIs under `/api/public/*` and a Docker deployment path for `centinela.acostadom.space`.
 - The first analyst-workspace hardening slice is live in schema, API, console, and CLI: source-record drilldowns, field suggestions, graph exports, saved cases, case links, saved analyst notes, source-record evidence links, case timelines, evidence exports, public-safety review states, Markdown/JSON case export artifacts, source attachment manifests, local source bundles, source-document indexes, console/API controls to generate those local artifacts, and a lightweight artifact registry for rediscovering generated case packets. Write endpoints require `CENTINELA_WRITE_TOKEN`.
 - The entity source-pack workflow is live as the first one-command bridge from entity-linked source records to casework artifacts. The first live packs are case `19` for `MENDEZ GONZALEZ FLORIANA *` and case `20` for `CONSULTORA GUARANI SA INGENIEROS CIVILES`.
 - The current local Paraguay identity anchor now covers 2,533 of 2,534 procurement-linked supplier companies, with 1 missing-check-digit gap still unanchored, alongside 446 supplier companies with local administrative signals, 3,642 representative links, and 2,518 DNIT identity-validation profiles.

@@ -31,6 +31,7 @@ import {
   stagedRelationshipReviewDecisions,
 } from "./storage/relationshipStagingReview";
 import { serveInternalConsole } from "./server/internalConsole";
+import { servePublicSite } from "./server/publicSite";
 import { applySqlFile } from "./storage/sqlFile";
 import {
   buildAnalystBrief,
@@ -984,6 +985,12 @@ async function runServeInternalConsole(args: string[]): Promise<void> {
   await serveInternalConsole({ host, port });
 }
 
+async function runServePublicWeb(args: string[]): Promise<void> {
+  const host = readArg(args, "--host") ?? "127.0.0.1";
+  const port = readNumberArg(args, "--port", 8788);
+  await servePublicSite({ host, port });
+}
+
 async function main(): Promise<void> {
   const [, , domain, command, ...args] = process.argv;
 
@@ -1142,6 +1149,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (domain === "serve" && command === "public-web") {
+    await runServePublicWeb(args);
+    return;
+  }
+
   throw new Error(
     `Unsupported command. Use one of:
 - tsx src/cli.ts paraguay first-slice
@@ -1175,7 +1187,8 @@ async function main(): Promise<void> {
 - tsx src/cli.ts database entity-source-pack-readiness --limit 25 --source-record-limit 10
 - tsx src/cli.ts database entity-anchor-gaps --limit 50
 - tsx src/cli.ts database rulebook --source-key py-dncp-bulk-2026
-- tsx src/cli.ts serve internal-console --host 127.0.0.1 --port 8787`,
+- tsx src/cli.ts serve internal-console --host 127.0.0.1 --port 8787
+- tsx src/cli.ts serve public-web --host 127.0.0.1 --port 8788`,
   );
 }
 

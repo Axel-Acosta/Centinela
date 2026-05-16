@@ -7,8 +7,8 @@ This is a working estimate, not a promise of exact dates. Centinela is being bui
 - Phase A - Skill, memory, reference universe: about 90-95% of the foundation is done.
 - Phase B - System foundation and internal storage: about 80-88% of the internal foundation is done.
 - Phase C - Paraguay internal implementation: useful internal MVP finish line reached for internal analysis and demonstration.
-- Phase D - Public/product publication layer: about 32-38% is done.
-- Overall long-term product: about 58-65% done, because the internal evidence spine is strong, the local product surface now has graph, artifact, queue, readiness, case-packet, source-index, methodology, source-pack navigation, artifact verification, and smoke-test surfaces, and the first ownership-ready Paraguay company-accountability plus redacted relationship staging/review-governance lane is live. The public product is still early.
+- Phase D - Public/product publication layer: about 40-46% is done.
+- Overall long-term product: about 62-68% done, because the internal evidence spine is strong, the local product surface now has graph, artifact, queue, readiness, case-packet, source-index, methodology, source-pack navigation, artifact verification, and smoke-test surfaces, the first ownership-ready Paraguay company-accountability plus redacted relationship staging/review-governance lane is live, and the first separate public-safe web surface now exists. The public product is still a pilot, not a full public launch.
 
 ## What is already solid
 
@@ -26,6 +26,7 @@ This is a working estimate, not a promise of exact dates. Centinela is being bui
 - Command Center methodology/navigation slice with allowed/blocked claim language, evidence ladder, source verification checklist, publication-safety guidance, and source-pack shortcuts from showcase/dossier/case workspace into real case packets.
 - Command Center artifact/source verification slice with path-containment, source-manifest/index, asset-copy, hash, source-URL, and publication-gate checks plus `npm run smoke:command-center`.
 - Command Center impeccable-guidance slice with a Centinela-local `.impeccable.md` quality contract and a guided proof path from live dossier to case packet to artifact/source verification.
+- Separate public web surface with sanitized read-only `/api/public/*` endpoints, country-scale procurement rule coverage, public-safe company search, a company evidence profile, methodology boundaries, and verified-transparency-profile direction.
 - Abogacia del Tesoro public company beneficial-ownership index connector: 31,649 public company rows parsed and 899 procurement-linked company matches stored as company-level ownership-ready context.
 - Abogacia redacted person-relationship staging and review governance: 1,776 procurement-linked rows are staged as redacted internal review leads, with `needs_more_evidence`, `keep_staged`, `rejected`, and `promote_to_redacted_relationship` governance before any redacted graph promotion.
 - Runtime storage kept outside OneDrive/Git by default.
@@ -47,6 +48,7 @@ The internal MVP is now useful enough for internal review, demonstration, and fo
 - Production authentication and role-based access.
 - Privacy, legal, and publication review.
 - Public methodology and limitations pages.
+- Public web monitoring, rate-limit hardening, backup/refresh policy, and source-redistribution review.
 - Public-safe UX for risk signals, evidence, and source provenance.
 - Public deployment architecture, monitoring, backups, and data-refresh policy.
 - Stronger source licensing and redistribution decisions for copied artifacts.
@@ -56,6 +58,6 @@ The internal MVP is now useful enough for internal review, demonstration, and fo
 - Current analyst/casework source-pack phase: complete enough for internal use; future work should only add selective OCR, alternate document-access handling, or bounded artifact-detail reading where real analysis demands it.
 - First presentable local/internal product surface: first meaningful slice plus graph/artifact/readiness, case-packet/source-index, methodology/navigation, artifact-verification/smoke, and guided proof-path slices achieved; complete enough for internal MVP use unless new analysis exposes a specific interface blocker.
 - First serious Paraguay internal MVP: reached as a practical internal MVP on 2026-05-15 after staged relationship review governance and full procurement-linked Abogacia staging.
-- First public pilot: likely 10-16 more focused runs after the internal MVP, depending on source access and public-safety requirements.
+- First public pilot: the first public web surface is implemented; a stronger public pilot still needs methodology/privacy/legal hardening, monitoring, and a clearer public use case.
 
 The next best work should usually prioritize intelligence value over more console polish, unless the console is blocking actual analysis.
