@@ -1,5 +1,12 @@
 import http from "node:http";
-import { PUBLIC_DISCLAIMER, getPublicEntityProfile, getPublicOverview, searchPublicEntities } from "../storage/publicApi";
+import {
+  PUBLIC_DISCLAIMER,
+  getPublicEntityProfile,
+  getPublicOverview,
+  getPublicRiskStory,
+  searchPublicEntities,
+  searchPublicInstitutions,
+} from "../storage/publicApi";
 
 export interface PublicSiteOptions {
   host?: string;
@@ -100,6 +107,10 @@ async function handlePublicApi(url: URL): Promise<unknown> {
     return getPublicOverview();
   }
 
+  if (url.pathname === "/api/public/risk-story") {
+    return getPublicRiskStory();
+  }
+
   if (url.pathname === "/api/public/entities") {
     const options: { q?: string; limit?: number } = {};
     const q = textParam(url, "q");
@@ -114,6 +125,22 @@ async function handlePublicApi(url: URL): Promise<unknown> {
     }
 
     return searchPublicEntities(options);
+  }
+
+  if (url.pathname === "/api/public/institutions") {
+    const options: { q?: string; limit?: number } = {};
+    const q = textParam(url, "q");
+    const limit = numberParam(url, "limit");
+
+    if (q !== undefined) {
+      options.q = q;
+    }
+
+    if (limit !== undefined) {
+      options.limit = limit;
+    }
+
+    return searchPublicInstitutions(options);
   }
 
   const entityId = parseEntityRoute(url.pathname);
@@ -519,6 +546,39 @@ function publicHtml(): string {
       gap: 0.85rem;
     }
 
+    .story-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .story-lede {
+      color: var(--ink);
+      font-size: 1.02rem;
+      margin-top: 0.7rem;
+    }
+
+    .meter {
+      display: grid;
+      gap: 0.38rem;
+      margin-top: 0.7rem;
+    }
+
+    .meter-track {
+      overflow: hidden;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--panel-strong);
+    }
+
+    .meter-fill {
+      width: var(--meter-width, 0%);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), var(--amber));
+    }
+
     .footer {
       border-top: 1px solid var(--line);
       padding: 2rem 0 3rem;
@@ -538,6 +598,7 @@ function publicHtml(): string {
     @media (max-width: 920px) {
       .hero,
       .split,
+      .story-grid,
       .method-grid {
         grid-template-columns: 1fr;
       }
@@ -593,6 +654,8 @@ function publicHtml(): string {
       <div class="brand"><span class="mark">C</span><span>Centinela</span></div>
       <nav aria-label="Main navigation">
         <a href="#country">Country Lens</a>
+        <a href="#risk-story">Risk Story</a>
+        <a href="#institutions">Institutions</a>
         <a href="#entity">Entity Profile</a>
         <a href="#methodology">Methodology</a>
         <a href="#profile-model">Transparency Profile</a>
@@ -610,6 +673,7 @@ function publicHtml(): string {
         </p>
         <div class="hero-actions">
           <button id="open-demo">Open example profile</button>
+          <button id="open-institution-demo">Open institution lens</button>
           <a class="secondary-link" href="#methodology">See what Centinela can and cannot claim</a>
         </div>
       </div>
@@ -617,7 +681,7 @@ function publicHtml(): string {
         <span class="status">Public pilot surface</span>
         <h2>What this web view exposes</h2>
         <p>
-          This page shows public-safe summaries from the live Centinela database: country-scale procurement signals, company profiles, identity anchors, source-pack status, and limitations.
+          This page shows public-safe summaries from the live Centinela database: country-scale procurement signals, institution lenses, company profiles, identity anchors, source-pack status, and limitations.
         </p>
         <div class="chips">
           <span class="chip safe">Read-only</span>
@@ -650,6 +714,52 @@ function publicHtml(): string {
           <p class="small">A public-safe list of company-level review context. It avoids person-level staged relationship rows and internal analyst notes.</p>
           <div id="risk-lens" class="list"></div>
         </div>
+      </div>
+    </section>
+
+    <section id="risk-story" class="shell section">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">Risk story</div>
+          <h2>A concrete way to read corruption risk</h2>
+        </div>
+        <p>
+          Centinela converts raw public records into a review story: what triggered attention, what evidence exists, what is missing, and what a human should check next.
+        </p>
+      </div>
+      <div id="risk-story-status" class="loading">Loading public risk story...</div>
+      <div class="story-grid">
+        <div class="panel">
+          <h3>Paraguay story</h3>
+          <div id="country-story" class="list"></div>
+        </div>
+        <div class="panel subtle">
+          <h3>What review intensity means</h3>
+          <p class="story-lede">
+            Review intensity is not a corruption score. It is a triage label that rises when public procurement signals, flagged-process share, source-pack context, and reviewed identity context accumulate.
+          </p>
+          <div id="story-limits" class="list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="institutions" class="shell section">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">Institution lens</div>
+          <h2>Buyer institutions with review signals</h2>
+        </div>
+        <p>
+          This lens is useful for oversight prioritization. It must be read with procurement volume, sector, and budget context.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>Search institutions</h3>
+        <div class="search">
+          <input id="institution-query" value="Ministerio de Salud" aria-label="Search institution" />
+          <button id="institution-search">Search</button>
+        </div>
+        <div id="institution-results" class="list"></div>
       </div>
     </section>
 
@@ -740,6 +850,7 @@ function publicHtml(): string {
 
   <script>
     const demoEntityId = 3940;
+    const demoInstitutionId = 223;
 
     function html(value) {
       return String(value ?? '')
@@ -785,6 +896,17 @@ function publicHtml(): string {
         '</div>';
     }
 
+    function reviewMeter(reviewIntensity) {
+      const intensity = reviewIntensity || {};
+      const score = Math.max(0, Math.min(100, Number(intensity.score || 0)));
+      return '<div class="meter" aria-label="Review intensity">' +
+        '<div class="chips">' + chip(intensity.label || 'review intensity', 'review') +
+        chip(score + '/100 triage', '') + '</div>' +
+        '<div class="meter-track"><div class="meter-fill" style="--meter-width:' + score + '%"></div></div>' +
+        '<p class="small">' + html(intensity.explanation || 'A review label, not a finding.') + '</p>' +
+        '</div>';
+    }
+
     function renderOverview(data) {
       const counts = data.counts || {};
       document.getElementById('overview-status').textContent = '';
@@ -826,6 +948,42 @@ function publicHtml(): string {
       }).join('');
     }
 
+    function renderRiskStory(data) {
+      document.getElementById('risk-story-status').textContent = '';
+      const signals = Array.isArray(data.headlineSignals) ? data.headlineSignals : [];
+      const institutions = Array.isArray(data.topInstitutions) ? data.topInstitutions : [];
+      const companies = Array.isArray(data.topCompanies) ? data.topCompanies : [];
+      const limits = Array.isArray(data.limitations) ? data.limitations : [];
+
+      document.getElementById('country-story').innerHTML =
+        signals.map(function(signal) {
+          const body = html(signal.body || '') +
+            (signal.detail ? '<br><span class="small">' + html(signal.detail) + '</span>' : '') +
+            (signal.processCount ? '<br><span class="small">Processes: ' + number(signal.processCount) +
+              ', signal rows: ' + number(signal.evidenceCount) + '.</span>' : '');
+          return item(signal.title || 'Public-record signal', body, [chip('review lead', 'review')]);
+        }).join('') +
+        item(
+          'High-signal institution examples',
+          institutions.slice(0, 3).map(function(row) {
+            return html(row.entity_name) + ' (' + number(row.total_risk_signals) + ' signals)';
+          }).join('; ') || 'No institution examples loaded.',
+          [chip('compare with volume', 'limit')]
+        ) +
+        item(
+          'High-signal company examples',
+          companies.slice(0, 3).map(function(row) {
+            return html(row.entity_name) + ' (' + number(row.total_risk_signals) + ' signals)';
+          }).join('; ') || 'No company examples loaded.',
+          [chip('entity review', 'safe')]
+        );
+
+      document.getElementById('story-limits').innerHTML =
+        limits.map(function(limit) {
+          return item('Limit', html(limit), [chip('public boundary', 'limit')]);
+        }).join('');
+    }
+
     function renderSearchResults(rows) {
       const container = document.getElementById('entity-results');
       if (!rows.length) {
@@ -852,8 +1010,36 @@ function publicHtml(): string {
       });
     }
 
+    function renderInstitutionResults(rows) {
+      const container = document.getElementById('institution-results');
+      if (!rows.length) {
+        container.innerHTML = item('No public institution profile found', 'Try a ministry, municipality, or buyer institution name.', []);
+        return;
+      }
+
+      container.innerHTML = rows.map(function(row) {
+        return '<div class="item"><strong>' + html(row.entity_name) + '</strong>' +
+          '<p>' + number(row.total_process_count) + ' buyer processes, ' +
+          number(row.flagged_process_count) + ' flagged processes, ' +
+          number(row.total_risk_signals) + ' risk signals for review.</p>' +
+          reviewMeter(row.reviewIntensity) +
+          '<div class="chips">' +
+          chip('institution lens', 'safe') +
+          chip('volume context needed', 'limit') +
+          '<button data-open-institution="' + html(row.entity_id) + '">Open institution profile</button>' +
+          '</div></div>';
+      }).join('');
+
+      container.querySelectorAll('[data-open-institution]').forEach(function(button) {
+        button.addEventListener('click', function() {
+          loadEntity(Number(button.getAttribute('data-open-institution'))).catch(showEntityError);
+        });
+      });
+    }
+
     function renderEntityProfile(data) {
       const entity = data.entity || {};
+      const isInstitution = entity.entity_type === 'institution';
       const identifiers = Array.isArray(data.identifiers) ? data.identifiers : [];
       const rules = Array.isArray(data.procurementRiskRules) ? data.procurementRiskRules : [];
       const localProfiles = Array.isArray(data.localProfiles) ? data.localProfiles : [];
@@ -864,16 +1050,19 @@ function publicHtml(): string {
 
       const profile = document.getElementById('entity-profile');
       profile.innerHTML =
-        '<div class="profile-header"><div><div class="eyebrow">Public entity profile</div>' +
+        '<div class="profile-header"><div><div class="eyebrow">' + (isInstitution ? 'Public institution profile' : 'Public company profile') + '</div>' +
         '<h2>' + html(entity.entity_name) + '</h2>' +
-        '<p>Company-level public-record context. This is not a finding of wrongdoing or integrity.</p></div>' +
+        '<p>' + (isInstitution
+          ? 'Buyer-institution procurement context. Higher signal volume can reflect higher purchasing volume and is not a finding of wrongdoing.'
+          : 'Company-level public-record context. This is not a finding of wrongdoing or integrity.') + '</p></div>' +
         '<div class="chips">' + chip(entity.review_priority || 'review priority', 'review') +
         chip(entity.anchor_status || 'anchor status', 'safe') + '</div></div>' +
+        reviewMeter(entity.reviewIntensity) +
         '<div class="profile-grid">' +
         metric('Procurement processes', number(entity.total_process_count)) +
         metric('Processes with signals', number(entity.flagged_process_count)) +
         metric('Risk signals', number(entity.total_risk_signals)) +
-        metric('Supplier contract value', money(entity.supplier_linked_contract_value)) +
+        metric(isInstitution ? 'Buyer contract value' : 'Supplier contract value', money(isInstitution ? entity.buyer_linked_contract_value : entity.supplier_linked_contract_value)) +
         metric('Local profiles', number(entity.local_profile_count)) +
         metric('Source-pack cases', number(cases.length)) +
         '</div>' +
@@ -884,8 +1073,12 @@ function publicHtml(): string {
           return item(identifier.scheme, html(identifier.value), [chip('public identifier', 'safe')]);
         }).join('') : item('No displayed public identifiers', 'Centinela may still have internal source context.', [])) +
         '</div></div>' +
-        '<div><h3>Accepted identity context</h3><div class="list">' +
-        (accepted.length ? accepted.map(function(match) {
+        '<div><h3>' + (isInstitution ? 'Institution review note' : 'Accepted identity context') + '</h3><div class="list">' +
+        (isInstitution ? item(
+          'Institution lenses need context',
+          'A ministry or public institution can trigger many signals because it buys more. Compare this profile with budget, service outcomes, procurement category, and process mix before drawing conclusions.',
+          [chip('not an accusation', 'limit')]
+        ) : accepted.length ? accepted.map(function(match) {
           return item(
             match.external_name || 'Accepted external identity context',
             html(match.rationale || 'Accepted after review with recorded limitations.') +
@@ -895,7 +1088,7 @@ function publicHtml(): string {
         }).join('') : item('No accepted external identity context displayed', 'Absence here is not proof that no external records exist.', [])) +
         '</div></div>' +
         '<div><h3>Private relationship lead summary</h3><div class="list">' +
-        (staged.length ? staged.map(function(row) {
+        (isInstitution ? item('No public person relationship rows', 'This public institution lens does not expose person-level relationship staging.', [chip('privacy boundary', 'limit')]) : staged.length ? staged.map(function(row) {
           return item(
             row.relation_label || row.relation_type,
             number(row.lead_count) + ' redacted lead records. Public display status: ' + html(row.public_display_status || 'blocked') + '.',
@@ -962,10 +1155,26 @@ function publicHtml(): string {
       }
     }
 
+    async function loadRiskStory() {
+      try {
+        const data = await getJson('/api/public/risk-story');
+        renderRiskStory(data);
+      } catch (error) {
+        document.getElementById('risk-story-status').innerHTML =
+          '<div class="item error"><strong>Could not load public risk story</strong><p>' + html(error.message) + '</p></div>';
+      }
+    }
+
     async function searchEntities() {
       const query = document.getElementById('entity-query').value.trim();
       const rows = await getJson('/api/public/entities?q=' + encodeURIComponent(query) + '&limit=8');
       renderSearchResults(rows);
+    }
+
+    async function searchInstitutions() {
+      const query = document.getElementById('institution-query').value.trim();
+      const rows = await getJson('/api/public/institutions?q=' + encodeURIComponent(query) + '&limit=8');
+      renderInstitutionResults(rows);
     }
 
     async function loadEntity(entityId) {
@@ -988,7 +1197,31 @@ function publicHtml(): string {
       loadEntity(demoEntityId).catch(showEntityError);
     });
 
+    document.getElementById('open-institution-demo').addEventListener('click', function() {
+      loadEntity(demoInstitutionId).catch(showEntityError);
+    });
+
+    document.getElementById('institution-search').addEventListener('click', function() {
+      searchInstitutions().catch(function(error) {
+        document.getElementById('institution-results').innerHTML =
+          '<div class="item error"><strong>Could not search institutions</strong><p>' + html(error.message) + '</p></div>';
+      });
+    });
+
+    document.getElementById('institution-query').addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        searchInstitutions().catch(function(error) {
+          document.getElementById('institution-results').innerHTML =
+            '<div class="item error"><strong>Could not search institutions</strong><p>' + html(error.message) + '</p></div>';
+        });
+      }
+    });
+
     loadOverview();
+    loadRiskStory();
+    searchInstitutions().catch(function() {
+      return getJson('/api/public/institutions?limit=5').then(renderInstitutionResults);
+    });
     searchEntities().then(function(rows) {
       if (Array.isArray(rows) && rows[0] && rows[0].entity_id) {
         return loadEntity(Number(rows[0].entity_id));

@@ -16,6 +16,14 @@ export interface PublicEntitySearchOptions extends PublicListOptions {
   q?: string;
 }
 
+interface ReviewIntensityInput {
+  totalProcessCount: unknown;
+  flaggedProcessCount: unknown;
+  totalRiskSignals: unknown;
+  acceptedIdentityContextCount?: unknown;
+  sourcePackCaseCount?: unknown;
+}
+
 function clampLimit(value: number | undefined): number {
   if (!value || !Number.isFinite(value)) {
     return DEFAULT_LIMIT;
@@ -45,6 +53,38 @@ function normalizeRows<T extends Record<string, unknown>>(rows: T[]): Array<Reco
   });
 }
 
+function toNumber(value: unknown): number {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function buildReviewIntensity(input: ReviewIntensityInput): Record<string, unknown> {
+  const totalProcessCount = toNumber(input.totalProcessCount);
+  const flaggedProcessCount = toNumber(input.flaggedProcessCount);
+  const totalRiskSignals = toNumber(input.totalRiskSignals);
+  const acceptedIdentityContextCount = toNumber(input.acceptedIdentityContextCount);
+  const sourcePackCaseCount = toNumber(input.sourcePackCaseCount);
+  const flaggedShare = totalProcessCount > 0 ? flaggedProcessCount / totalProcessCount : 0;
+  const signalDensity = totalProcessCount > 0 ? totalRiskSignals / totalProcessCount : 0;
+  const rawScore =
+    Math.min(45, flaggedShare * 45) +
+    Math.min(35, signalDensity * 14) +
+    Math.min(10, acceptedIdentityContextCount * 5) +
+    Math.min(10, sourcePackCaseCount * 3);
+  const score = Math.round(rawScore);
+  const level = score >= 70 ? "high" : score >= 45 ? "elevated" : score >= 22 ? "moderate" : "baseline";
+
+  return {
+    score,
+    level,
+    flaggedShare: Number(flaggedShare.toFixed(3)),
+    signalDensity: Number(signalDensity.toFixed(2)),
+    label: `${level} review intensity`,
+    explanation:
+      "Review intensity is a public-record triage measure based on linked procurement signals, flagged-process share, source-pack context, and accepted identity context. It is not a corruption score and does not prove wrongdoing.",
+  };
+}
+
 async function withDatabase<T>(work: (client: DbClient, schema: string) => Promise<T>): Promise<T> {
   const { client, schema } = await connectToPostgres();
 
@@ -53,6 +93,128 @@ async function withDatabase<T>(work: (client: DbClient, schema: string) => Promi
   } finally {
     await client.end();
   }
+}
+
+export async function getPublicRiskStory(): Promise<Record<string, unknown>> {
+  return withDatabase(async (client, schema) => {
+    const counts = await client.query<Record<string, unknown>>(
+      `select
+         (select count(*) from ${schema}.procurement_processes)::int as procurement_processes,
+         (select count(*) from ${schema}.contracts)::int as contracts,
+         (select count(*) from ${schema}.risk_signals)::int as procurement_risk_signals,
+         (select count(distinct process_id) from ${schema}.risk_signals)::int as flagged_processes,
+         (select count(*) from ${schema}.risk_rule_registry)::int as active_rules,
+         (select count(*) from ${schema}.entity_local_profiles)::int as local_identity_profiles,
+         (select count(*) from ${schema}.source_records)::int as source_records`,
+    );
+
+    const topRule = await client.query<Record<string, unknown>>(
+      `select
+         code,
+         name,
+         category,
+         public_description,
+         signal_count::int,
+         process_count::int
+       from ${schema}.risk_rule_coverage
+       where signal_count > 0
+       order by signal_count desc, process_count desc, code
+       limit 1`,
+    );
+
+    const topInstitutions = await client.query<Record<string, unknown>>(
+      `select
+         activity.entity_id::text,
+         activity.entity_name,
+         activity.entity_type,
+         activity.buyer_process_count::int as total_process_count,
+         activity.flagged_process_count::int,
+         activity.total_risk_signals::int,
+         activity.buyer_linked_contract_value as linked_contract_value
+       from ${schema}.entity_procurement_activity as activity
+       where activity.entity_type = 'institution'
+         and activity.buyer_process_count > 0
+       order by activity.total_risk_signals desc, activity.flagged_process_count desc, activity.buyer_process_count desc
+       limit 6`,
+    );
+
+    const topCompanies = await client.query<Record<string, unknown>>(
+      `select
+         queue.entity_id::text,
+         queue.entity_name,
+         queue.entity_type,
+         queue.anchor_status,
+         queue.total_process_count::int,
+         queue.flagged_process_count::int,
+         queue.total_risk_signals::int,
+         queue.local_profile_count::int,
+         queue.external_match_count::int,
+         queue.external_review_candidate_count::int
+       from ${schema}.entity_intelligence_review_queue as queue
+       where queue.entity_type = 'company'
+       order by queue.total_risk_signals desc, queue.flagged_process_count desc, queue.total_process_count desc
+       limit 6`,
+    );
+
+    const normalizedCounts = normalizeRows(counts.rows)[0] ?? {};
+    const normalizedTopRule = normalizeRows(topRule.rows)[0] ?? {};
+    const institutions = normalizeRows(topInstitutions.rows).map((row) => ({
+      ...row,
+      reviewIntensity: buildReviewIntensity({
+        totalProcessCount: row.total_process_count,
+        flaggedProcessCount: row.flagged_process_count,
+        totalRiskSignals: row.total_risk_signals,
+      }),
+    }));
+    const companies = normalizeRows(topCompanies.rows).map((row) => ({
+      ...row,
+      reviewIntensity: buildReviewIntensity({
+        totalProcessCount: row.total_process_count,
+        flaggedProcessCount: row.flagged_process_count,
+        totalRiskSignals: row.total_risk_signals,
+        acceptedIdentityContextCount: row.external_match_count,
+      }),
+    }));
+
+    return {
+      disclaimer: PUBLIC_DISCLAIMER,
+      country: "Paraguay",
+      counts: normalizedCounts,
+      headlineSignals: [
+        {
+          title: "Most common active procurement signal",
+          body:
+            normalizedTopRule.name ??
+            "Centinela groups public procurement records through explainable review rules.",
+          detail: normalizedTopRule.public_description,
+          evidenceCount: normalizedTopRule.signal_count,
+          processCount: normalizedTopRule.process_count,
+        },
+        {
+          title: "Institution lens",
+          body:
+            "Centinela can show which buyer institutions have many procurement records with review signals. Higher counts can reflect higher procurement volume and must be compared carefully.",
+          detail:
+            "This lens is useful for prioritizing review, not for accusing a ministry, municipality, or institution.",
+        },
+        {
+          title: "Company lens",
+          body:
+            "Centinela can show a supplier's linked procurement activity, identity anchors, accepted identity context, source packs, and limitations.",
+          detail:
+            "This lens is useful for transparency profiles and due-diligence review, not for certifying that a company is clean or corrupt.",
+        },
+      ],
+      topInstitutions: institutions,
+      topCompanies: companies,
+      limitations: [
+        "Risk signals are review leads, not proof of corruption.",
+        "Large institutions can have more signals simply because they buy more.",
+        "Procurement data alone cannot prove why public services are deficient.",
+        "Person-level relationship rows remain private and redacted unless separate governance permits disclosure.",
+      ],
+    };
+  });
 }
 
 export async function getPublicOverview(): Promise<Record<string, unknown>> {
@@ -215,6 +377,56 @@ export async function searchPublicEntities(
   });
 }
 
+export async function searchPublicInstitutions(
+  options: PublicEntitySearchOptions = {},
+): Promise<Array<Record<string, unknown>>> {
+  const q = asOptionalText(options.q);
+  const limit = clampLimit(options.limit);
+
+  return withDatabase(async (client, schema) => {
+    const result = await client.query<Record<string, unknown>>(
+      `select
+         activity.entity_id::text,
+         activity.entity_name,
+         activity.entity_type,
+         activity.buyer_process_count::int as total_process_count,
+         activity.flagged_process_count::int,
+         activity.total_risk_signals::int,
+         activity.buyer_linked_contract_value as linked_contract_value,
+         activity.first_published_at,
+         activity.last_published_at
+       from ${schema}.entity_procurement_activity as activity
+       where activity.entity_type = 'institution'
+         and activity.buyer_process_count > 0
+         and (
+           $1::text is null
+           or activity.entity_name ilike '%' || $1::text || '%'
+         )
+       order by
+         case
+           when $1::text is not null and lower(activity.entity_name) = lower($1::text) then 4
+           when $1::text is not null and activity.entity_name ilike $1::text || '%' then 3
+           else 1
+         end desc,
+         activity.total_risk_signals desc,
+         activity.flagged_process_count desc,
+         activity.buyer_process_count desc,
+         activity.entity_name
+       limit $2`,
+      [q, limit],
+    );
+
+    return normalizeRows(result.rows).map((row) => ({
+      ...row,
+      reviewIntensity: buildReviewIntensity({
+        totalProcessCount: row.total_process_count,
+        flaggedProcessCount: row.flagged_process_count,
+        totalRiskSignals: row.total_risk_signals,
+      }),
+    }));
+  });
+}
+
 export async function getPublicEntityProfile(entityId: number): Promise<Record<string, unknown>> {
   return withDatabase(async (client, schema) => {
     const entity = await client.query<Record<string, unknown>>(
@@ -230,24 +442,26 @@ export async function getPublicEntityProfile(entityId: number): Promise<Record<s
          entities.canonical_name as entity_name,
          entities.entity_type,
          entities.country_code,
-         activity.total_process_count::int,
-         activity.supplier_process_count::int,
-         activity.flagged_process_count::int,
-         activity.total_risk_signals::int,
+         coalesce(activity.total_process_count, 0)::int as total_process_count,
+         coalesce(activity.buyer_process_count, 0)::int as buyer_process_count,
+         coalesce(activity.supplier_process_count, 0)::int as supplier_process_count,
+         coalesce(activity.flagged_process_count, 0)::int as flagged_process_count,
+         coalesce(activity.total_risk_signals, 0)::int as total_risk_signals,
+         activity.buyer_linked_contract_value,
          activity.supplier_linked_contract_value,
          activity.supplier_linked_paid_amount,
          activity.first_published_at,
          activity.last_published_at,
-         queue.anchor_status,
-         queue.review_priority,
-         queue.review_lane,
-         queue.lead_question,
-         queue.recommended_action,
-         queue.local_profile_count::int,
-         queue.local_signal_count::int,
-         queue.external_match_count::int,
-         queue.external_review_candidate_count::int,
-         queue.representative_count::int,
+         coalesce(queue.anchor_status, 'not_applicable') as anchor_status,
+         coalesce(queue.review_priority, 'institution_lens') as review_priority,
+         coalesce(queue.review_lane, 'public_record_review') as review_lane,
+         coalesce(queue.lead_question, 'Which procurement signal families should be reviewed first for this institution?') as lead_question,
+         coalesce(queue.recommended_action, 'Compare signal families, procurement volume, and source records before drawing conclusions.') as recommended_action,
+         coalesce(queue.local_profile_count, 0)::int as local_profile_count,
+         coalesce(queue.local_signal_count, 0)::int as local_signal_count,
+         coalesce(queue.external_match_count, 0)::int as external_match_count,
+         coalesce(queue.external_review_candidate_count, 0)::int as external_review_candidate_count,
+         coalesce(queue.representative_count, 0)::int as representative_count,
          coalesce(staged_relationship_summary.staged_relationship_lead_count, 0)::int as staged_relationship_lead_count
        from ${schema}.entities as entities
        left join ${schema}.entity_procurement_activity as activity
@@ -257,14 +471,14 @@ export async function getPublicEntityProfile(entityId: number): Promise<Record<s
        left join staged_relationship_summary
          on staged_relationship_summary.entity_id = entities.id
        where entities.id = $1
-         and entities.entity_type = 'company'
+         and entities.entity_type in ('company', 'institution')
        limit 1`,
       [entityId],
     );
 
     const entityRow = normalizeRows(entity.rows)[0];
     if (!entityRow) {
-      const error = new Error("Public entity profile not found.");
+      const error = new Error("Public company or institution profile not found.");
       (error as Error & { statusCode?: number }).statusCode = 404;
       throw error;
     }
@@ -419,16 +633,28 @@ export async function getPublicEntityProfile(entityId: number): Promise<Record<s
       [entityId],
     );
 
+    const sourcePackRows = normalizeRows(cases.rows);
+    const entityWithIntensity = {
+      ...entityRow,
+      reviewIntensity: buildReviewIntensity({
+        totalProcessCount: entityRow.total_process_count,
+        flaggedProcessCount: entityRow.flagged_process_count,
+        totalRiskSignals: entityRow.total_risk_signals,
+        acceptedIdentityContextCount: entityRow.external_match_count,
+        sourcePackCaseCount: sourcePackRows.length,
+      }),
+    };
+
     return {
       disclaimer: PUBLIC_DISCLAIMER,
-      entity: entityRow,
+      entity: entityWithIntensity,
       identifiers: normalizeRows(identifiers.rows),
       procurementRiskRules: normalizeRows(riskRules.rows),
       localProfiles: normalizeRows(localProfiles.rows),
       sourceMentions: normalizeRows(sourceMentions.rows),
       acceptedIdentityContext: normalizeRows(acceptedMatches.rows),
       privateRelationshipLeadSummary: normalizeRows(stagedRelationships.rows),
-      sourcePackCases: normalizeRows(cases.rows),
+      sourcePackCases: sourcePackRows,
       publicBoundary: {
         relationshipLeads:
           "Counts are shown only as privacy-protective review context. Person-level rows, names, document numbers, and addresses are not exposed here.",
